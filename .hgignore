@@ -97,3 +97,11 @@ htmlcov/
 *.gcno
 *.gcov
 coverage.info
+MorphOS/objs
+MorphOS/libs
+MorphOS/deps
+MorphOS/libprotos.h
+MorphOS/mapfile.txt
+MorphOS/syms.func
+*.library
+*.db
