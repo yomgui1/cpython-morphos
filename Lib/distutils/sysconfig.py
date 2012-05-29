@@ -27,7 +27,10 @@ EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
 # different (hard-wired) directories.
 
 argv0_path = os.path.dirname(os.path.abspath(sys.executable))
-landmark = os.path.join(argv0_path, "Modules", "Setup")
+if os.name == "morphos":
+    landmark = os.path.join(argv0_path, "pyconfig.h")
+else:
+    landmark = os.path.join(argv0_path, "Modules", "Setup")
 
 python_build = os.path.isfile(landmark)
 
@@ -75,6 +78,21 @@ def get_python_inc(plat_specific=0, prefix=None):
             return os.path.join(prefix, "Include")
     elif os.name == "os2":
         return os.path.join(prefix, "Include")
+    elif os.name == "morphos":
+        if python_build:
+            return os.path.join(os.curdir, "MorphOS", "include")
+        else:
+            # Includes dir is pointed by PYTHONINCLUDEDIR on morphos
+            # By default it's in usr:local/include/pythonX.Y
+            python_dir = "python" + get_python_version()
+            if os.environ.has_key("PYTHONINCLUDEDIR"):
+                incdir = os.environ["PYTHONINCLUDEDIR"]
+            else:
+                incdir = "usr:local/include"
+            if plat_specific:
+                return incdir
+            else:
+                return os.path.join(incdir, python_dir)
     else:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
@@ -133,6 +151,20 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         else:
             return os.path.join(PREFIX, "Lib", "site-packages")
 
+    elif os.name == "morphos":
+        # PREFIX = SYS: or PROGDIR: if build python
+        # EXEC_PREFIX = PREFIX or PROGDIR: if build python
+        base = os.path.join(prefix,
+                            "Libs",
+                            "python" + get_python_version())
+        if standard_lib:
+            if plat_specific:
+                return os.path.join(base, "lib-dynload")
+            else:
+                return base
+        else:
+            return os.path.join(base, "site-packages")
+ 
     else:
         raise DistutilsPlatformError(
             "I don't know where Python installs its library "
@@ -145,7 +177,7 @@ def customize_compiler(compiler):
     Mainly needed on Unix, so we can plug in the information that
     varies across Unices and is stored in Python's Makefile.
     """
-    if compiler.compiler_type == "unix":
+    if compiler.compiler_type in ("unix", "mos"):
         (cc, cxx, opt, cflags, ccshared, ldshared, so_ext) = \
             get_config_vars('CC', 'CXX', 'OPT', 'CFLAGS',
                             'CCSHARED', 'LDSHARED', 'SO')
@@ -471,6 +503,43 @@ def _init_os2():
 
     g['SO'] = '.pyd'
     g['EXE'] = ".exe"
+
+    global _config_vars
+    _config_vars = g
+
+
+def _init_morphos():
+    """Initialize the module as appropriate for MorphOS systems"""
+    g = {}
+
+    defines = """AROS_ALMOST_COMPATIBLE USE_INLINE_STDARG"""
+    
+    # set basic install directories
+    g['LIBDEST'] = get_python_lib(plat_specific=0, standard_lib=1)
+    g['BINLIBDEST'] = get_python_lib(plat_specific=1, standard_lib=1)
+
+    # XXX hmmm.. a normal install puts include files here
+    g['INCLUDEPY'] = get_python_inc(plat_specific=0)
+
+    g['CC'] = 'gcc'
+    g['CPP'] = 'gcc -E'
+    g['CXX'] = 'g++'
+    g['CCSHARED'] = ''
+    if python_build:
+        pym_lib = '.'
+    else:
+        pym_lib = os.path.join(os.path.dirname(get_python_inc(plat_specific=1)), 'lib')
+    g['LDSHARED'] = ' '.join([g['CC'], '-noixemul -nostartfiles -Wl,--traditional-format', '-L' + pym_lib])
+    g['BASECFLAGS'] = '-noixemul -pipe -fomit-frame-pointer ' + ' '.join(' -D'+x for x in defines.split())
+    g['OPT'] = '-O2 -mmultiple -mstring -mregnames -fno-strict-aliasing  -fcall-saved-r13 -ffixed-13'
+
+    g['CFLAGS'] = g['OPT'] + ' ' + g['BASECFLAGS']
+ 
+    g['BINDIR'] = ''
+    g['EXE'] = ''
+    g['SO'] = '.pym'
+
+    g['srcdir'] = os.path.dirname(os.path.abspath(sys.executable))
 
     global _config_vars
     _config_vars = g

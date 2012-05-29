@@ -1698,6 +1698,9 @@ PyOS_getsig(int sig)
 		return SIG_ERR;
 	return context.sa_handler;
 #else
+#ifdef __MORPHOS__
+    return (PyOS_sighandler_t) -1;
+#else
 	PyOS_sighandler_t handler;
 /* Special signal handling for the secure CRT in Visual Studio 2005 */
 #if defined(_MSC_VER) && _MSC_VER >= 1400
@@ -1721,6 +1724,7 @@ PyOS_getsig(int sig)
 		signal(sig, handler);
 	return handler;
 #endif
+#endif /* __MORPHOS__ */
 }
 
 PyOS_sighandler_t
@@ -1735,6 +1739,9 @@ PyOS_setsig(int sig, PyOS_sighandler_t handler)
 		return SIG_ERR;
 	return ocontext.sa_handler;
 #else
+#ifdef __MORPHOS__
+    return (PyOS_sighandler_t) -1;
+#else
 	PyOS_sighandler_t oldhandler;
 	oldhandler = signal(sig, handler);
 #ifdef HAVE_SIGINTERRUPT
@@ -1742,6 +1749,7 @@ PyOS_setsig(int sig, PyOS_sighandler_t handler)
 #endif
 	return oldhandler;
 #endif
+#endif /* __MORPHOS__ */
 }
 
 /* Deprecated C API functions still provided for binary compatiblity */

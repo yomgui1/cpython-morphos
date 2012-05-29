@@ -7,7 +7,9 @@ extern "C" {
 
 /* Bitset interface */
 
+#ifndef BYTE
 #define BYTE		char
+#endif
 
 typedef BYTE *bitset;
 
@@ -18,7 +20,9 @@ int addbit(bitset bs, int ibit); /* Returns 0 if already set */
 int samebitset(bitset bs1, bitset bs2, int nbits);
 void mergebitset(bitset bs1, bitset bs2, int nbits);
 
+#ifndef BITSPERBYTE
 #define BITSPERBYTE	(8*sizeof(BYTE))
+#endif
 #define NBYTES(nbits)	(((nbits) + BITSPERBYTE - 1) / BITSPERBYTE)
 
 #define BIT2BYTE(ibit)	((ibit) / BITSPERBYTE)

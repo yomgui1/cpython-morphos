@@ -668,6 +668,12 @@ SRE_INFO(SRE_STATE* state, SRE_CODE* pattern)
         state->lastindex = ctx->lastindex; \
     } while (0)
 
+#ifdef __MORPHOS__
+#undef RETURN_ERROR
+#undef RETURN_FAILURE
+#undef RETURN_SUCCESS
+#endif
+
 #define RETURN_ERROR(i) do { return i; } while(0)
 #define RETURN_FAILURE do { ret = 0; goto exit; } while(0)
 #define RETURN_SUCCESS do { ret = 1; goto exit; } while(0)

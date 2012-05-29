@@ -1,6 +1,6 @@
 """distutils.archive_util
 
-Utility functions for creating archive files (tarballs, zip files,
+Utility functions for creating archive files (tarballs, zip files, lha files,
 that sort of thing)."""
 
 # This module should be kept compatible with Python 2.1.
@@ -114,12 +114,48 @@ def make_zipfile (base_name, base_dir, verbose=0, dry_run=0):
 # make_zipfile ()
 
 
+def make_lhafile (base_name, base_dir, verbose=0, dry_run=0):
+    """Create a lha file from all the files under 'base_dir'.  The output
+    zip file will be named 'base_dir' + ".lha".  Uses the "lha" utility
+    (if available and found on the default search path).
+    If neither tool is available, raises DistutilsExecError.
+    Returns the name of the output lha file.
+    """
+
+    lha_filename = base_name + ".lha"
+    mkpath(os.path.dirname(lha_filename), dry_run=dry_run)
+
+    base_dir = os.path.join(base_dir, "#?")
+
+    lhaoptions = "r -xra3"
+    if not verbose:
+        lhaoptions += "q"
+
+    try:
+        os.remove(lha_filename)
+    except OSError:
+        pass
+
+    try:
+        spawn(["lha", lhaoptions, lha_filename, base_dir],
+              dry_run=dry_run)
+    except DistutilsExecError:
+        raise DistutilsExecError, \
+              ("unable to create lha file '%s': "
+               "could not find a standalone lha utility") % lha_filename
+
+    return lha_filename
+
+# make_lhafile ()
+
+
 ARCHIVE_FORMATS = {
     'gztar': (make_tarball, [('compress', 'gzip')], "gzip'ed tar-file"),
     'bztar': (make_tarball, [('compress', 'bzip2')], "bzip2'ed tar-file"),
     'ztar':  (make_tarball, [('compress', 'compress')], "compressed tar file"),
     'tar':   (make_tarball, [('compress', None)], "uncompressed tar file"),
-    'zip':   (make_zipfile, [],"ZIP file")
+    'zip':   (make_zipfile, [],"ZIP file"),
+    'lha':   (make_lhafile, [],"LHA file")
     }
 
 def check_archive_formats (formats):
@@ -132,9 +168,9 @@ def check_archive_formats (formats):
 def make_archive (base_name, format,
                   root_dir=None, base_dir=None,
                   verbose=0, dry_run=0):
-    """Create an archive file (eg. zip or tar).  'base_name' is the name
+    """Create an archive file (eg. lha, zip or tar).  'base_name' is the name
     of the file to create, minus any format-specific extension; 'format'
-    is the archive format: one of "zip", "tar", "ztar", or "gztar".
+    is the archive format: one of "lha", "zip", "tar", "ztar" or "gztar".
     'root_dir' is a directory that will be the root directory of the
     archive; ie. we typically chdir into 'root_dir' before creating the
     archive.  'base_dir' is the directory where we start archiving from;

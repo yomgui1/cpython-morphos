@@ -97,9 +97,14 @@ class build_scripts (Command):
                 if not self.dry_run:
                     outf = open(outfile, "w")
                     if not sysconfig.python_build:
-                        outf.write("#!%s%s\n" %
-                                   (self.executable,
-                                    post_interp))
+                        if os.name == 'morphos':
+                            outf.write("#!%s%s\n" %
+                                       (os.path.basename(self.executable),
+                                        post_interp))
+                        else:
+                            outf.write("#!%s%s\n" %
+                                       (self.executable,
+                                        post_interp))
                     else:
                         outf.write("#!%s%s\n" %
                                    (os.path.join(

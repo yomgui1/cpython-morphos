@@ -309,7 +309,11 @@ convert_to_double(PyObject **v, double *dbl)
 
 */
 
+#ifndef __MORPHOS__
 #define PREC_REPR	17
+#else
+#define PREC_REPR	15
+#endif
 #define PREC_STR	12
 
 /* XXX PyFloat_AsString and PyFloat_AsReprString should be deprecated:

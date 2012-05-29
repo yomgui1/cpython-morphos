@@ -180,6 +180,9 @@ def addsitepackages(known_paths):
         if prefix:
             if sys.platform in ('os2emx', 'riscos'):
                 sitedirs = [os.path.join(prefix, "Lib", "site-packages")]
+            elif os.name == 'morphos':
+                sitedirs = ["LIBS:python" + sys.version[:3] + "/site-packages",
+                            os.path.join(prefix, "Lib/site-packages")]
             elif os.sep == '/':
                 sitedirs = [os.path.join(prefix,
                                          "lib",
@@ -229,7 +232,7 @@ def setquit():
     These are simply strings that display a hint on how to exit.
 
     """
-    if os.sep == ':':
+    if os.sep == ':' or os.name == 'morphos':
         eof = 'Cmd-Q'
     elif os.sep == '\\':
         eof = 'Ctrl-Z plus Return'

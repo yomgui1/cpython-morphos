@@ -825,6 +825,10 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 #ifdef WITH_TSC
 			ticked = 1;
 #endif
+#ifdef __MORPHOS__
+            if (PyOS_InterruptOccurred())
+                PyErr_SetNone(PyExc_KeyboardInterrupt);
+#endif
 			if (things_to_do) {
 				if (Py_MakePendingCalls() < 0) {
 					why = WHY_EXCEPTION;

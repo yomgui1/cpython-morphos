@@ -15,7 +15,7 @@
 static PyObject *crypt_crypt(PyObject *self, PyObject *args)
 {
 	char *word, *salt; 
-#ifndef __VMS
+#if !defined(__VMS) && !defined(__MORPHOS__)
 	extern char * crypt(const char *, const char *);
 #endif
 

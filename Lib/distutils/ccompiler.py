@@ -1064,6 +1064,7 @@ _default_compilers = (
     ('posix', 'unix'),
     ('nt', 'msvc'),
     ('mac', 'mwerks'),
+    ('morphos', 'mos'),
 
     )
 
@@ -1107,6 +1108,8 @@ compiler_class = { 'unix':    ('unixccompiler', 'UnixCCompiler',
                                "MetroWerks CodeWarrior"),
                    'emx':     ('emxccompiler', 'EMXCCompiler',
                                "EMX port of GNU C Compiler for OS/2"),
+                   'mos':     ('mosccompiler', 'MOSCCompiler',
+                               "standard MorphOS-style compiler")
                  }
 
 def show_compilers():

@@ -60,7 +60,8 @@ class bdist (Command):
     # Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.
     default_format = { 'posix': 'gztar',
                        'nt': 'zip',
-                       'os2': 'zip', }
+                       'os2': 'zip',
+                        'morphos': 'lha', }
 
     # Establish the preferred order (for the --help-formats option).
     format_commands = ['rpm', 'gztar', 'bztar', 'ztar', 'tar',
@@ -78,6 +79,8 @@ class bdist (Command):
                        'wininst': ('bdist_wininst',
                                    "Windows executable installer"),
                        'zip':   ('bdist_dumb', "ZIP file"),
+                       'lha':   ('bdist_dumb', "LHA file"),
+                       
                        #'pkgtool': ('bdist_pkgtool',
                        #            "Solaris pkgtool distribution"),
                        #'sdux':  ('bdist_sdux', "HP-UX swinstall depot"),

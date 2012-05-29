@@ -1362,6 +1362,48 @@ PySys_SetArgv(int argc, char **argv)
 					n--; /* Drop trailing separator */
 			}
 		}
+#elif defined __MORPHOS__ /* special case for MORPHOS syntax */
+        {
+            BPTR progdirlock = 0;
+            char fullpath[MAXPATHLEN];
+
+            if ((argc > 0) && (argv0 != NULL) && (strcmp(argv0, "-c") != 0))
+            {
+                char c;
+
+                if (PyMorphOS_GetFullPath(argv0, fullpath, MAXPATHLEN))
+                    argv0 = fullpath;
+
+                p = PathPart(argv0);
+                if (p != NULL)
+                {
+                    n = p - argv0;
+                    c = *p;
+                    *p = '\0';
+                }
+
+                progdirlock = Lock(argv0, SHARED_LOCK);
+
+                if (p != NULL)
+                    *p = c;
+            }
+
+            /* Choose a correct directory for PROGDIR: */
+            if (!progdirlock)
+            {
+                if (GetCurrentDirName(fullpath, sizeof(MAXPATHLEN)))
+                    progdirlock = Lock(fullpath, SHARED_LOCK);
+            }
+
+            if (progdirlock)
+            {
+                extern void _PyMorphOS_SetProgDir(BPTR lock); /* from MorpOS/morphos.c */
+
+                _PyMorphOS_SetProgDir(progdirlock);
+            }
+
+            /* Don't change anything if nothing suitable found */
+        }
 #else /* All other filename syntaxes */
 		if (argc > 0 && argv0 != NULL && strcmp(argv0, "-c") != 0) {
 #if defined(HAVE_REALPATH)

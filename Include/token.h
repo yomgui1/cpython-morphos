@@ -72,7 +72,9 @@ extern "C" {
 #define ISEOF(x)		((x) == ENDMARKER)
 
 
+#if !defined(__MORPHOS__) || !defined(LIB_PYTHON_GVARS_H)
 PyAPI_DATA(char *) _PyParser_TokenNames[]; /* Token names */
+#endif
 PyAPI_FUNC(int) PyToken_OneChar(int);
 PyAPI_FUNC(int) PyToken_TwoChars(int, int);
 PyAPI_FUNC(int) PyToken_ThreeChars(int, int, int);

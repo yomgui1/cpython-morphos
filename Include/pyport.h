@@ -795,4 +795,8 @@ typedef	struct fd_set {
 #define Py_ULL(x) Py_LL(x##U)
 #endif
 
+#if defined(__MORPHOS__)
+#include <clib/dos_protos.h> /* this include permit to not break this file by a Python type */
+#endif
+
 #endif /* Py_PYPORT_H */

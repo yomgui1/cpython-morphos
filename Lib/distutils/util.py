@@ -130,7 +130,7 @@ def convert_path (pathname):
     ValueError on non-Unix-ish systems if 'pathname' either starts or
     ends with a slash.
     """
-    if os.sep == '/':
+    if os.name != 'morphos' and os.sep == '/':
         return pathname
     if not pathname:
         return pathname
@@ -181,6 +181,10 @@ def change_root (new_root, pathname):
             elements = string.split(pathname, ":", 1)
             pathname = ":" + elements[1]
             return os.path.join(new_root, pathname)
+
+    elif os.name == 'morphos':
+        (drive, path) = os.path.splitdrive(pathname)
+        return os.path.join(new_root, path)
 
     else:
         raise DistutilsPlatformError, \

@@ -39,6 +39,8 @@ def spawn (cmd,
         _spawn_nt(cmd, search_path, dry_run=dry_run)
     elif os.name == 'os2':
         _spawn_os2(cmd, search_path, dry_run=dry_run)
+    elif os.name == 'morphos':
+        _spawn_morphos(cmd, search_path, dry_run=dry_run)
     else:
         raise DistutilsPlatformError, \
               "don't know how to spawn programs on platform '%s'" % os.name
@@ -110,6 +112,29 @@ def _spawn_os2 (cmd,
         if rc != 0:
             # and this reflects the command running but failing
             print "command '%s' failed with exit status %d" % (cmd[0], rc)
+            raise DistutilsExecError, \
+                  "command '%s' failed with exit status %d" % (cmd[0], rc)
+
+
+def _spawn_morphos(cmd,
+                   search_path=1,
+                   verbose=0,
+                   dry_run=0):
+
+    executable = cmd[0]
+    if search_path:
+        # either we find one or it stays the same
+        executable = find_executable(executable) or executable
+    log.info(' '.join([executable] + cmd[1:]))
+    if not dry_run:
+        try:
+            rc = os.system(' '.join([executable] + cmd[1:]))
+        except OSError, exc:
+            # this seems to happen when the command isn't found
+            raise DistutilsExecError, \
+                  "command '%s' failed: %s" % (cmd[0], exc[-1])
+        if rc != 0:
+            # and this reflects the command running but failing
             raise DistutilsExecError, \
                   "command '%s' failed with exit status %d" % (cmd[0], rc)
 

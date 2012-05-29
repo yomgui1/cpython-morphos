@@ -29,6 +29,15 @@ extern "C" {
 #define DELIM ','
 #endif
 
+#ifdef __MORPHOS__
+#define SEP '/'
+/* Note: ':' couldn't be used as an ALTSEP
+** as it just used to separate volume name and path names.
+*/
+#undef ALTSEP
+#define DELIM ';'
+#endif /* __MORPHOS__ */
+
 
 /* Filename separator */
 #ifndef SEP

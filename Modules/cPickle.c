@@ -2,6 +2,10 @@
 #include "cStringIO.h"
 #include "structmember.h"
 
+#ifdef __MORPHOS__
+#undef GLOBAL
+#endif
+
 PyDoc_STRVAR(cPickle_module_documentation,
 "C implementation and optimization of the Python pickle module.");
 

@@ -280,6 +280,19 @@ PyErr_SetFromErrnoWithFilenameObject(PyObject *exc, PyObject *filenameObject)
 #ifdef PLAN9
 	rerrstr(errbuf, sizeof errbuf);
 	s = errbuf;
+#elif defined(__MORPHOS__)
+    if (i <= 0)
+    {
+        char errbuf[81+14];
+ 
+        i = IoErr();
+        if ((i > 0) && (Fault(i, "AmigaDOS Error", errbuf, sizeof(errbuf)) > 0))
+            s = errbuf;
+        else
+            s = "Error";
+    }
+    else
+        s = strerror(i);
 #else
 	if (i == 0)
 		s = "Error"; /* Sometimes errno didn't get set */

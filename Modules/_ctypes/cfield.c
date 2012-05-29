@@ -885,6 +885,23 @@ q_set(void *ptr, PyObject *value, unsigned size)
 	_RET(value);
 }
 
+#ifdef __MORPHOS__
+#include <hardware/byteswap.h>
+static PyObject *
+q_set_sw(void *ptr, PyObject *value, unsigned size)
+{
+	PY_LONG_LONG val;
+	PY_LONG_LONG field;
+	if (get_longlong(value, &val) < 0)
+		return NULL;
+	memcpy(&field, ptr, sizeof(field));
+	field = ((PY_LONG_LONG)SWAPLONG((ULONG)field)) << 32 | SWAPLONG((ULONG)(field>>32));
+	field = (PY_LONG_LONG)SET(field, val, size);
+	field = ((PY_LONG_LONG)SWAPLONG((ULONG)field)) << 32 | SWAPLONG((ULONG)(field>>32));
+	memcpy(ptr, &field, sizeof(field));
+	_RET(value);
+}
+#else
 static PyObject *
 q_set_sw(void *ptr, PyObject *value, unsigned size)
 {
@@ -899,6 +916,7 @@ q_set_sw(void *ptr, PyObject *value, unsigned size)
 	memcpy(ptr, &field, sizeof(field));
 	_RET(value);
 }
+#endif
 
 static PyObject *
 q_get(void *ptr, unsigned size)
@@ -932,6 +950,23 @@ Q_set(void *ptr, PyObject *value, unsigned size)
 	_RET(value);
 }
 
+#ifdef __MORPHOS__
+#include <hardware/byteswap.h>
+static PyObject *
+Q_set_sw(void *ptr, PyObject *value, unsigned size)
+{
+	unsigned PY_LONG_LONG val;
+	unsigned PY_LONG_LONG field;
+	if (get_ulonglong(value, &val) < 0)
+		return NULL;
+	memcpy(&field, ptr, sizeof(field));
+	field = ((PY_LONG_LONG)SWAPLONG((ULONG)field)) << 32 | SWAPLONG((ULONG)(field>>32));
+	field = (unsigned PY_LONG_LONG)SET(field, val, size);
+	field = ((PY_LONG_LONG)SWAPLONG((ULONG)field)) << 32 | SWAPLONG((ULONG)(field>>32));
+	memcpy(ptr, &field, sizeof(field));
+	_RET(value);
+}
+#else
 static PyObject *
 Q_set_sw(void *ptr, PyObject *value, unsigned size)
 {
@@ -946,6 +981,7 @@ Q_set_sw(void *ptr, PyObject *value, unsigned size)
 	memcpy(ptr, &field, sizeof(field));
 	_RET(value);
 }
+#endif
 
 static PyObject *
 Q_get(void *ptr, unsigned size)

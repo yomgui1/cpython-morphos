@@ -80,7 +80,8 @@ class sdist (Command):
                     'no-prune': 'prune' }
 
     default_format = { 'posix': 'gztar',
-                       'nt': 'zip' }
+                       'nt': 'zip',
+                       'morphos': 'lha' }
 
     def initialize_options (self):
         # 'template' and 'manifest' are, respectively, the names of

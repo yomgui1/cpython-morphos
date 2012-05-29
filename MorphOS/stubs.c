@@ -1,0 +1,12 @@
+void dup(void) {}
+void dup2(void) {}
+void fcntl(void) {}
+void __get_handle(void) {}
+void wcslen(void) {}
+void wcschr(void) {}
+void wcscmp(void) {}
+void wcsrchr(void) {}
+void wcsncpy(void) {}
+void wcscpy(void) {}
+void ftruncate(void) {}
+void wcsftime(void) {}

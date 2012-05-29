@@ -65,6 +65,13 @@ INSTALL_SCHEMES = {
         'headers': '$base/Include/$dist_name',
         'scripts': '$base/Scripts',
         'data'   : '$base',
+        },
+    'morphos': {
+        'purelib': '$base/Libs/python$py_version_short/site-packages',
+        'platlib': '$base/Libs/python$py_version_short/site-packages',
+        'headers': 'usr:local/include/$dist_name',
+        'scripts': '$base/C',
+        'data'   : 'usr:local',
         }
     }
 
@@ -399,7 +406,7 @@ class install (Command):
     # finalize_unix ()
 
 
-    def finalize_other (self):          # Windows and Mac OS for now
+    def finalize_other (self):          # Windows/Mac OS/MorphOS for now
 
         if self.home is not None:
             self.install_base = self.install_platbase = self.home

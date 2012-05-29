@@ -2065,6 +2065,10 @@ delta_reduce(PyDateTime_Delta* self)
 	return Py_BuildValue("ON", self->ob_type, delta_getstate(self));
 }
 
+#ifdef __MORPHOS__
+#undef OFFSET
+#endif
+
 #define OFFSET(field)  offsetof(PyDateTime_Delta, field)
 
 static PyMemberDef delta_members[] = {

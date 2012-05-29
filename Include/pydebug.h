@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#if defined(__MORPHOS__) && defined(Py_BUILD_CORE)
+#include "mosdebug.h"
+#endif
+
 PyAPI_DATA(int) Py_DebugFlag;
 PyAPI_DATA(int) Py_VerboseFlag;
 PyAPI_DATA(int) Py_InteractiveFlag;

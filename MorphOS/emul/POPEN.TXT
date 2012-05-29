@@ -1,0 +1,60 @@
+popen(3S)                                                         popen(3S)
+
+
+
+
+ NAME
+      popen(), pclose() - initiate pipe I/O to/from a process
+
+ SYNOPSIS
+      #include <stdio.h>
+
+      FILE *popen(const char *command, const char *type);
+
+      int pclose(FILE *stream);
+
+ DESCRIPTION
+      popen() creates a pipe between the calling program and a command to be
+      executed by the POSIX shell, /usr/bin/sh (see sh-posix(1)).
+
+      The arguments to popen() are pointers to null-terminated strings
+      containing, respectively, a shell command line and an I/O mode, either
+      r for reading or w for writing.
+
+      popen() returns a stream pointer such that one can write to the
+      standard input of the command if the I/O mode is w by writing to the
+      file stream; and one can read from the standard output of the command
+      if the I/O mode is r by reading from the file stream.
+
+      A stream opened by popen() should be closed by pclose(), which waits
+      for the associated process to terminate and returns the exit status of
+      the command.
+
+      Because open files are shared, a type r command can be used as an
+      input filter and a type w command as an output filter.
+
+ APPLICATION USAGE
+      popen() and pclose() are thread-safe.  These interfaces are not
+      async-cancel-safe. A cancellation point may occur when a thread is
+      executing popen() or pclose().
+
+ RETURN VALUE
+      popen() returns a NULL pointer if files or processes cannot be
+      created.  The success of the command execution can be checked by
+      examining the return value of pclose().
+
+      pclose() returns -1 if stream is not associated with a popen()ed
+      command, or 127 if /usr/bin/sh could not be executed for some reason.
+
+ WARNINGS
+      If the original and popen()ed processes concurrently read or write a
+      common file, neither should use buffered I/O because the buffering
+      will not work properly.  Problems with an output filter can be
+      forestalled by careful buffer flushing, e.g., with fflush(); see
+      fclose(3S).
+
+
+
+
+
+ Hewlett-Packard Company            - 1 -  HP-UX Release 11.00: October 1997

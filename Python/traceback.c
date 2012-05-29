@@ -139,6 +139,9 @@ tb_displayline(PyObject *f, char *filename, int lineno, char *name)
 		/* Search tail of filename in sys.path before giving up */
 		PyObject *path;
 		char *tail = strrchr(filename, SEP);
+#ifdef __MORPHOS__
+        if (NULL == tail) tail = strrchr(filename, ':');
+#endif
 		if (tail == NULL)
 			tail = filename;
 		else
@@ -163,9 +166,17 @@ tb_displayline(PyObject *f, char *filename, int lineno, char *name)
 					strcpy(namebuf, PyString_AsString(v));
 					if (strlen(namebuf) != len)
 						continue; /* v contains '\0' */
+#ifdef __MORPHOS__
+                    if (!AddPart(namebuf, tail, sizeof(namebuf)))
+                    {
+                        PyErr_SetString(PyExc_OverflowError, "namebuf too short");
+                        return -1;
+                    }
+#else
 					if (len > 0 && namebuf[len-1] != SEP)
 						namebuf[len++] = SEP;
 					strcpy(namebuf+len, tail);
+#endif
 					xfp = fopen(namebuf, "r" PY_STDIOTEXTMODE);
 					if (xfp != NULL) {
 						filename = namebuf;

@@ -1629,6 +1629,32 @@ case_ok(char *buf, Py_ssize_t len, Py_ssize_t namelen, char *name)
 		return 0;
 	return strncmp(ffbuf.achName, name, namelen) == 0;
 
+/* MorphOS */
+#elif defined(__MORPHOS__)
+    BPTR lock;
+    LONG result = 0;
+    char myBuf[FILENAME_MAX+1];
+    STRPTR buf2 = myBuf;
+
+    if (GetVar("PYTHONCASEOK", buf2, 1, GVF_BINARY_VAR|GVF_DONT_NULL_TERM) >= 0)
+        return 1;
+
+    lock = Lock(buf, ACCESS_READ);
+    if (0 != lock)
+    {
+        result = NameFromLock(lock, buf2, FILENAME_MAX+1);
+        buf = FilePart(buf);
+        buf2 = FilePart(buf2);
+        if (result && (strcmp(buf, buf2) == 0))
+            result = 1;
+        else
+            result = 0;
+
+        UnLock(lock);
+    }
+
+    return result;
+
 /* assuming it's a case-sensitive filesystem, so there's nothing to do! */
 #else
 	return 1;

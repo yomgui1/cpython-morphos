@@ -59,6 +59,12 @@ enum HandlerTypes {
 
 static PyObject *ErrorObject;
 
+#ifdef __MORPHOS__
+static long saved_reg;
+void _save_register(long value) __attribute__ ((noinline));
+void _save_register(long value) { saved_reg = value; }
+#endif
+
 /* ----------------------------------------------------- */
 
 /* Declarations for objects of type xmlparser */
@@ -1580,6 +1586,10 @@ sethandler(xmlparseobject *self, const char *name, PyObject* v)
         }
         self->handlers[handlernum] = v;
         Py_XDECREF(temp);
+#ifdef __MORPHOS__
+        register volatile long r13 asm("r13");
+        _save_register(r13);
+#endif
         handler_info[handlernum].setter(self->itself, c_handler);
         return 1;
     }

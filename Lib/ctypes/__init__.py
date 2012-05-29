@@ -38,6 +38,8 @@ if _os.name == "posix" and _sys.platform == "darwin":
 
     if gestalt.gestalt("sysv") < 0x1040:
         DEFAULT_MODE = RTLD_GLOBAL
+if _os.name == 'morphos':
+    DEFAULT_MODE = RTLD_GLOBAL
 
 from _ctypes import FUNCFLAG_CDECL as _FUNCFLAG_CDECL, \
      FUNCFLAG_PYTHONAPI as _FUNCFLAG_PYTHONAPI
@@ -127,7 +129,7 @@ if _os.name in ("nt", "ce"):
     if WINFUNCTYPE.__doc__:
         WINFUNCTYPE.__doc__ = CFUNCTYPE.__doc__.replace("CFUNCTYPE", "WINFUNCTYPE")
 
-elif _os.name == "posix":
+elif _os.name in ("posix", "morphos"):
     from _ctypes import dlopen as _dlopen
 
 from _ctypes import sizeof, byref, addressof, alignment, resize
@@ -437,6 +439,8 @@ if _os.name in ("nt", "ce"):
     pythonapi = PyDLL("python dll", None, _sys.dllhandle)
 elif _sys.platform == "cygwin":
     pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
+elif _sys.platform == "morphos":
+    pythonapi = PyDLL("LIBS:python%d.library" % _sys.version_info[0], handle=True)
 else:
     pythonapi = PyDLL(None)
 

@@ -354,6 +354,7 @@ except that:
 
 import sys
 mswindows = (sys.platform == "win32")
+mos = (sys.platform == "morphos")
 
 import os
 import types
@@ -397,6 +398,11 @@ if mswindows:
             wShowWindow = 0
         class pywintypes:
             error = IOError
+elif mos:
+    #from amiga import doslib as _doslib
+    #import doslib as _doslib
+    #from amiga import utilitylib as _utilitylib
+    pass # not finished
 else:
     import select
     import errno
@@ -551,6 +557,20 @@ class Popen(object):
             if close_fds:
                 raise ValueError("close_fds is not supported on Windows "
                                  "platforms")
+        elif mos:
+            # MorphOS
+            if preexec_fn is not None:
+                raise ValueError("preexec_fn is not supported on Windows "
+                                 "platforms")
+            if close_fds:
+                raise ValueError("close_fds is not supported on MorphOS "
+                                 "platforms")
+            if startupinfo is not None:
+                raise ValueError("startupinfo is only supported on Windows "
+                                 "platforms")
+            if creationflags != 0:
+                raise ValueError("creationflags is only supported on Windows "
+                                 "platforms")
         else:
             # POSIX
             if startupinfo is not None:
@@ -608,6 +628,23 @@ class Popen(object):
             if stderr is None and errread is not None:
                 os.close(errread)
                 errread = None
+        elif mos:
+            if p2cwrite is not None:
+                if stdin is None:
+                    p2cwrite.close()
+                else:
+                    self.stdin = p2cwrite
+            if c2pread is not None:
+                if stdout is None:
+                    c2pread.close()
+                else:
+                    self.stdout = c2pread
+            if errread is not None:
+                if stderr is None:
+                    errread.close()
+                else:
+                    self.stderr = errread
+            return
 
         if p2cwrite:
             self.stdin = os.fdopen(p2cwrite, 'wb', bufsize)
@@ -914,6 +951,113 @@ class Popen(object):
 
             self.wait()
             return (stdout, stderr)
+
+    elif mos:
+        #
+        # MorphOS methods
+        #
+        def _get_handles(self, stdin, stdout, stderr):
+            """Construct and return tuple with IO objects:
+            p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite
+            """
+
+            # subprocess calling code will use p2cwrite, c2pread and errread
+            # with os.fdopen(). As this one needs libnix handles, we need to
+            # open these pipe with os.open().
+            # But others ones need to be given to the child process:
+            # so shared handlers are required => amiga.doslib.open is used.
+            
+            p2cread, p2cwrite = 0, None
+            c2pread, c2pwrite = None, 0
+            errread, errwrite = None, 0
+
+            if stdin is None:
+                pass
+            elif stdin == PIPE:
+                name = "PIPE:pyspI_%08x" % os.uniqueid()
+                p2cread = _doslib.open(name, _doslib.MODE_READWRITE)
+                p2cwrite = open(name, 'w+')
+            elif isinstance(stdin, int):
+                p2cread = os.getosfh(stdin)
+            else:
+                # Assuming file-like object
+                p2cread = os.getosfh(stdin.fileno())
+
+            if stdout is None:
+                pass
+            elif stdout == PIPE:
+                name = "PIPE:pyspO_%08x" % os.uniqueid()
+                c2pwrite = _doslib.open(name, _doslib.MODE_READWRITE)
+                c2pread = open(name, 'r')
+            elif isinstance(stdout, int):
+                c2pwrite = os.getosfh(stdout)
+            else:
+                # Assuming file-like object
+                c2pwrite = os.getosfh(stdout.fileno())
+
+            if stderr is None:
+                pass
+            elif stderr == PIPE:
+                name = "PIPE:pyspE_%08x" % os.uniqueid()
+                errwrite = _doslib.open(name, _doslib.MODE_NEWFILE)
+                errread = open(name, 'r')
+            elif stderr == STDOUT:
+                errwrite = c2pwrite
+            elif isinstance(stderr, int):
+                errwrite = os.getosfh(stderr)
+            else:
+                # Assuming file-like object
+                errwrite = os.getosfh(stderr.fileno())
+
+            return (p2cread, p2cwrite,
+                    c2pread, c2pwrite,
+                    errread, errwrite)
+
+        def _execute_child(self, args, executable, preexec_fn, close_fds,
+                           cwd, env, universal_newlines,
+                           startupinfo, creationflags, shell,
+                           p2cread, p2cwrite,
+                           c2pread, c2pwrite,
+                           errread, errwrite):
+            """Execute program (MorphOS version)"""
+
+            if not isinstance(args, types.StringTypes):
+                args = list2cmdline(args)
+
+            if executable:
+                args = executable + " " + args
+
+            # p2cread, c2pwrite and errwrite must be opened with doslib.open() or None
+            self._procmsg, self.pid = _doslib.async_execute(args, cwd, p2cread, c2pwrite, errwrite)
+
+            # AsyncExecute does a copy of file handlers, so close it here now
+            if p2cread:
+                _doslib.close(p2cread)
+            if c2pwrite:
+                _doslib.close(c2pwrite)
+            if errwrite:
+                _doslib.close(errwrite)
+
+        def _internal_poll(self, _deadstate=None):
+            """Check if child process has terminated.  Returns returncode
+            attribute."""
+            if self.returncode is None:
+                try:
+                    self.returncode, _ = _doslib.wait_proc(self._procmsg, 0)
+                except:
+                    if _deadstate is not None:
+                        self.returncode = _deadstate
+            return self.returncode
+
+        def wait(self):
+            """Wait for child process to terminate.  Returns returncode
+            attribute."""
+            if self.returncode is None:
+                self.returncode, _ = _doslib.wait_proc(self._procmsg, -1)
+            return self.returncode
+
+        def _communicate(self, input):
+            raise NotImplementedError("subprocess.Popen._communicate(): TODO")
 
     else:
         #
@@ -1262,8 +1406,26 @@ def _demo_windows():
     p.wait()
 
 
+def _demo_morphos():
+    #
+    # Example 1: Connecting several subprocesses
+    #
+    print "Looking for 'RC' in set output..."
+    p1 = Popen("set", stdout=PIPE, shell=True)
+    p2 = Popen('grep "RC"', stdin=p1.stdout, stdout=PIPE)
+    print repr(p2.communicate()[0])
+
+    #
+    # Example 2: Simple execution of program
+    #
+    print "Executing Avail..."
+    p = Popen("Avail")
+    p.wait()
+
 if __name__ == "__main__":
     if mswindows:
         _demo_windows()
+    elif mos:
+        _demo_morphos()
     else:
         _demo_posix()

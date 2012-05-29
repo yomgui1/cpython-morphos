@@ -272,6 +272,17 @@ int h_errno; /* not used */
 
 #endif
 
+#ifdef __MORPHOS__
+#include <proto/socket.h>
+#include <proto/usergroup.h>
+#include <clib/netlib_protos.h>
+#include <sys/filio.h>
+#include <net/socketbasetags.h>
+#define NO_DUP
+#define SOCKETCLOSE CloseSocket
+#define ioctl IoctlSocket
+#endif
+
 #include <stddef.h>
 
 #ifndef offsetof
@@ -584,6 +595,19 @@ set_error(void)
 	}
 #endif
 
+#ifdef __MORPHOS__
+    if (Errno() != 0) {
+        PyObject *v;
+        errno = Errno();
+        v = Py_BuildValue("(is)", errno, strerror(errno));
+        if (v != NULL) {
+            PyErr_SetObject(socket_error, v);
+            Py_DECREF(v);
+        }
+        return NULL;
+    }
+#endif
+
 	return PyErr_SetFromErrno(socket_error);
 }
 
@@ -671,6 +695,9 @@ internal_setblocking(PySocketSockObject *s, int block)
 	block = !block;
 	setsockopt(s->sock_fd, SOL_SOCKET, SO_NONBLOCK,
 		   (void *)(&block), sizeof(int));
+#elif defined(__MORPHOS__)
+    block = !block;
+    ioctl(s->sock_fd, FIONBIO, (unsigned int *)&block);
 #else
 #ifndef RISCOS
 #ifndef MS_WINDOWS
@@ -2819,7 +2846,7 @@ sock_dealloc(PySocketSockObject *s)
 static PyObject *
 sock_repr(PySocketSockObject *s)
 {
-	char buf[512];
+    char buf[512];
 #if SIZEOF_SOCKET_T > SIZEOF_LONG
 	if (s->sock_fd > LONG_MAX) {
 		/* this can occur on Win64, and actually there is a special
@@ -4177,6 +4204,20 @@ os_init(void)
 
 #endif /* PYOS_OS2 */
 
+#ifdef __MORPHOS__
+
+#define OS_INIT_DEFINED
+
+/* Additional initialization for MorphOS */
+
+static int
+os_init(void)
+{
+    SocketBaseTags(SBTM_SETVAL(SBTC_ERRNOLONGPTR), &errno, TAG_DONE);
+    return 1; /* Success */
+}
+
+#endif /* __MORPHOS__ */
 
 #ifndef OS_INIT_DEFINED
 static int

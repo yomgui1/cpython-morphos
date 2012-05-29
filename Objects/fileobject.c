@@ -673,7 +673,10 @@ file_truncate(PyFileObject *f, PyObject *args)
 	/* Restore original file position. */
 	Py_BEGIN_ALLOW_THREADS
 	errno = 0;
-	ret = _portable_fseek(f->f_fp, initialpos, SEEK_SET) != 0;
+	if (initialpos < newsize)
+		ret = _portable_fseek(f->f_fp, initialpos, SEEK_SET) != 0;
+	else
+		ret = _portable_fseek(f->f_fp, 0, SEEK_END) != 0;
 	Py_END_ALLOW_THREADS
 	if (ret)
 		goto onioerror;

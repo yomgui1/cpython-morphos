@@ -24,7 +24,7 @@ class TrivialTests(unittest.TestCase):
             fname = fname[2:]
         # And more hacking to get it to work on MacOS. This assumes
         # urllib.pathname2url works, unfortunately...
-        if os.name == 'mac':
+        if os.name in ('mac', 'morphos'):
             fname = '/' + fname.replace(':', '/')
         elif os.name == 'riscos':
             import string
