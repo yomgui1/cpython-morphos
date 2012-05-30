@@ -33,9 +33,10 @@ else
 MODE    = debug
 endif
 
-BUILD_DATE    := $(shell /bin/date "+%Y.%m.%d")
-COMPILE_DATE  := $(shell /bin/date "+%d.%m.%Y")
-SCMVERSION	  := $(shell python c:hg id -i)
+BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
+COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
+SCMVERSION		:= $(shell python c:hg parent --template "{latesttag}-{latesttagdistance}")
+TAGVERSION		:= $(shell python c:hg parent --template "{latesttag}")
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
@@ -48,8 +49,8 @@ DEFINES  += \
 	AROS_ALMOST_COMPATIBLE \
 	USE_INLINE_STDARG \
 	PLATFORM=\"$(PLATFORM)\" \
-	Py_DEFAULT_RECURSION_LIMIT=200
-
+	Py_DEFAULT_RECURSION_LIMIT=200 \
+	SVNVERSION=\"$(SCMVERSION)\"
 
 VPATH := $(SRCDIR):$(OBJDIR)
 
@@ -601,7 +602,8 @@ install: install-bin install-sdk install-dynlib install-purelib
 
 ifneq ("$(RELEASE_DIR)","")
 release: mkdyn
-	dir=$(RELEASE_DIR)/Python-$(VERSION)-$(SCMVERSION); \
+	arcname=Python-$(SCMVERSION); \
+		dir=$(RELEASE_DIR)/$$arcname; \
 		$(ECHO) $(COLOR_BOLD)">> Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
 		rm -rf $$dir; \
 		mkdir -p $$dir; \
@@ -613,8 +615,8 @@ release: mkdyn
 				$(STRIP) -R .comment --strip-debug --discard-locals {} ";" ; \
 		cp -a $(SRCDIR)/build/scripts-$(SUFFIX)/* $$dir/C/; \
 		cp -a $(SRCDIR)/LICENSE $$dir; \
-		$(ECHO) $(COLOR_BOLD)">> Archiving "$(COLOR_HIGHLIGHT2)"$$dir.tar.bz2"$(COLOR_NORMAL);
-	(cd $(RELEASE_DIR); tar cp -O Python-$(VERSION)-$(SCMVERSION) | bzip2 > Python-$(VERSION)-$(SCMVERSION).tar.bz2)
+		$(ECHO) $(COLOR_BOLD)">> Archiving "$(COLOR_HIGHLIGHT2)"$$arcname.tar.bz2"$(COLOR_NORMAL); \
+		(cd $(RELEASE_DIR); tar cp -O $$arcname | bzip2 > $$arcname.tar.bz2)
 else
 release:
 	$(ECHO) "RELEASE_DIR shall be defined to use 'release' target"
