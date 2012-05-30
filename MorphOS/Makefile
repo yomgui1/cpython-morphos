@@ -35,7 +35,7 @@ endif
 
 BUILD_DATE    := $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE  := $(shell /bin/date "+%d.%m.%Y")
-SVNVERSION	  := $(shell svnversion)
+SCMVERSION	  := $(shell python c:hg id -i)
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
@@ -402,7 +402,7 @@ _PYTHON_COREOBJS = \
 	$(MODOBJS)
 PYTHON_COREOBJS = $(_PYTHON_COREOBJS:.o=.bro)
 
-$(PYTHON_COREOBJS:%=$(OBJDIR)/%) : DEFINES+=Py_BUILD_CORE SVNVERSION=\"$(SVNVERSION)\" DONT_WRAP_VARS
+$(PYTHON_COREOBJS:%=$(OBJDIR)/%) : DEFINES+=Py_BUILD_CORE DONT_WRAP_VARS
 
 $(OBJDIR)/$(PYTHON_CORELIB) : OBJS=$(PYTHON_COREOBJS:%=$(OBJDIR)/%)
 $(OBJDIR)/$(PYTHON_CORELIB) : $(PYTHON_COREOBJS:%=$(OBJDIR)/%)
@@ -582,7 +582,7 @@ install-sdk: sdk
 	$(ECHO) $(COLOR_BOLD)">> Installing SDK in "$(COLOR_HIGHLIGHT1)$(SDK_INSTALL_PREFIX)$(COLOR_NORMAL)
 	[ -d $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR) ] || mkdir -p $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	[ -d $(SDK_INSTALL_PREFIX)/lib ] || mkdir -p $(SDK_INSTALL_PREFIX)/lib
-	svn export --force $(SRCDIR)/MorphOS/include $(SDK_INSTALL_PREFIX)/include
+	cp -a $(SRCDIR)/MorphOS/include $(SDK_INSTALL_PREFIX)
 	cp -dR $(SRCDIR)/Include/*.h $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	cp -dR $(SRCDIR)/pyconfig.h $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	cp -dR $(OBJDIR)/$(PYLIB_NAME) $(OBJDIR)/$(PYMLIB_NAME) $(SDK_INSTALL_PREFIX)/lib
@@ -595,19 +595,18 @@ install-dynlib: mkdyn
 
 install-purelib:
 	$(ECHO) $(COLOR_BOLD)">> Installing Python lib files in "$(COLOR_HIGHLIGHT1)$(PURELIB_INSTALL_DIR)$(COLOR_NORMAL);
-	svn export --force $(SRCDIR)/Lib $(PURELIB_INSTALL_DIR)
+	cp -a $(SRCDIR)/Lib/* $(PURELIB_INSTALL_DIR)
 
 install: install-bin install-sdk install-dynlib install-purelib
 
 ifneq ("$(RELEASE_DIR)","")
 release: mkdyn
-	dir=$(RELEASE_DIR)/Python-$(VERSION)-$(SVNVERSION); \
+	dir=$(RELEASE_DIR)/Python-$(VERSION)-$(SCMVERSION); \
 		$(ECHO) $(COLOR_BOLD)">> Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
 		rm -rf $$dir; \
 		mkdir -p $$dir; \
 		$(MAKE) $(MODE) install SYS_INSTALL_DIR=$$dir SDK_INSTALL_PREFIX=$$dir/DevEnv; \
-		mkdir -p $$dir/Libs/$(PYLIB_INSTALL_DIR) && (svn export --force $(SRCDIR)/Lib $$dir/Libs/$(PYLIB_INSTALL_DIR); \
-	  			(find $$dir/Libs/$(PYLIB_INSTALL_DIR) -name ".svn" -type d -exec rm -rf {} 2>/dev/null ";" || true)) && \
+		mkdir -p $$dir/Libs/$(PYLIB_INSTALL_DIR) && (cp -a $(SRCDIR)/Lib/* $$dir/Libs/$(PYLIB_INSTALL_DIR);) && \
 			mkdir -p $$dir/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload && \
 			cp -a $(SRCDIR)/build/lib.$(PLATFORM)-$(SUFFIX)/*.pym $$dir/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload; \
 			find $$dir/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload -name "*.pym" -exec \
@@ -615,7 +614,7 @@ release: mkdyn
 		cp -a $(SRCDIR)/build/scripts-$(SUFFIX)/* $$dir/C/; \
 		cp -a $(SRCDIR)/LICENSE $$dir; \
 		$(ECHO) $(COLOR_BOLD)">> Archiving "$(COLOR_HIGHLIGHT2)"$$dir.tar.bz2"$(COLOR_NORMAL);
-	(cd $(RELEASE_DIR); tar cp -O Python-$(VERSION)-$(SVNVERSION) | bzip2 > Python-$(VERSION)-$(SVNVERSION).tar.bz2)
+	(cd $(RELEASE_DIR); tar cp -O Python-$(VERSION)-$(SCMVERSION) | bzip2 > Python-$(VERSION)-$(SCMVERSION).tar.bz2)
 else
 release:
 	$(ECHO) "RELEASE_DIR shall be defined to use 'release' target"
