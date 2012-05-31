@@ -95,8 +95,12 @@ class build_scripts (Command):
                 if not self.dry_run:
                     outf = open(outfile, "w")
                     if not _sysconfig.is_python_build():
+                        if os.name == 'morphos':
+                            name = os.path.basename(self.executable)
+                        else.
+                            name = self.executable
                         outf.write("#!%s%s\n" %
-                                   (self.executable,
+                                   (name,
                                     post_interp))
                     else:
                         outf.write("#!%s%s\n" %

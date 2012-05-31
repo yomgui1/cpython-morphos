@@ -113,10 +113,10 @@ class urlopenNetworkTests(unittest.TestCase):
         self.assertEqual(code, 404)
 
     def test_fileno(self):
-        if (sys.platform in ('win32',) or
+        if (sys.platform in ('win32', 'morphos') or
                 not hasattr(os, 'fdopen')):
-            # On Windows, socket handles are not file descriptors; this
-            # test can't pass on Windows.
+            # On Windows and MorphOS, socket handles are not file descriptors; this
+            # test can't pass on them.
             return
         # Make sure fd returned by fileno is valid.
         open_url = self.urlopen("http://www.python.org/")

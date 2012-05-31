@@ -133,6 +133,9 @@ _Py_DisplaySourceLine(PyObject *f, const char *filename, int lineno, int indent)
         /* Search tail of filename in sys.path before giving up */
         PyObject *path;
         const char *tail = strrchr(filename, SEP);
+#ifdef __MORPHOS__
+        if (tail == NULL) tail = strrchr(filename, ':');
+#endif
         if (tail == NULL)
             tail = filename;
         else
@@ -156,6 +159,10 @@ _Py_DisplaySourceLine(PyObject *f, const char *filename, int lineno, int indent)
                     strcpy(namebuf, PyString_AsString(v));
                     if (strlen(namebuf) != len)
                         continue; /* v contains '\0' */
+#ifdef __MORPHOS__
+                    if (!AddPart(namebuf, tail, sizeof(namebuf)))
+                        return -1;
+#else
                     if (len > 0 && namebuf[len-1] != SEP)
                         namebuf[len++] = SEP;
                     strcpy(namebuf+len, tail);

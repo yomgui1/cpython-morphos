@@ -4,6 +4,17 @@
 import sys, os
 
 # find_library(name) returns the pathname of a library, or None.
+if os.name == 'morphos':
+    def find_library(name):
+        # See MSDN for the REAL search order.
+        for directory in ('gg:ppc-morphos/lib',
+                          'usr:lib',
+                          'usr:local/lib'):
+            fname = os.path.join(directory, 'lib%s.a' % name)
+            if os.path.exists(fname):
+                return fname
+        return None
+        
 if os.name == "nt":
 
     def _get_build_version():

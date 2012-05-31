@@ -83,6 +83,13 @@ INSTALL_SCHEMES = {
         'scripts': '$userbase/bin',
         'data'   : '$userbase',
         },
+    'morphos': {
+        'purelib': '$base/Libs/python$py_version_short/site-packages',
+        'platlib': '$base/Libs/python$py_version_short/site-packages',
+        'headers': 'usr:local/include/$dist_name',
+        'scripts': '$base/C',
+        'data'   : 'usr:local',
+        }
     }
 
 # The keys to an installation scheme; if any new types of files are to be
@@ -440,7 +447,7 @@ class install (Command):
     # finalize_unix ()
 
 
-    def finalize_other (self):          # Windows and Mac OS for now
+    def finalize_other (self):          # Windows/Mac OS/MorphOS for now
 
         if self.user:
             if self.install_userbase is None:

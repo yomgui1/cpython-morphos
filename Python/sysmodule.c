@@ -1678,6 +1678,11 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
             }
 #endif
             p = strrchr(argv0, SEP);
+#ifdef ___MORPHOS__
+            /* Test for volume sep */
+            if (!p)
+                p = strrchr(arg0, ':');
+#endif
         }
         if (p != NULL) {
 #ifndef RISCOS
@@ -1685,10 +1690,12 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
 #else /* don't include trailing separator */
             n = p - argv0;
 #endif /* RISCOS */
+#ifndef __MORPHOS__
 #if SEP == '/' /* Special case for Unix filename syntax */
             if (n > 1)
                 n--; /* Drop trailing separator */
 #endif /* Unix */
+#endif /* MorphOS */
         }
 #endif /* All others */
         a = PyString_FromStringAndSize(argv0, n);

@@ -625,6 +625,12 @@ if sys.platform[:3] == "os2" and _iscommand("netscape"):
              GenericBrowser(["start", "netscape", "%s"]), -1)
 
 
+if os.name == 'morphos':
+    if _iscommand('Multiview'):
+        _tryorder = ["multiview"]
+        register("multiview", None, GenericBrowser('run <>nil: Multiview "%s"'))
+   
+
 # OK, now that we know what the default preference orders for each
 # platform are, allow user to override them with the BROWSER variable.
 if "BROWSER" in os.environ:

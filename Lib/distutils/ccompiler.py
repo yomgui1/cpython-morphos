@@ -898,6 +898,7 @@ _default_compilers = (
     # OS name mappings
     ('posix', 'unix'),
     ('nt', 'msvc'),
+    ('morphos', 'mos'),
 
     )
 
@@ -938,6 +939,8 @@ compiler_class = { 'unix':    ('unixccompiler', 'UnixCCompiler',
                                "Borland C++ Compiler"),
                    'emx':     ('emxccompiler', 'EMXCCompiler',
                                "EMX port of GNU C Compiler for OS/2"),
+                   'mos':     ('mosccompiler', 'MOSCCompiler',
+                               "standard MorphOS-style compiler")
                  }
 
 def show_compilers():

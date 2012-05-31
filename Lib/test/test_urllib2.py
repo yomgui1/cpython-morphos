@@ -24,7 +24,9 @@ class TrivialTests(unittest.TestCase):
 
         # And more hacking to get it to work on MacOS. This assumes
         # urllib.pathname2url works, unfortunately...
-        if os.name == 'riscos':
+        if os.name == 'morphos':
+            fname = '/' + fname.replace(':', '/')
+        elif os.name == 'riscos':
             import string
             fname = os.expand(fname)
             fname = fname.translate(string.maketrans("/.", "./"))

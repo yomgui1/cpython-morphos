@@ -206,17 +206,18 @@ class PyBuildExt(build_ext):
             if ext.name in sys.builtin_module_names:
                 self.extensions.remove(ext)
 
-        # Parse Modules/Setup and Modules/Setup.local to figure out which
-        # modules are turned on in the file.
-        remove_modules = []
-        for filename in ('Modules/Setup', 'Modules/Setup.local'):
-            input = text_file.TextFile(filename, join_lines=1)
-            while 1:
-                line = input.readline()
-                if not line: break
-                line = line.split()
-                remove_modules.append(line[0])
-            input.close()
+        if platform != 'morphos':
+            # Parse Modules/Setup and Modules/Setup.local to figure out which
+            # modules are turned on in the file.
+            remove_modules = []
+            for filename in ('Modules/Setup', 'Modules/Setup.local'):
+                input = text_file.TextFile(filename, join_lines=1)
+                while 1:
+                    line = input.readline()
+                    if not line: break
+                    line = line.split()
+                    remove_modules.append(line[0])
+                input.close()
 
         for ext in self.extensions[:]:
             if ext.name in remove_modules:
@@ -369,9 +370,10 @@ class PyBuildExt(build_ext):
 
     def detect_modules(self):
         # Ensure that /usr/local is always used
-        add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
-        add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
-        self.add_multiarch_paths()
+        if sys.platform != 'morphos':
+            add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+            add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
+            self.add_multiarch_paths()
 
         # Add paths specified in the environment variables LDFLAGS and
         # CPPFLAGS for header and library files.
@@ -426,11 +428,15 @@ class PyBuildExt(build_ext):
         # lib_dirs and inc_dirs are used to search for files;
         # if a file is found in one of those directories, it can
         # be assumed that no additional -I,-L directives are needed.
-        lib_dirs = self.compiler.library_dirs + [
-            '/lib64', '/usr/lib64',
-            '/lib', '/usr/lib',
-            ]
-        inc_dirs = self.compiler.include_dirs + ['/usr/include']
+        if sys.platform != 'morphos':
+            lib_dirs = self.compiler.library_dirs + [
+                '/lib64', '/usr/lib64',
+                '/lib', '/usr/lib',
+                ]
+            inc_dirs = self.compiler.include_dirs + ['/usr/include']
+        else:
+            inc_dirs = self.compiler.include_dirs
+            lib_dirs = self.compiler.library_dirs
         exts = []
         missing = []
 
@@ -473,6 +479,15 @@ class PyBuildExt(build_ext):
         if platform in ['darwin', 'beos']:
             math_libs = []
 
+        # Check for MorphOS which has libraries in non-standard locations
+        if platform == 'morphos':
+            lib_dirs += os.getenv('LIBRARY_PATH', '').split(os.pathsep)
+            lib_dirs += ['gg:ppc-morphos/lib', 'gg:ppc-morphos/lib/libnix']
+            inc_dirs += os.getenv('C_INCLUDE_PATH', '').split(os.pathsep)
+            for d in list(inc_dirs):
+                if not d or not os.path.isdir(d):
+                    inc_dirs.remove(d)
+
         # XXX Omitted modules: gl, pure, dl, SGI-specific modules
 
         #
@@ -496,10 +511,11 @@ class PyBuildExt(build_ext):
         # fast string operations implemented in C
         exts.append( Extension('strop', ['stropmodule.c']) )
         # time operations and variables
-        exts.append( Extension('time', ['timemodule.c'],
-                               libraries=math_libs) )
-        exts.append( Extension('datetime', ['datetimemodule.c', 'timemodule.c'],
-                               libraries=math_libs) )
+        if platform != 'morphos':
+            exts.append( Extension('time', ['timemodule.c'],
+                                   libraries=math_libs) )
+            exts.append( Extension('datetime', ['datetimemodule.c', 'timemodule.c'],
+                                   libraries=math_libs) )
         # fast iterator tools implemented in C
         exts.append( Extension("itertools", ["itertoolsmodule.c"]) )
         # code that will be builtins in the future, but conflict with the
@@ -529,6 +545,7 @@ class PyBuildExt(build_ext):
                                depends=['testcapi_long.h']) )
         # profilers (_lsprof is for cProfile.py)
         exts.append( Extension('_hotshot', ['_hotshot.c']) )
+
         exts.append( Extension('_lsprof', ['_lsprof.c', 'rotatingtree.c']) )
         # static Unicode character database
         if have_unicode:
@@ -547,10 +564,10 @@ class PyBuildExt(build_ext):
         else:
             locale_extra_link_args = []
 
-
-        exts.append( Extension('_locale', ['_localemodule.c'],
-                               libraries=locale_libs,
-                               extra_link_args=locale_extra_link_args) )
+        if platform not in ['morphos']:
+            exts.append( Extension('_locale', ['_localemodule.c'],
+                                   libraries=locale_libs,
+                                   extra_link_args=locale_extra_link_args) )
 
         # Modules with some UNIX dependencies -- on by default:
         # (If you have a really backward UNIX, select and socket may not be
@@ -561,7 +578,8 @@ class PyBuildExt(build_ext):
         if (config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
             # May be necessary on AIX for flock function
             libs = ['bsd']
-        exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
+        if platform not in ['morphos']:
+            exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
         # pwd(3)
         exts.append( Extension('pwd', ['pwdmodule.c']) )
         # grp(3)
@@ -584,14 +602,15 @@ class PyBuildExt(build_ext):
         exts.append( Extension('cPickle', ['cPickle.c']) )
 
         # Memory-mapped files (also works on Win32).
-        if platform not in ['atheos']:
+        if platform not in ['atheos', 'morphos']:
             exts.append( Extension('mmap', ['mmapmodule.c']) )
         else:
             missing.append('mmap')
 
         # Lance Ellinghaus's syslog module
         # syslog daemon interface
-        exts.append( Extension('syslog', ['syslogmodule.c']) )
+        if platform not in ['morphos']:
+            exts.append( Extension('syslog', ['syslogmodule.c']) )
 
         # George Neville-Neil's timing module:
         # Deprecated in PEP 4 http://www.python.org/peps/pep-0004.html
@@ -719,12 +738,16 @@ class PyBuildExt(build_ext):
                                       '/usr/contrib/ssl/lib/'
                                      ] )
 
+        if os.name == 'morphos':
+            ssl_incs = ['usr:local/include']
+            ssl_libs = ['usr:local/lib']
+
         if (ssl_incs is not None and
             ssl_libs is not None):
             exts.append( Extension('_ssl', ['_ssl.c'],
                                    include_dirs = ssl_incs,
                                    library_dirs = ssl_libs,
-                                   libraries = ['ssl', 'crypto'],
+                                   libraries = ['ssl', 'crypto', 'z'],
                                    depends = ['socketmodule.h']), )
         else:
             missing.append('_ssl')
@@ -1011,6 +1034,9 @@ class PyBuildExt(build_ext):
                              '/usr/local/include/sqlite',
                              '/usr/local/include/sqlite3',
                            ]
+        if platform == 'morphos':
+            sqlite_inc_paths = ['gg:includestd', 'gg:os-include', 'usr:include', 'usr:local/include']
+
         MIN_SQLITE_VERSION_NUMBER = (3, 0, 8)
         MIN_SQLITE_VERSION = ".".join([str(x)
                                     for x in MIN_SQLITE_VERSION_NUMBER])
@@ -1050,12 +1076,15 @@ class PyBuildExt(build_ext):
                     print "sqlite: %s had no SQLITE_VERSION"%(f,)
 
         if sqlite_incdir:
-            sqlite_dirs_to_check = [
-                os.path.join(sqlite_incdir, '..', 'lib64'),
-                os.path.join(sqlite_incdir, '..', 'lib'),
-                os.path.join(sqlite_incdir, '..', '..', 'lib64'),
-                os.path.join(sqlite_incdir, '..', '..', 'lib'),
-            ]
+            if platform == 'morphos':
+                sqlite_dirs_to_check = [ os.path.join(sqlite_incdir, '/', 'lib') ]
+            else:
+                sqlite_dirs_to_check = [
+                    os.path.join(sqlite_incdir, '..', 'lib64'),
+                    os.path.join(sqlite_incdir, '..', 'lib'),
+                    os.path.join(sqlite_incdir, '..', '..', 'lib64'),
+                    os.path.join(sqlite_incdir, '..', '..', 'lib'),
+                ]
             sqlite_libfile = self.compiler.find_library_file(
                                 sqlite_dirs_to_check + lib_dirs, 'sqlite3')
             if sqlite_libfile:
@@ -1141,7 +1170,7 @@ class PyBuildExt(build_ext):
 
         dbm_order = ['gdbm']
         # The standard Unix dbm module:
-        if platform not in ['cygwin']:
+        if platform not in ['cygwin', 'morphos']:
             config_args = [arg.strip("'")
                            for arg in sysconfig.get_config_var("CONFIG_ARGS").split()]
             dbm_args = [arg for arg in config_args
@@ -1219,7 +1248,7 @@ class PyBuildExt(build_ext):
             missing.append('gdbm')
 
         # Unix-only modules
-        if platform not in ['win32']:
+        if platform not in ['win32', 'morphos']:
             # Steen Lumholt's termios module
             exts.append( Extension('termios', ['termios.c']) )
             # Jeremy Hylton's rlimit interface
@@ -1291,7 +1320,10 @@ class PyBuildExt(build_ext):
         zlib_inc = find_file('zlib.h', [], inc_dirs)
         have_zlib = False
         if zlib_inc is not None:
-            zlib_h = zlib_inc[0] + '/zlib.h'
+            if platform == 'morphos':
+                zlib_h = os.path.join(zlib_inc[0], 'libraries', 'z.h')
+            else:
+                zlib_h = zlib_inc[0] + '/zlib.h'
             version = '"0.0.0"'
             version_req = '"1.1.3"'
             fp = open(zlib_h)
@@ -1303,13 +1335,13 @@ class PyBuildExt(build_ext):
                     version = line.split()[2]
                     break
             if version >= version_req:
-                if (self.compiler.find_library_file(lib_dirs, 'z')):
+                if (self.compiler.find_library_file(lib_dirs, 'z')) or platform == 'morphos':
                     if sys.platform == "darwin":
                         zlib_extra_link_args = ('-Wl,-search_paths_first',)
                     else:
                         zlib_extra_link_args = ()
                     exts.append( Extension('zlib', ['zlibmodule.c'],
-                                           libraries = ['z'],
+                                           libraries = platform != 'morphos' and ['z'],
                                            extra_link_args = zlib_extra_link_args))
                     have_zlib = True
                 else:
@@ -1601,6 +1633,9 @@ class PyBuildExt(build_ext):
                         extra_link_args=['-framework', 'QuickTime',
                                      '-framework', 'Carbon']) )
 
+        if platform == 'morphos':
+            #exts.append( Extension('doslib', ['MorphOS/doslibmodule.c']) )
+            exts.append( Extension('arexx', ['MorphOS/arexxmodule.c']) )
 
         self.extensions.extend(exts)
 
@@ -1935,8 +1970,9 @@ class PyBuildExt(build_ext):
                              sources=['_ctypes/_ctypes_test.c'])
         self.extensions.extend([ext, ext_test])
 
-        if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
-            return
+        if sys.platform != 'morphos':
+            if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
+                return
 
         if sys.platform == 'darwin':
             # OS X 10.5 comes with libffi.dylib; the include files are

@@ -115,6 +115,11 @@ zipimporter_init(ZipImporter *self, PyObject *args, PyObject *kwds)
 #endif
         /* back up one path element */
         p = strrchr(buf, SEP);
+#ifdef __MORPHOS__
+        /* Test for volume sep */
+        if (p == NULL)
+            p = strrchr(buf, ':');
+#endif
         if (prefix != NULL)
             *prefix = SEP;
         if (p == NULL)

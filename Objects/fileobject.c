@@ -897,7 +897,14 @@ file_truncate(PyFileObject *f, PyObject *args)
     /* Restore original file position. */
     FILE_BEGIN_ALLOW_THREADS(f)
     errno = 0;
+#ifdef __MORPHOS__
     ret = _portable_fseek(f->f_fp, initialpos, SEEK_SET) != 0;
+#else
+    if (initialpos < newsize)
+        ret = _portable_fseek(f->f_fp, initialpos, SEEK_SET) != 0;
+    else
+        ret = _portable_fseek(f->f_fp, 0, SEEK_END) != 0;
+#endif /* MORPHOS */
     FILE_END_ALLOW_THREADS(f)
     if (ret)
         goto onioerror;

@@ -145,6 +145,10 @@ static size_t _pythread_stacksize = 0;
 #include "thread_atheos.h"
 #endif
 
+#ifdef MORPHOS_THREADS
+#include "thread_morphos.h"
+#endif
+
 /*
 #ifdef FOOBAR_THREADS
 #include "thread_foobar.h"

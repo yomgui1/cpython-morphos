@@ -390,6 +390,7 @@ except that:
 
 import sys
 mswindows = (sys.platform == "win32")
+morphos = (sys.platform == "morphos")
 
 import os
 import types
@@ -425,6 +426,8 @@ if mswindows:
         wShowWindow = 0
     class pywintypes:
         error = IOError
+elif morphos:
+        pass
 else:
     import select
     _has_poll = hasattr(select, 'poll')
@@ -636,6 +639,21 @@ class Popen(object):
                               stderr is not None):
                 raise ValueError("close_fds is not supported on Windows "
                                  "platforms if you redirect stdin/stdout/stderr")
+        elif morphos:
+            # MorphOS
+            if preexec_fn is not None:
+                raise ValueError("preexec_fn is not supported on MorphOS "
+                                 "platforms")
+            if close_fds and (stdin is not None or stdout is not None or
+                              stderr is not None):
+                raise ValueError("close_fds is not supported on MorphOS "
+                                 "platforms if you redirect stdin/stdout/stderr")
+            if startupinfo is not None:
+                raise ValueError("startupinfo is only supported on Windows "
+                                 "platforms")
+            if creationflags != 0:
+                raise ValueError("creationflags is only supported on Windows "
+                                 "platforms")
         else:
             # POSIX
             if startupinfo is not None:
@@ -685,6 +703,11 @@ class Popen(object):
                 c2pread = msvcrt.open_osfhandle(c2pread.Detach(), 0)
             if errread is not None:
                 errread = msvcrt.open_osfhandle(errread.Detach(), 0)
+        elif morphos:
+            # TODO
+            p2cwrite = None
+            c2pread = None
+            errread = None
 
         if p2cwrite is not None:
             self.stdin = os.fdopen(p2cwrite, 'wb', bufsize)
@@ -1525,8 +1548,26 @@ def _demo_windows():
     p.wait()
 
 
+def _demo_morphos():
+    #
+    # Example 1: Connecting several subprocesses
+    #
+    print "Looking for 'RC' in set output..."
+    p1 = Popen("set", stdout=PIPE, shell=True)
+    p2 = Popen('grep "RC"', stdin=p1.stdout, stdout=PIPE)
+    print repr(p2.communicate()[0])
+
+    #
+    # Example 2: Simple execution of program
+    #
+    print "Executing Avail..."
+    p = Popen("Avail")
+    p.wait()
+
 if __name__ == "__main__":
     if mswindows:
         _demo_windows()
+    elif mos:
+        _demo_morphos()
     else:
         _demo_posix()

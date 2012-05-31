@@ -2,10 +2,10 @@ r"""OS routines for Mac, NT, or Posix depending on what system we're on.
 
 This exports:
   - all functions from posix, nt, os2, or ce, e.g. unlink, stat, etc.
-  - os.path is one of the modules posixpath, or ntpath
-  - os.name is 'posix', 'nt', 'os2', 'ce' or 'riscos'
-  - os.curdir is a string representing the current directory ('.' or ':')
-  - os.pardir is a string representing the parent directory ('..' or '::')
+  - os.path is one of the modules posixpath, ntpath or morphospath
+  - os.name is 'posix', 'nt', 'os2', 'ce', 'riscos' or 'morphos'
+  - os.curdir is a string representing the current directory ('.' or ':' or '')
+  - os.pardir is a string representing the parent directory ('..' or '::' or '/')
   - os.sep is the (or a most common) pathname separator ('/' or ':' or '\\')
   - os.extsep is the extension separator ('.' or '/')
   - os.altsep is the alternate pathname separator (None or '/')
@@ -113,6 +113,22 @@ elif 'riscos' in _names:
     __all__.extend(_get_exports_list(riscos))
     del riscos
 
+elif 'morphos' in _names:
+    name = 'morphos'
+    linesep = '\n'
+    from morphos import *
+    try:
+        from morphos import _exit
+    except ImportError:
+        pass
+    import morphospath as path
+
+    import morphos
+    __all__.extend(_get_exports_list(morphos))
+    del morphos
+
+    environ['PATH'] = path.defpath
+ 
 else:
     raise ImportError, 'no os specific module found'
 

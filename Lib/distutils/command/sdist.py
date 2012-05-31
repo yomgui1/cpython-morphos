@@ -95,7 +95,8 @@ class sdist(Command):
                     'no-prune': 'prune' }
 
     default_format = {'posix': 'gztar',
-                      'nt': 'zip' }
+                    'nt': 'zip',
+                    'morphos': 'lha'}
 
     sub_commands = [('check', checking_metadata)]
 

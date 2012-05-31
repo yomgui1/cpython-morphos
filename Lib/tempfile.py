@@ -161,6 +161,8 @@ def _candidate_tempdir_list():
         if dirname: dirlist.append(dirname)
     elif _os.name == 'nt':
         dirlist.extend([ r'c:\temp', r'c:\tmp', r'\temp', r'\tmp' ])
+    elif _os.name == 'morphos':
+        dirlist.extend([ 'T:' ])
     else:
         dirlist.extend([ '/tmp', '/var/tmp', '/usr/tmp' ])
 

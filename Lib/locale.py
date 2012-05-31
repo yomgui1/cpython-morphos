@@ -554,6 +554,9 @@ if sys.platform.startswith("win"):
         """Return the charset that the user is likely using."""
         import _locale
         return _locale._getdefaultlocale()[1]
+elif sys.platform == 'morphos':
+    def getpreferredencoding(do_setlocale = True):
+        return 'latin-1' # YOMGUI: replace me with struct Locale read
 else:
     # On Unix, if CODESET is available, use that.
     try:

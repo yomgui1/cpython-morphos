@@ -231,6 +231,22 @@ class build_ext (Command):
                 # building python standard extensions
                 self.library_dirs.append('.')
 
+        if os.name == 'morphos':
+            self.include_dirs.append('gg:os-include')
+            self.include_dirs.append('gg:includestd')
+            self.include_dirs.append('usr:include')
+            self.include_dirs.append('usr:local/include')
+            self.library_dirs.append('gg:ppc-morphos/lib/libnix')
+            self.library_dirs.append('gg:ppc-morphos/lib') 
+            self.library_dirs.append('usr:lib')
+            self.library_dirs.append('usr:local/lib')
+
+            # On morphos, we use different directories for release or debug builds.
+            if self.debug:
+                self.build_temp = os.path.join(self.build_temp, "debug")
+            else:
+                self.build_temp = os.path.join(self.build_temp, "release")
+                
         # for extensions under Linux or Solaris with a shared Python library,
         # Python's library directory must be appended to library_dirs
         sysconfig.get_config_var('Py_ENABLE_SHARED')
@@ -748,7 +764,11 @@ class build_ext (Command):
             # don't extend ext.libraries, it may be shared with other
             # extensions, it is a reference to the original list
             return ext.libraries + [pythonlib, "m"] + extra
-
+        elif sys.platform == 'morphos':
+            v = (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff)
+            pythonlib = "python%d.%d" % v
+            pymlib = "pym%u.%u" % v
+            return [pymlib, pythonlib] + ext.libraries
         elif sys.platform == 'darwin':
             # Don't use the default code below
             return ext.libraries
