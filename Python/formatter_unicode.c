@@ -5,6 +5,13 @@
 
 #ifdef Py_USING_UNICODE
 
+/* Some platforms may defines it */
+#undef FORMAT_LONG
+#undef FORMAT_INT
+#undef FORMAT_FLOAT
+#undef FORMAT_COMPLEX
+#undef FORMAT_STRING
+
 #include "../Objects/stringlib/unicodedefs.h"
 
 #define FORMAT_STRING _PyUnicode_FormatAdvanced

@@ -9,7 +9,7 @@
 
 ######### Environment
 
-OS       := $(shell uname)
+OS       := $(shell uname -s)
 BUILDDIR = .
 SRCDIR   = ..
 
@@ -29,14 +29,17 @@ ifneq ($(findstring debug, $(MAKECMDGOALS)), debug)
 DEFINES += NDEBUG
 MODE    = final
 else
-#DEFINES += Py_DEBUG
+DEFINES += Py_DEBUG
 MODE    = debug
 endif
 
 BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
 SCMVERSION		:= $(shell python c:hg parent --template "{latesttag}-{latesttagdistance}")
-TAGVERSION		:= $(shell python c:hg parent --template "{latesttag}")
+SVNVERSION		:= $(shell svnversion $(SRCDIR))
+HGVERSION		:= $(shell python c:hg id -i)
+HGTAG			:= $(shell python c:hg parent --template "{latesttag}")
+HGBRANCH		:= $(shell python c:hg id -b)
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
@@ -50,13 +53,16 @@ DEFINES  += \
 	USE_INLINE_STDARG \
 	PLATFORM=\"$(PLATFORM)\" \
 	Py_DEFAULT_RECURSION_LIMIT=200 \
-	SVNVERSION=\"$(SCMVERSION)\"
+	SVNVERSION=\"$(SVNVERSION)\" \
+	HGVERSION=\"$(HGVERSION)\" \
+	HGTAG=\"$(HGTAG)\" \
+	HGBRANCH=\"$(HGBRANCH)\"
 
 VPATH := $(SRCDIR):$(OBJDIR)
 
 VERSION_MAJOR	 = 2
-VERSION_MINOR	 = 5
-VERSION_REVISION = 6
+VERSION_MINOR	 = 7
+VERSION_REVISION = 3
 VERSION			 = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
 MOSVERSION		 = $(VERSION_MAJOR)$(VERSION_MINOR)
 
@@ -125,7 +131,7 @@ LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfil
 	-Wl,--warn-common -Wl,--warn-once
  
 #LIBS = -lc -ldl -laboxstubs -labox -lc -lm -lmath -lsyscall -lauto
-LIBS = -L/usr/local/lib -lsyscall
+LIBS = -L/usr/local/lib -lsyscall -lm
 
 ifneq ("$(OS)", "MorphOS")
 LIBS += -lnix
@@ -222,15 +228,20 @@ MACHDEP_SRCS = \
 
 MACHDEP_MODULES_SRCS = \
 	Modules/errnomodule.c \
-	Modules/symtablemodule.c \
-	Modules/zipimport.c \
+	Modules/pwdmodule.c \
 	Modules/_sre.c \
-	Modules/datetimemodule.c \
-	Modules/cStringIO.c \
-	Modules/_randommodule.c \
-	Modules/collectionsmodule.c \
 	Modules/_codecsmodule.c \
-	$(MACHDEP_DIR)/morphosmodule.c	\
+	Modules/_weakref.c \
+	Modules/zipimport.c \
+	Modules/symtablemodule.c \
+	Modules/xxsubtype.c \
+	Modules/datetimemodule.c \
+	Modules/_struct.c \
+	Modules/binascii.c \
+	Modules/cStringIO.c \
+	Modules/mathmodule.c \
+	Modules/_randommodule.c \
+	$(MACHDEP_DIR)/morphosmodule.c \
 	$(MACHDEP_DIR)/timemodule.c
 
 EMUL_OBJS = $(EMUL_SRCS:.c=.o)
@@ -251,18 +262,14 @@ ALL_SOURCES += $(MACHDEP_SRCS) $(SIGNAL_SRCS)
 # Modules
 
 MODULE_SRCS = \
+	Modules/getpath.c \
 	Modules/main.c \
 	Modules/gcmodule.c \
+	Modules/getbuildinfo.c \
 	$(MACHDEP_MODULES_SRCS)
 MODULE_OBJS = $(MODULE_SRCS:.c=.o)
 
-SPECIAL_SRCS = \
-	Modules/_typesmodule.c \
-	Modules/getbuildinfo.c \
-
-SPECIAL_OBJS = $(SPECIAL_SRCS:.c=.o)
-
-ALL_SOURCES += $(MODULE_SRCS) $(SPECIAL_SRCS)
+ALL_SOURCES += $(MODULE_SRCS)
 
 ##########################################################################
 # Parser
@@ -288,7 +295,8 @@ PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 PGSRCS = \
 	Objects/obmalloc.c \
 	Python/mysnprintf.c \
-	Parser/tokenizer_pgen.c	\
+	Python/pyctype.c \
+	Parser/tokenizer_pgen.c \
 	Parser/printgrammar.c \
 	Parser/pgenmain.c
 
@@ -303,6 +311,7 @@ ALL_SOURCES += $(PARSER_SRCS) $(PGENSRCS)
 DYNLOADFILE = dynload_morphos.c
 
 PYTHON_SRCS = \
+		Python/_warnings.c \
 		Python/Python-ast.c \
 		Python/asdl.c \
 		Python/ast.c \
@@ -317,7 +326,6 @@ PYTHON_SRCS = \
 		Python/getargs.c \
 		Python/getcompiler.c \
 		Python/getcopyright.c \
-		Python/getmtime.c \
 		Python/getplatform.c \
 		Python/getversion.c \
 		Python/graminit.c \
@@ -327,16 +335,24 @@ PYTHON_SRCS = \
 		Python/modsupport.c \
 		Python/mystrtoul.c \
 		Python/mysnprintf.c \
+		Python/peephole.c \
 		Python/pyarena.c \
+		Python/pyctype.c \
 		Python/pyfpe.c \
+		Python/pymath.c \
 		Python/pystate.c \
 		Python/pythonrun.c \
+		Python/random.c \
 		Python/structmember.c \
 		Python/symtable.c \
 		Python/sysmodule.c \
 		Python/traceback.c \
 		Python/getopt.c \
+		Python/pystrcmp.c \
 		Python/pystrtod.c \
+		Python/dtoa.c \
+		Python/formatter_unicode.c \
+		Python/formatter_string.c \
 		Python/$(DYNLOADFILE) \
 		$(THREADSRC)
 
@@ -348,40 +364,44 @@ ALL_SOURCES += $(PYTHON_SRCS)
 # Objects
 
 OBJECT_SRCS = \
-		Objects/abstract.c \
-		Objects/boolobject.c \
-		Objects/bufferobject.c \
-		Objects/cellobject.c \
-		Objects/classobject.c \
-		Objects/cobject.c \
-		Objects/codeobject.c \
-		Objects/complexobject.c \
-		Objects/descrobject.c \
-		Objects/enumobject.c \
-		Objects/exceptions.c \
-		Objects/genobject.c \
-		Objects/fileobject.c \
-		Objects/floatobject.c \
-		Objects/frameobject.c \
-		Objects/funcobject.c \
-		Objects/intobject.c \
-		Objects/iterobject.c \
-		Objects/listobject.c \
-		Objects/longobject.c \
-		Objects/dictobject.c \
-		Objects/methodobject.c \
-		Objects/moduleobject.c \
-		Objects/object.c \
-		Objects/obmalloc.c \
-		Objects/rangeobject.c \
-		Objects/setobject.c \
-		Objects/sliceobject.c \
-		Objects/stringobject.c \
-		Objects/structseq.c \
-		Objects/tupleobject.c \
-		Objects/typeobject.c \
-		Objects/weakrefobject.c \
-		$(UNICODE_SRCS)
+	Objects/abstract.c \
+	Objects/boolobject.c \
+	Objects/bufferobject.c \
+	Objects/bytes_methods.c \
+	Objects/bytearrayobject.c \
+	Objects/capsule.c \
+	Objects/cellobject.c \
+	Objects/classobject.c \
+	Objects/cobject.c \
+	Objects/codeobject.c \
+	Objects/complexobject.c \
+	Objects/descrobject.c \
+	Objects/enumobject.c \
+	Objects/exceptions.c \
+	Objects/genobject.c \
+	Objects/fileobject.c \
+	Objects/floatobject.c \
+	Objects/frameobject.c \
+	Objects/funcobject.c \
+	Objects/intobject.c \
+	Objects/iterobject.c \
+	Objects/listobject.c \
+	Objects/longobject.c \
+	Objects/dictobject.c \
+	Objects/memoryobject.c \
+	Objects/methodobject.c \
+	Objects/moduleobject.c \
+	Objects/object.c \
+	Objects/obmalloc.c \
+	Objects/rangeobject.c \
+	Objects/setobject.c \
+	Objects/sliceobject.c \
+	Objects/stringobject.c \
+	Objects/structseq.c \
+	Objects/tupleobject.c \
+	Objects/typeobject.c \
+	Objects/weakrefobject.c \
+	$(UNICODE_SRCS)
 
 OBJECT_OBJS = $(OBJECT_SRCS:.c=.o)
 
@@ -547,6 +567,9 @@ force:;
 
 debug final:
 
+printvar:
+	-@echo $(VAR)
+
 clean:
 	rm -f $(BUILDDIR)/mapfile.txt $(SRCDIR)/pyconfig.h $(SRCDIR)/$(MACHDEP_DIR)/libprotos.h $(BUILDDIR)/trampolines.s
 	rm -f $(SRCDIR)/$(BINARY_NAME) $(BUILDDIR)/$(BINARY_NAME).db
@@ -567,7 +590,7 @@ ALL_SOURCES_SAFE = $(filter-out %/libheader.c,$(ALL_SOURCES))
 sdk: $(SDK_DEPS)
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME) install-bin install-sdk
-	(cd $(SRCDIR); $(BINARY_NAME) -SE setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS build_scripts)
+	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS build_scripts)
 
 install-bin: library $(SRCDIR)/$(BINARY_NAME)
 	-[ "$(OS)" = "MorphOS" ] && ( \

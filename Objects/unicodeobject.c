@@ -113,7 +113,15 @@ static PyUnicodeObject *unicode_latin1[256];
 static char unicode_default_encoding[100];
 
 /* Fast detection of the most frequent whitespace characters */
+#ifdef __MORPHOS__
+/* Python library build on MorphOS uses baserel compilation trick,
+ * so the gvar exporting data system doesn't support const array.
+ * This array will be located into .rodata section, what's wrong with baserel.
+ */
+unsigned char _Py_ascii_whitespace[] = {
+#else
 const unsigned char _Py_ascii_whitespace[] = {
+#endif
     0, 0, 0, 0, 0, 0, 0, 0,
 /*     case 0x0009: * CHARACTER TABULATION */
 /*     case 0x000A: * LINE FEED */

@@ -547,6 +547,7 @@ set_error(void)
     }
 #elif defined(__MORPHOS__)
     if (Errno() != 0) {
+        PyObject *v;
         errno = Errno();
         v = Py_BuildValue("(is)", errno, strerror(errno));
         if (v != NULL) {

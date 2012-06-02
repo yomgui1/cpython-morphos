@@ -162,7 +162,7 @@ _Py_DisplaySourceLine(PyObject *f, const char *filename, int lineno, int indent)
 #ifdef __MORPHOS__
                     if (!AddPart(namebuf, tail, sizeof(namebuf)))
                         return -1;
-#else
+#endif
                     if (len > 0 && namebuf[len-1] != SEP)
                         namebuf[len++] = SEP;
                     strcpy(namebuf+len, tail);

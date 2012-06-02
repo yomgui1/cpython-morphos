@@ -64,7 +64,6 @@ def pathname2url(pathname):
     for i in range(len(components)):
         if components[i] == '':
             components[i] = '..'
-    # Truncate names longer than 31 bytes
     components = map(_pncomp2url, components)
 
     if os.path.isabs(pathname):
@@ -73,7 +72,7 @@ def pathname2url(pathname):
         return '/'.join(components)
 
 def _pncomp2url(component):
-    component = urllib.quote(component[:31], safe='')  # We want to quote slashes
+    component = urllib.quote(component)
     return component
 
 def test():

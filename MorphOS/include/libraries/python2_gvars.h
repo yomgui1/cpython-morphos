@@ -7,20 +7,33 @@ struct PyMorphOS_GVar_STRUCT {
     void* p_PyBaseString_Type;
     void* p_PyBool_Type;
     void* p_PyBuffer_Type;
+    void* p_PyByteArrayIter_Type;
+    void* p_PyByteArray_Type;
     void* p_PyCFunction_Type;
     void* p_PyCObject_Type;
     void* p_PyCallIter_Type;
+    void* p_PyCapsule_Type;
     void* p_PyCell_Type;
     void* p_PyClassMethod_Type;
     void* p_PyClass_Type;
     void* p_PyCode_Type;
     void* p_PyComplex_Type;
+    void* p_PyDictItems_Type;
+    void* p_PyDictIterItem_Type;
+    void* p_PyDictIterKey_Type;
+    void* p_PyDictIterValue_Type;
+    void* p_PyDictKeys_Type;
+    void* p_PyDictProxy_Type;
+    void* p_PyDictValues_Type;
     void* p_PyDict_Type;
+    void* p_PyEllipsis_Type;
     void* p_PyEnum_Type;
     void* p_PyExc_ArithmeticError;
     void* p_PyExc_AssertionError;
     void* p_PyExc_AttributeError;
     void* p_PyExc_BaseException;
+    void* p_PyExc_BufferError;
+    void* p_PyExc_BytesWarning;
     void* p_PyExc_DeprecationWarning;
     void* p_PyExc_EOFError;
     void* p_PyExc_EnvironmentError;
@@ -43,6 +56,7 @@ struct PyMorphOS_GVar_STRUCT {
     void* p_PyExc_OSError;
     void* p_PyExc_OverflowError;
     void* p_PyExc_PendingDeprecationWarning;
+    void* p_PyExc_RecursionErrorInst;
     void* p_PyExc_ReferenceError;
     void* p_PyExc_RuntimeError;
     void* p_PyExc_RuntimeWarning;
@@ -70,14 +84,18 @@ struct PyMorphOS_GVar_STRUCT {
     void* p_PyFrozenSet_Type;
     void* p_PyFunction_Type;
     void* p_PyGen_Type;
+    void* p_PyGetSetDescr_Type;
     void* p_PyImport_FrozenModules;
     void* p_PyImport_Inittab;
     void* p_PyInstance_Type;
     void* p_PyInt_Type;
     void* p_PyList_Type;
     void* p_PyLong_Type;
+    void* p_PyMemberDescr_Type;
+    void* p_PyMemoryView_Type;
     void* p_PyMethod_Type;
     void* p_PyModule_Type;
+    void* p_PyNullImporter_Type;
     void* p_PyOS_InputHook;
     void* p_PyOS_ReadlineFunctionPointer;
     void* p_PyProperty_Type;
@@ -95,18 +113,25 @@ struct PyMorphOS_GVar_STRUCT {
     void* p_PyType_Type;
     void* p_PyUnicode_Type;
     void* p_PyWrapperDescr_Type;
+    void* p_Py_BytesWarningFlag;
     void* p_Py_DebugFlag;
     void* p_Py_DivisionWarningFlag;
+    void* p_Py_DontWriteBytecodeFlag;
     void* p_Py_FileSystemDefaultEncoding;
     void* p_Py_FrozenFlag;
+    void* p_Py_HashRandomizationFlag;
     void* p_Py_IgnoreEnvironmentFlag;
+    void* p_Py_InspectFlag;
     void* p_Py_InteractiveFlag;
     void* p_Py_NoSiteFlag;
+    void* p_Py_NoUserSiteDirectory;
     void* p_Py_OptimizeFlag;
+    void* p_Py_Py3kWarningFlag;
     void* p_Py_TabcheckFlag;
     void* p_Py_UnicodeFlag;
     void* p_Py_UseClassExceptionsFlag;
     void* p_Py_VerboseFlag;
+    void* p__PyByteArray_empty_string;
     void* p__PyLong_DigitValue;
     void* p__PyOS_ReadlineTState;
     void* p__PyOS_optarg;
@@ -123,6 +148,7 @@ struct PyMorphOS_GVar_STRUCT {
     void* p__Py_CheckInterval;
     void* p__Py_CheckRecursionLimit;
     void* p__Py_EllipsisObject;
+    void* p__Py_HashSecret;
     void* p__Py_NoneStruct;
     void* p__Py_NotImplementedStruct;
     void* p__Py_PackageContext;
@@ -131,6 +157,10 @@ struct PyMorphOS_GVar_STRUCT {
     void* p__Py_Ticker;
     void* p__Py_TrueStruct;
     void* p__Py_ZeroStruct;
+    void* p__Py_ascii_whitespace;
+    void* p__Py_ctype_table;
+    void* p__Py_ctype_tolower;
+    void* p__Py_ctype_toupper;
 };
 
 extern void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *);
@@ -141,20 +171,33 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define PyBaseString_Type                   (*(PyTypeObject *)__pym_GVars.p_PyBaseString_Type)
 #define PyBool_Type                         (*(PyTypeObject *)__pym_GVars.p_PyBool_Type)
 #define PyBuffer_Type                       (*(PyTypeObject *)__pym_GVars.p_PyBuffer_Type)
+#define PyByteArrayIter_Type                (*(PyTypeObject *)__pym_GVars.p_PyByteArrayIter_Type)
+#define PyByteArray_Type                    (*(PyTypeObject *)__pym_GVars.p_PyByteArray_Type)
 #define PyCFunction_Type                    (*(PyTypeObject *)__pym_GVars.p_PyCFunction_Type)
 #define PyCObject_Type                      (*(PyTypeObject *)__pym_GVars.p_PyCObject_Type)
 #define PyCallIter_Type                     (*(PyTypeObject *)__pym_GVars.p_PyCallIter_Type)
+#define PyCapsule_Type                      (*(PyTypeObject *)__pym_GVars.p_PyCapsule_Type)
 #define PyCell_Type                         (*(PyTypeObject *)__pym_GVars.p_PyCell_Type)
 #define PyClassMethod_Type                  (*(PyTypeObject *)__pym_GVars.p_PyClassMethod_Type)
 #define PyClass_Type                        (*(PyTypeObject *)__pym_GVars.p_PyClass_Type)
 #define PyCode_Type                         (*(PyTypeObject *)__pym_GVars.p_PyCode_Type)
 #define PyComplex_Type                      (*(PyTypeObject *)__pym_GVars.p_PyComplex_Type)
+#define PyDictItems_Type                    (*(PyTypeObject *)__pym_GVars.p_PyDictItems_Type)
+#define PyDictIterItem_Type                 (*(PyTypeObject *)__pym_GVars.p_PyDictIterItem_Type)
+#define PyDictIterKey_Type                  (*(PyTypeObject *)__pym_GVars.p_PyDictIterKey_Type)
+#define PyDictIterValue_Type                (*(PyTypeObject *)__pym_GVars.p_PyDictIterValue_Type)
+#define PyDictKeys_Type                     (*(PyTypeObject *)__pym_GVars.p_PyDictKeys_Type)
+#define PyDictProxy_Type                    (*(PyTypeObject *)__pym_GVars.p_PyDictProxy_Type)
+#define PyDictValues_Type                   (*(PyTypeObject *)__pym_GVars.p_PyDictValues_Type)
 #define PyDict_Type                         (*(PyTypeObject *)__pym_GVars.p_PyDict_Type)
+#define PyEllipsis_Type                     (*(PyTypeObject *)__pym_GVars.p_PyEllipsis_Type)
 #define PyEnum_Type                         (*(PyTypeObject *)__pym_GVars.p_PyEnum_Type)
 #define PyExc_ArithmeticError               (*(PyObject * *)__pym_GVars.p_PyExc_ArithmeticError)
 #define PyExc_AssertionError                (*(PyObject * *)__pym_GVars.p_PyExc_AssertionError)
 #define PyExc_AttributeError                (*(PyObject * *)__pym_GVars.p_PyExc_AttributeError)
 #define PyExc_BaseException                 (*(PyObject * *)__pym_GVars.p_PyExc_BaseException)
+#define PyExc_BufferError                   (*(PyObject * *)__pym_GVars.p_PyExc_BufferError)
+#define PyExc_BytesWarning                  (*(PyObject * *)__pym_GVars.p_PyExc_BytesWarning)
 #define PyExc_DeprecationWarning            (*(PyObject * *)__pym_GVars.p_PyExc_DeprecationWarning)
 #define PyExc_EOFError                      (*(PyObject * *)__pym_GVars.p_PyExc_EOFError)
 #define PyExc_EnvironmentError              (*(PyObject * *)__pym_GVars.p_PyExc_EnvironmentError)
@@ -177,6 +220,7 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define PyExc_OSError                       (*(PyObject * *)__pym_GVars.p_PyExc_OSError)
 #define PyExc_OverflowError                 (*(PyObject * *)__pym_GVars.p_PyExc_OverflowError)
 #define PyExc_PendingDeprecationWarning     (*(PyObject * *)__pym_GVars.p_PyExc_PendingDeprecationWarning)
+#define PyExc_RecursionErrorInst            (*(PyObject * *)__pym_GVars.p_PyExc_RecursionErrorInst)
 #define PyExc_ReferenceError                (*(PyObject * *)__pym_GVars.p_PyExc_ReferenceError)
 #define PyExc_RuntimeError                  (*(PyObject * *)__pym_GVars.p_PyExc_RuntimeError)
 #define PyExc_RuntimeWarning                (*(PyObject * *)__pym_GVars.p_PyExc_RuntimeWarning)
@@ -204,14 +248,18 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define PyFrozenSet_Type                    (*(PyTypeObject *)__pym_GVars.p_PyFrozenSet_Type)
 #define PyFunction_Type                     (*(PyTypeObject *)__pym_GVars.p_PyFunction_Type)
 #define PyGen_Type                          (*(PyTypeObject *)__pym_GVars.p_PyGen_Type)
+#define PyGetSetDescr_Type                  (*(PyTypeObject *)__pym_GVars.p_PyGetSetDescr_Type)
 #define PyImport_FrozenModules              (*(struct _frozen * *)__pym_GVars.p_PyImport_FrozenModules)
 #define PyImport_Inittab                    (*(struct _inittab * *)__pym_GVars.p_PyImport_Inittab)
 #define PyInstance_Type                     (*(PyTypeObject *)__pym_GVars.p_PyInstance_Type)
 #define PyInt_Type                          (*(PyTypeObject *)__pym_GVars.p_PyInt_Type)
 #define PyList_Type                         (*(PyTypeObject *)__pym_GVars.p_PyList_Type)
 #define PyLong_Type                         (*(PyTypeObject *)__pym_GVars.p_PyLong_Type)
+#define PyMemberDescr_Type                  (*(PyTypeObject *)__pym_GVars.p_PyMemberDescr_Type)
+#define PyMemoryView_Type                   (*(PyTypeObject *)__pym_GVars.p_PyMemoryView_Type)
 #define PyMethod_Type                       (*(PyTypeObject *)__pym_GVars.p_PyMethod_Type)
 #define PyModule_Type                       (*(PyTypeObject *)__pym_GVars.p_PyModule_Type)
+#define PyNullImporter_Type                 (*(PyTypeObject *)__pym_GVars.p_PyNullImporter_Type)
 #define PyOS_InputHook                      (*(int(*)(void) *)__pym_GVars.p_PyOS_InputHook)
 #define PyOS_ReadlineFunctionPointer        (*(char*(*)(FILE *, FILE *, char *) *)__pym_GVars.p_PyOS_ReadlineFunctionPointer)
 #define PyProperty_Type                     (*(PyTypeObject *)__pym_GVars.p_PyProperty_Type)
@@ -229,18 +277,25 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define PyType_Type                         (*(PyTypeObject *)__pym_GVars.p_PyType_Type)
 #define PyUnicode_Type                      (*(PyTypeObject *)__pym_GVars.p_PyUnicode_Type)
 #define PyWrapperDescr_Type                 (*(PyTypeObject *)__pym_GVars.p_PyWrapperDescr_Type)
+#define Py_BytesWarningFlag                 (*(int *)__pym_GVars.p_Py_BytesWarningFlag)
 #define Py_DebugFlag                        (*(int *)__pym_GVars.p_Py_DebugFlag)
 #define Py_DivisionWarningFlag              (*(int *)__pym_GVars.p_Py_DivisionWarningFlag)
+#define Py_DontWriteBytecodeFlag            (*(int *)__pym_GVars.p_Py_DontWriteBytecodeFlag)
 #define Py_FileSystemDefaultEncoding        (*(const char * *)__pym_GVars.p_Py_FileSystemDefaultEncoding)
 #define Py_FrozenFlag                       (*(int *)__pym_GVars.p_Py_FrozenFlag)
+#define Py_HashRandomizationFlag            (*(int *)__pym_GVars.p_Py_HashRandomizationFlag)
 #define Py_IgnoreEnvironmentFlag            (*(int *)__pym_GVars.p_Py_IgnoreEnvironmentFlag)
+#define Py_InspectFlag                      (*(int *)__pym_GVars.p_Py_InspectFlag)
 #define Py_InteractiveFlag                  (*(int *)__pym_GVars.p_Py_InteractiveFlag)
 #define Py_NoSiteFlag                       (*(int *)__pym_GVars.p_Py_NoSiteFlag)
+#define Py_NoUserSiteDirectory              (*(int *)__pym_GVars.p_Py_NoUserSiteDirectory)
 #define Py_OptimizeFlag                     (*(int *)__pym_GVars.p_Py_OptimizeFlag)
+#define Py_Py3kWarningFlag                  (*(int *)__pym_GVars.p_Py_Py3kWarningFlag)
 #define Py_TabcheckFlag                     (*(int *)__pym_GVars.p_Py_TabcheckFlag)
 #define Py_UnicodeFlag                      (*(int *)__pym_GVars.p_Py_UnicodeFlag)
 #define Py_UseClassExceptionsFlag           (*(int *)__pym_GVars.p_Py_UseClassExceptionsFlag)
 #define Py_VerboseFlag                      (*(int *)__pym_GVars.p_Py_VerboseFlag)
+#define _PyByteArray_empty_string           (*(char* *)__pym_GVars.p__PyByteArray_empty_string)
 #define _PyLong_DigitValue                  (*(int* *)__pym_GVars.p__PyLong_DigitValue)
 #define _PyOS_ReadlineTState                (*(PyThreadState* *)__pym_GVars.p__PyOS_ReadlineTState)
 #define _PyOS_optarg                        (*(char * *)__pym_GVars.p__PyOS_optarg)
@@ -257,6 +312,7 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define _Py_CheckInterval                   (*(int *)__pym_GVars.p__Py_CheckInterval)
 #define _Py_CheckRecursionLimit             (*(int *)__pym_GVars.p__Py_CheckRecursionLimit)
 #define _Py_EllipsisObject                  (*(PyObject *)__pym_GVars.p__Py_EllipsisObject)
+#define _Py_HashSecret                      (*(_Py_HashSecret_t *)__pym_GVars.p__Py_HashSecret)
 #define _Py_NoneStruct                      (*(PyObject *)__pym_GVars.p__Py_NoneStruct)
 #define _Py_NotImplementedStruct            (*(PyObject *)__pym_GVars.p__Py_NotImplementedStruct)
 #define _Py_PackageContext                  (*(char * *)__pym_GVars.p__Py_PackageContext)
@@ -265,5 +321,9 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define _Py_Ticker                          (*(volatile int *)__pym_GVars.p__Py_Ticker)
 #define _Py_TrueStruct                      (*(PyIntObject *)__pym_GVars.p__Py_TrueStruct)
 #define _Py_ZeroStruct                      (*(PyIntObject *)__pym_GVars.p__Py_ZeroStruct)
+#define _Py_ascii_whitespace                (*(unsigned char* *)__pym_GVars.p__Py_ascii_whitespace)
+#define _Py_ctype_table                     (*(const unsigned int* *)__pym_GVars.p__Py_ctype_table)
+#define _Py_ctype_tolower                   (*(const unsigned char* *)__pym_GVars.p__Py_ctype_tolower)
+#define _Py_ctype_toupper                   (*(const unsigned char* *)__pym_GVars.p__Py_ctype_toupper)
 #endif /* !DONT_WRAP_VARS */
 #endif /* LIB_PYTHON_GVARS_H */

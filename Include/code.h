@@ -74,8 +74,8 @@ PyAPI_FUNC(PyCodeObject *) PyCode_New(
         /* same as struct above */
 
 /* Creates a new empty code object with the specified source location. */
-PyAPI_FUNC(PyCodeObject *)
-PyCode_NewEmpty(const char *filename, const char *funcname, int firstlineno);
+PyAPI_FUNC(PyCodeObject *) PyCode_NewEmpty(const char *filename,
+                                           const char *funcname, int firstlineno);
 
 /* Return the line number associated with the specified bytecode index
    in this code object.  If you just need the line number of a frame,

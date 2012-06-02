@@ -1,6 +1,14 @@
 #ifndef PYCTYPE_H
 #define PYCTYPE_H
 
+#ifdef __MORPHOS__
+/* Python library build on MorphOS uses baserel compilation trick,
+ * so the gvar exporting data system doesn't support const array.
+ * This array will be located into .rodata section, what's wrong with baserel.
+ */
+#define const
+#endif
+
 #define PY_CTF_LOWER  0x01
 #define PY_CTF_UPPER  0x02
 #define PY_CTF_ALPHA  (PY_CTF_LOWER|PY_CTF_UPPER)
@@ -27,5 +35,9 @@ PyAPI_DATA(const unsigned char) _Py_ctype_toupper[256];
 
 #define Py_TOLOWER(c) (_Py_ctype_tolower[Py_CHARMASK(c)])
 #define Py_TOUPPER(c) (_Py_ctype_toupper[Py_CHARMASK(c)])
+
+#ifdef __MORPHOS__
+#undef const
+#endif
 
 #endif /* !PYCTYPE_H */

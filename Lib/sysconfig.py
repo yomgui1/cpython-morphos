@@ -46,6 +46,16 @@ _INSTALL_SCHEMES = {
         'scripts': '{base}/Scripts',
         'data'   : '{base}',
         },
+    'morphos': {
+        'stdlib': '{base}/python{py_version_short}',
+        'platstdlib': '{base}/python{py_version_short}',
+        'purelib': '{base}/python{py_version_short}/site-packages',
+        'platlib': '{base}/python{py_version_short}/site-packages',
+        'include': 'usr:local/include/python{py_version_short}',
+        'platinclude': 'gg:os-include',
+        'scripts': 'C:',
+        'data'   : 'LIBS:',
+        },
     'os2_home': {
         'stdlib': '{userbase}/lib/python{py_version_short}',
         'platstdlib': '{userbase}/lib/python{py_version_short}',
@@ -81,6 +91,16 @@ _INSTALL_SCHEMES = {
         'include': '{userbase}/include',
         'scripts': '{userbase}/bin',
         'data'   : '{userbase}',
+        },
+    'morphos_user': {
+        'stdlib': '{base}/python{py_version_short}',
+        'platstdlib': '{base}/python{py_version_short}',
+        'purelib': '{base}/python{py_version_short}/site-packages',
+        'platlib': '{base}/python{py_version_short}/site-packages',
+        'include': 'usr:local/include/python{py_version_short}',
+        'platinclude': 'gg:os-include',
+        'scripts': 'C:',
+        'data'   : 'LIBS:',
         },
     }
 
@@ -152,7 +172,7 @@ def _expand_vars(scheme, vars):
     _extend_dict(vars, get_config_vars())
 
     for key, value in _INSTALL_SCHEMES[scheme].items():
-        if os.name in ('posix', 'nt'):
+        if os.name in ('posix', 'nt', 'morphos'):
             value = os.path.expanduser(value)
         res[key] = os.path.normpath(_subst_vars(value, vars))
     return res
@@ -315,6 +335,19 @@ def _init_non_posix(vars):
     vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
 
+def _init_morphos(vars):
+    """Initialize the module as appropriate for MorphOS"""
+    # set basic install directories
+    vars['LIBDEST'] = get_path('stdlib')
+    vars['BINLIBDEST'] = get_path('platstdlib')
+    vars['INCLUDEPY'] = get_path('include')
+    vars['SO'] = '.pym'
+    vars['EXE'] = ''
+    vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
+    vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
+    vars['CONFIG_ARGS'] = '--disable-shared --disable-ipv6 --with-system-ffi --without-signal-module --with-threads'
+    vars['LIBFFI_INCLUDEDIR'] = 'usr:local/include'
+    
 #
 # public APIs
 #
@@ -418,6 +451,8 @@ def get_config_vars(*args):
             _init_non_posix(_CONFIG_VARS)
         if os.name == 'posix':
             _init_posix(_CONFIG_VARS)
+        if os.name == 'morphos':
+            _init_morphos(_CONFIG_VARS)
 
         # Setting 'userbase' is done below the call to the
         # init function to enable using 'get_config_var' in

@@ -1337,7 +1337,15 @@ PyAPI_FUNC(PyObject *) _PyUnicode_XStrip(
 
 /* Helper array used by Py_UNICODE_ISSPACE(). */
 
+#ifdef __MORPHOS__
+/* Python library build on MorphOS uses baserel compilation trick,
+ * so the gvar exporting data system doesn't support const array.
+ * This array will be located into .rodata section, what's wrong with baserel.
+ */
+PyAPI_DATA(unsigned char) _Py_ascii_whitespace[];
+#else
 PyAPI_DATA(const unsigned char) _Py_ascii_whitespace[];
+#endif
 
 /* These should not be used directly. Use the Py_UNICODE_IS* and
    Py_UNICODE_TO* macros instead.

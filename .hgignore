@@ -39,12 +39,14 @@ syntax: glob
 python.exe-gdb.py
 libpython*.a
 libpython*.so*
+libcore.a
 *.swp
-*.o
+*.[od]
 *.pyc
 *.pyo
 *.pyd
 *.cover
+*.bro
 *~
 Lib/lib2to3/*.pickle
 Lib/test/data/*

@@ -6,6 +6,13 @@
 #include "Python.h"
 #include "../Objects/stringlib/stringdefs.h"
 
+/* Some platforms may defines it */
+#undef FORMAT_LONG
+#undef FORMAT_INT
+#undef FORMAT_FLOAT
+#undef FORMAT_COMPLEX
+#undef FORMAT_STRING
+
 #define FORMAT_STRING  _PyBytes_FormatAdvanced
 #define FORMAT_LONG    _PyLong_FormatAdvanced
 #define FORMAT_INT     _PyInt_FormatAdvanced

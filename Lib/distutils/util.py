@@ -50,7 +50,10 @@ def get_platform ():
         if look=='itanium':
             return 'win-ia64'
         return sys.platform
-
+        
+    if os.name == 'morphos':
+        return sys.platform
+        
     if os.name != "posix" or not hasattr(os, 'uname'):
         # XXX what about the architecture? NT is Intel or Alpha,
         # Mac OS is M68k or PPC, etc.

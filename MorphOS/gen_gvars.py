@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# usage: gen_gvar.py /Include
+
 from __future__ import with_statement
 import os, sys, re
 
@@ -8,6 +10,7 @@ newincludedir = sys.argv[1]
 gvars_match = re.compile('[ \t]*PyAPI_DATA\(([^)]+)\)[ \t]+([^;]+);.*').match
 remove_gvars = 'PyExc_WindowsError PyExc_VMSError PyCmpWrapper_Type'.split()
 remove_gvars += '_PySys_CheckInterval _PySys_ProfileFunc _PySys_TraceFunc _Py_RefTotal'.split()
+remove_gvars += '_Py_HashSecret_Initialized '.split()
 
 if not os.path.isdir(newincludedir):
     raise ValueError("'%s' is not a directory" % newincludedir)

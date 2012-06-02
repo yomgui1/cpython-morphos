@@ -45,13 +45,25 @@
 
 #include "Python.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Base modules */
 extern void initthread(void);
-extern void initsignal(void);
 extern void initerrno(void);
+extern void initpwd(void);
 extern void init_sre(void);
+extern void init_codecs(void);
+extern void init_weakref(void);
 extern void initzipimport(void);
 extern void init_symtable(void);
+extern void initxxsubtype(void);
+extern void init_struct(void);
+extern void initbinascii(void);
+extern void initcStringIO(void);
+extern void initmath(void);
+extern void init_random(void);
 
 /* Host modules */
 extern void initmorphos(void);
@@ -63,31 +75,35 @@ extern void initdatetime(void);
 extern void PyMarshal_Init(void);
 extern void initimp(void);
 extern void initgc(void);
+extern void init_ast(void);
+extern void _PyWarnings_Init(void);
 
-extern void initcollections(void);
-extern void initcStringIO(void);
-extern void init_random(void);
-extern void init_codecs(void);
+//extern void initsignal(void);
 
 struct _inittab _PyImport_Inittab[] = {
 
     /* Base modules */
     {"thread",      initthread},
-    {"signal",      initsignal},
     {"errno",       initerrno},
+    {"pwd",         initpwd},
     {"_sre",        init_sre},
+    {"_codecs",     init_codecs},
+    {"_weakref",    init_weakref},
     {"zipimport",   initzipimport},
     {"_symtable",   init_symtable},
+    {"xxsubtype",   initxxsubtype},
+    {"_struct",     init_struct},
+    {"binascii",    initbinascii},
+    {"cStringIO",   initcStringIO},
+    {"math",        initmath},
+    {"_random",     init_random},
+
+    //{"signal",      initsignal},
 
     /* Host modules */
     {"morphos",     initmorphos},
     {"time",        inittime},
     {"datetime",    initdatetime},
-
-    {"collections", initcollections},
-    {"cStringIO",   initcStringIO},
-    {"_random",     init_random},
-    {"_codecs",     init_codecs},
 
 /* -- ADDMODULE MARKER 2 -- */
 
@@ -96,6 +112,9 @@ struct _inittab _PyImport_Inittab[] = {
 
     /* This lives in import.c */
     {"imp", initimp},
+    
+    /* This lives in Python/Python-ast.c */
+    {"_ast", init_ast},
 
     /* These entries are here for sys.builtin_module_names */
     {"__main__", NULL},
@@ -105,7 +124,14 @@ struct _inittab _PyImport_Inittab[] = {
 
     /* This lives in gcmodule.c */
     {"gc", initgc},
+    
+    /* This lives in _warnings.c */
+    {"_warnings", _PyWarnings_Init},
 
     /* Sentinel */
     {NULL, NULL}
 };
+
+#ifdef __cplusplus
+}
+#endif

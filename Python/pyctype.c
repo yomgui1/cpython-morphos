@@ -1,5 +1,13 @@
 #include "Python.h"
 
+#ifdef __MORPHOS__
+/* Python library build on MorphOS uses baserel compilation trick,
+ * so the gvar exporting data system doesn't support const array.
+ * This array will be located into .rodata section, what's wrong with baserel.
+ */
+#define const
+#endif
+
 /* Our own locale-independent ctype.h-like macros */
 
 const unsigned int _Py_ctype_table[256] = {

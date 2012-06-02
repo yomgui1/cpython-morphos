@@ -97,7 +97,7 @@ class build_scripts (Command):
                     if not _sysconfig.is_python_build():
                         if os.name == 'morphos':
                             name = os.path.basename(self.executable)
-                        else.
+                        else:
                             name = self.executable
                         outf.write("#!%s%s\n" %
                                    (name,

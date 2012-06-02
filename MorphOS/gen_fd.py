@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# usage: gen_fd.py /Include <path_to>/libcore.a [include/fd/python2_lib.fd]
+
 from __future__ import with_statement
 import os, sys, re
 
@@ -58,7 +60,7 @@ apifunc = set(('_Py_'+n if n.startswith('c_') else n) for n in apifunc if n not 
 print "** %lu defined API functions found" % len(apifunc)
 
 def goodname(n):
-    n = n.replace('UCS4', '')
+    n = n.replace('UCS2', '')
     return n in apifunc and n not in apifunc_removed
 
 print "** Parsing binary '%s' ..." % bin_filename

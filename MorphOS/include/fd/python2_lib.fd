@@ -38,7 +38,9 @@ PyClassMethod_New()(sysv, r12base)
 PyClass_IsSubclass()(sysv, r12base)
 PyClass_New()(sysv, r12base)
 PyCode_Addr2Line()(sysv, r12base)
-PyCode_CheckLineNumber()(sysv, r12base)
+##private
+private()()
+##public
 PyCode_New()(sysv, r12base)
 PyCodec_BackslashReplaceErrors()(sysv, r12base)
 PyCodec_Decode()(sysv, r12base)
@@ -114,7 +116,9 @@ PyErr_WarnExplicit()(sysv, r12base)
 PyErr_WriteUnraisable()(sysv, r12base)
 PyEval_AcquireLock()(sysv, r12base)
 PyEval_AcquireThread()(sysv, r12base)
-PyEval_CallObject()(sysv, r12base)
+##private
+private()()
+##public
 PyEval_CallObjectWithKeywords()(sysv, r12base)
 PyEval_EvalCode()(sysv, r12base)
 PyEval_EvalCodeEx()(sysv, r12base)
@@ -187,7 +191,9 @@ PyImport_GetModuleDict()(sysv, r12base)
 PyImport_Import()(sysv, r12base)
 PyImport_ImportFrozenModule()(sysv, r12base)
 PyImport_ImportModule()(sysv, r12base)
-PyImport_ImportModuleEx()(sysv, r12base)
+##private
+private()()
+##public
 PyImport_ImportModuleLevel()(sysv, r12base)
 PyImport_ReloadModule()(sysv, r12base)
 PyInstance_New()(sysv, r12base)
@@ -535,61 +541,171 @@ PyUnicodeTranslateError_GetStart()(sysv, r12base)
 PyUnicodeTranslateError_SetEnd()(sysv, r12base)
 PyUnicodeTranslateError_SetReason()(sysv, r12base)
 PyUnicodeTranslateError_SetStart()(sysv, r12base)
-PyUnicodeUCS4_AsASCIIString()(sysv, r12base)
-PyUnicodeUCS4_AsCharmapString()(sysv, r12base)
-PyUnicodeUCS4_AsEncodedObject()(sysv, r12base)
-PyUnicodeUCS4_AsEncodedString()(sysv, r12base)
-PyUnicodeUCS4_AsLatin1String()(sysv, r12base)
-PyUnicodeUCS4_AsRawUnicodeEscapeString()(sysv, r12base)
-PyUnicodeUCS4_AsUTF16String()(sysv, r12base)
-PyUnicodeUCS4_AsUTF8String()(sysv, r12base)
-PyUnicodeUCS4_AsUnicode()(sysv, r12base)
-PyUnicodeUCS4_AsUnicodeEscapeString()(sysv, r12base)
-PyUnicodeUCS4_Compare()(sysv, r12base)
-PyUnicodeUCS4_Concat()(sysv, r12base)
-PyUnicodeUCS4_Contains()(sysv, r12base)
-PyUnicodeUCS4_Count()(sysv, r12base)
-PyUnicodeUCS4_Decode()(sysv, r12base)
-PyUnicodeUCS4_DecodeASCII()(sysv, r12base)
-PyUnicodeUCS4_DecodeCharmap()(sysv, r12base)
-PyUnicodeUCS4_DecodeLatin1()(sysv, r12base)
-PyUnicodeUCS4_DecodeRawUnicodeEscape()(sysv, r12base)
-PyUnicodeUCS4_DecodeUTF16()(sysv, r12base)
-PyUnicodeUCS4_DecodeUTF16Stateful()(sysv, r12base)
-PyUnicodeUCS4_DecodeUTF8()(sysv, r12base)
-PyUnicodeUCS4_DecodeUTF8Stateful()(sysv, r12base)
-PyUnicodeUCS4_DecodeUnicodeEscape()(sysv, r12base)
-PyUnicodeUCS4_Encode()(sysv, r12base)
-PyUnicodeUCS4_EncodeASCII()(sysv, r12base)
-PyUnicodeUCS4_EncodeCharmap()(sysv, r12base)
-PyUnicodeUCS4_EncodeDecimal()(sysv, r12base)
-PyUnicodeUCS4_EncodeLatin1()(sysv, r12base)
-PyUnicodeUCS4_EncodeRawUnicodeEscape()(sysv, r12base)
-PyUnicodeUCS4_EncodeUTF16()(sysv, r12base)
-PyUnicodeUCS4_EncodeUTF8()(sysv, r12base)
-PyUnicodeUCS4_EncodeUnicodeEscape()(sysv, r12base)
-PyUnicodeUCS4_Find()(sysv, r12base)
-PyUnicodeUCS4_Format()(sysv, r12base)
-PyUnicodeUCS4_FromEncodedObject()(sysv, r12base)
-PyUnicodeUCS4_FromObject()(sysv, r12base)
-PyUnicodeUCS4_FromOrdinal()(sysv, r12base)
-PyUnicodeUCS4_FromUnicode()(sysv, r12base)
-PyUnicodeUCS4_GetDefaultEncoding()(sysv, r12base)
-PyUnicodeUCS4_GetMax()(sysv, r12base)
-PyUnicodeUCS4_GetSize()(sysv, r12base)
-PyUnicodeUCS4_Join()(sysv, r12base)
-PyUnicodeUCS4_Partition()(sysv, r12base)
-PyUnicodeUCS4_RPartition()(sysv, r12base)
-PyUnicodeUCS4_RSplit()(sysv, r12base)
-PyUnicodeUCS4_Replace()(sysv, r12base)
-PyUnicodeUCS4_Resize()(sysv, r12base)
-PyUnicodeUCS4_RichCompare()(sysv, r12base)
-PyUnicodeUCS4_SetDefaultEncoding()(sysv, r12base)
-PyUnicodeUCS4_Split()(sysv, r12base)
-PyUnicodeUCS4_Splitlines()(sysv, r12base)
-PyUnicodeUCS4_Tailmatch()(sysv, r12base)
-PyUnicodeUCS4_Translate()(sysv, r12base)
-PyUnicodeUCS4_TranslateCharmap()(sysv, r12base)
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
 PyUnicode_BuildEncodingMap()(sysv, r12base)
 PyUnicode_DecodeUTF7()(sysv, r12base)
 PyUnicode_EncodeUTF7()(sysv, r12base)
@@ -667,12 +783,20 @@ _PyInstance_Lookup()(sysv, r12base)
 _PyInt_Init()(sysv, r12base)
 _PyList_Extend()(sysv, r12base)
 _PyLong_AsByteArray()(sysv, r12base)
-_PyLong_AsScaledDouble()(sysv, r12base)
-_PyLong_AsSsize_t()(sysv, r12base)
+##private
+private()()
+##public
+##private
+private()()
+##public
 _PyLong_Copy()(sysv, r12base)
 _PyLong_FromByteArray()(sysv, r12base)
-_PyLong_FromSize_t()(sysv, r12base)
-_PyLong_FromSsize_t()(sysv, r12base)
+##private
+private()()
+##public
+##private
+private()()
+##public
 _PyLong_New()(sysv, r12base)
 _PyLong_NumBits()(sysv, r12base)
 _PyLong_Sign()(sysv, r12base)
@@ -704,22 +828,54 @@ _PyTrash_deposit_object()(sysv, r12base)
 _PyTrash_destroy_chain()(sysv, r12base)
 _PyTuple_Resize()(sysv, r12base)
 _PyType_Lookup()(sysv, r12base)
-_PyUnicodeUCS4_AsDefaultEncodedString()(sysv, r12base)
-_PyUnicodeUCS4_IsAlpha()(sysv, r12base)
-_PyUnicodeUCS4_IsDecimalDigit()(sysv, r12base)
-_PyUnicodeUCS4_IsDigit()(sysv, r12base)
-_PyUnicodeUCS4_IsLinebreak()(sysv, r12base)
-_PyUnicodeUCS4_IsLowercase()(sysv, r12base)
-_PyUnicodeUCS4_IsNumeric()(sysv, r12base)
-_PyUnicodeUCS4_IsTitlecase()(sysv, r12base)
-_PyUnicodeUCS4_IsUppercase()(sysv, r12base)
-_PyUnicodeUCS4_IsWhitespace()(sysv, r12base)
-_PyUnicodeUCS4_ToDecimalDigit()(sysv, r12base)
-_PyUnicodeUCS4_ToDigit()(sysv, r12base)
-_PyUnicodeUCS4_ToLowercase()(sysv, r12base)
-_PyUnicodeUCS4_ToNumeric()(sysv, r12base)
-_PyUnicodeUCS4_ToTitlecase()(sysv, r12base)
-_PyUnicodeUCS4_ToUppercase()(sysv, r12base)
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
+##private
+private()()
+##public
 _PyUnicode_XStrip()(sysv, r12base)
 _PyWeakref_ClearRef()(sysv, r12base)
 _PyWeakref_GetWeakrefCount()(sysv, r12base)
@@ -736,3 +892,192 @@ _Py_c_prod()(sysv, r12base)
 _Py_c_quot()(sysv, r12base)
 _Py_c_sum()(sysv, r12base)
 _Py_svnversion()(sysv, r12base)
+PyBuffer_FillContiguousStrides()(sysv, r12base)
+PyBuffer_FillInfo()(sysv, r12base)
+PyBuffer_FromContiguous()(sysv, r12base)
+PyBuffer_GetPointer()(sysv, r12base)
+PyBuffer_IsContiguous()(sysv, r12base)
+PyBuffer_Release()(sysv, r12base)
+PyBuffer_ToContiguous()(sysv, r12base)
+PyByteArray_AsString()(sysv, r12base)
+PyByteArray_Concat()(sysv, r12base)
+PyByteArray_Fini()(sysv, r12base)
+PyByteArray_FromObject()(sysv, r12base)
+PyByteArray_FromStringAndSize()(sysv, r12base)
+PyByteArray_Init()(sysv, r12base)
+PyByteArray_Resize()(sysv, r12base)
+PyByteArray_Size()(sysv, r12base)
+PyCFunction_ClearFreeList()(sysv, r12base)
+PyCapsule_GetContext()(sysv, r12base)
+PyCapsule_GetDestructor()(sysv, r12base)
+PyCapsule_GetName()(sysv, r12base)
+PyCapsule_GetPointer()(sysv, r12base)
+PyCapsule_Import()(sysv, r12base)
+PyCapsule_IsValid()(sysv, r12base)
+PyCapsule_New()(sysv, r12base)
+PyCapsule_SetContext()(sysv, r12base)
+PyCapsule_SetDestructor()(sysv, r12base)
+PyCapsule_SetName()(sysv, r12base)
+PyCapsule_SetPointer()(sysv, r12base)
+PyCode_Optimize()(sysv, r12base)
+PyDict_Fini()(sysv, r12base)
+PyErr_NewExceptionWithDoc()(sysv, r12base)
+PyFile_DecUseCount()(sysv, r12base)
+PyFile_IncUseCount()(sysv, r12base)
+PyFile_SetEncodingAndErrors()(sysv, r12base)
+PyFloat_ClearFreeList()(sysv, r12base)
+PyFloat_GetInfo()(sysv, r12base)
+PyFloat_GetMax()(sysv, r12base)
+PyFloat_GetMin()(sysv, r12base)
+PyFrame_ClearFreeList()(sysv, r12base)
+PyFrame_GetLineNumber()(sysv, r12base)
+PyImport_GetImporter()(sysv, r12base)
+PyImport_ImportModuleNoBlock()(sysv, r12base)
+PyInt_ClearFreeList()(sysv, r12base)
+PyLong_AsLongAndOverflow()(sysv, r12base)
+PyLong_AsLongLongAndOverflow()(sysv, r12base)
+PyLong_AsSsize_t()(sysv, r12base)
+PyLong_FromSize_t()(sysv, r12base)
+PyLong_FromSsize_t()(sysv, r12base)
+PyLong_GetInfo()(sysv, r12base)
+PyMemoryView_FromBuffer()(sysv, r12base)
+PyMemoryView_FromObject()(sysv, r12base)
+PyMemoryView_GetContiguous()(sysv, r12base)
+PyMethod_ClearFreeList()(sysv, r12base)
+PyNumber_ToBase()(sysv, r12base)
+PyOS_double_to_string()(sysv, r12base)
+PyOS_mystricmp()(sysv, r12base)
+PyOS_mystrnicmp()(sysv, r12base)
+PyOS_string_to_double()(sysv, r12base)
+PyObject_CopyData()(sysv, r12base)
+PyObject_Format()(sysv, r12base)
+PyObject_GetBuffer()(sysv, r12base)
+PyObject_HashNotImplemented()(sysv, r12base)
+PyParser_ParseFileFlagsEx()(sysv, r12base)
+PyParser_ParseStringFlagsFilenameEx()(sysv, r12base)
+PySys_HasWarnOptions()(sysv, r12base)
+PySys_SetArgvEx()(sysv, r12base)
+PyTuple_ClearFreeList()(sysv, r12base)
+PyType_ClearCache()(sysv, r12base)
+PyType_Modified()(sysv, r12base)
+PyUnicodeUCS2_AsASCIIString()(sysv, r12base)
+PyUnicodeUCS2_AsCharmapString()(sysv, r12base)
+PyUnicodeUCS2_AsEncodedObject()(sysv, r12base)
+PyUnicodeUCS2_AsEncodedString()(sysv, r12base)
+PyUnicodeUCS2_AsLatin1String()(sysv, r12base)
+PyUnicodeUCS2_AsRawUnicodeEscapeString()(sysv, r12base)
+PyUnicodeUCS2_AsUTF16String()(sysv, r12base)
+PyUnicodeUCS2_AsUTF32String()(sysv, r12base)
+PyUnicodeUCS2_AsUTF8String()(sysv, r12base)
+PyUnicodeUCS2_AsUnicode()(sysv, r12base)
+PyUnicodeUCS2_AsUnicodeEscapeString()(sysv, r12base)
+PyUnicodeUCS2_AsWideChar()(sysv, r12base)
+PyUnicodeUCS2_Compare()(sysv, r12base)
+PyUnicodeUCS2_Concat()(sysv, r12base)
+PyUnicodeUCS2_Contains()(sysv, r12base)
+PyUnicodeUCS2_Count()(sysv, r12base)
+PyUnicodeUCS2_Decode()(sysv, r12base)
+PyUnicodeUCS2_DecodeASCII()(sysv, r12base)
+PyUnicodeUCS2_DecodeCharmap()(sysv, r12base)
+PyUnicodeUCS2_DecodeLatin1()(sysv, r12base)
+PyUnicodeUCS2_DecodeRawUnicodeEscape()(sysv, r12base)
+PyUnicodeUCS2_DecodeUTF16()(sysv, r12base)
+PyUnicodeUCS2_DecodeUTF16Stateful()(sysv, r12base)
+PyUnicodeUCS2_DecodeUTF32()(sysv, r12base)
+PyUnicodeUCS2_DecodeUTF32Stateful()(sysv, r12base)
+PyUnicodeUCS2_DecodeUTF8()(sysv, r12base)
+PyUnicodeUCS2_DecodeUTF8Stateful()(sysv, r12base)
+PyUnicodeUCS2_DecodeUnicodeEscape()(sysv, r12base)
+PyUnicodeUCS2_Encode()(sysv, r12base)
+PyUnicodeUCS2_EncodeASCII()(sysv, r12base)
+PyUnicodeUCS2_EncodeCharmap()(sysv, r12base)
+PyUnicodeUCS2_EncodeDecimal()(sysv, r12base)
+PyUnicodeUCS2_EncodeLatin1()(sysv, r12base)
+PyUnicodeUCS2_EncodeRawUnicodeEscape()(sysv, r12base)
+PyUnicodeUCS2_EncodeUTF16()(sysv, r12base)
+PyUnicodeUCS2_EncodeUTF32()(sysv, r12base)
+PyUnicodeUCS2_EncodeUTF8()(sysv, r12base)
+PyUnicodeUCS2_EncodeUnicodeEscape()(sysv, r12base)
+PyUnicodeUCS2_Find()(sysv, r12base)
+PyUnicodeUCS2_Format()(sysv, r12base)
+PyUnicodeUCS2_FromEncodedObject()(sysv, r12base)
+PyUnicodeUCS2_FromFormat()(sysv, r12base)
+PyUnicodeUCS2_FromFormatV()(sysv, r12base)
+PyUnicodeUCS2_FromObject()(sysv, r12base)
+PyUnicodeUCS2_FromOrdinal()(sysv, r12base)
+PyUnicodeUCS2_FromString()(sysv, r12base)
+PyUnicodeUCS2_FromStringAndSize()(sysv, r12base)
+PyUnicodeUCS2_FromUnicode()(sysv, r12base)
+PyUnicodeUCS2_FromWideChar()(sysv, r12base)
+PyUnicodeUCS2_GetDefaultEncoding()(sysv, r12base)
+PyUnicodeUCS2_GetMax()(sysv, r12base)
+PyUnicodeUCS2_GetSize()(sysv, r12base)
+PyUnicodeUCS2_Join()(sysv, r12base)
+PyUnicodeUCS2_Partition()(sysv, r12base)
+PyUnicodeUCS2_RPartition()(sysv, r12base)
+PyUnicodeUCS2_RSplit()(sysv, r12base)
+PyUnicodeUCS2_Replace()(sysv, r12base)
+PyUnicodeUCS2_Resize()(sysv, r12base)
+PyUnicodeUCS2_RichCompare()(sysv, r12base)
+PyUnicodeUCS2_SetDefaultEncoding()(sysv, r12base)
+PyUnicodeUCS2_Split()(sysv, r12base)
+PyUnicodeUCS2_Splitlines()(sysv, r12base)
+PyUnicodeUCS2_Tailmatch()(sysv, r12base)
+PyUnicodeUCS2_Translate()(sysv, r12base)
+PyUnicodeUCS2_TranslateCharmap()(sysv, r12base)
+PyUnicode_DecodeUTF7Stateful()(sysv, r12base)
+_PyBytes_FormatAdvanced()(sysv, r12base)
+_PyCode_CheckLineNumber()(sysv, r12base)
+_PyComplex_FormatAdvanced()(sysv, r12base)
+_PyDict_MaybeUntrack()(sysv, r12base)
+_PyDict_NewPresized()(sysv, r12base)
+_PyFloat_FormatAdvanced()(sysv, r12base)
+_PyImport_AcquireLock()(sysv, r12base)
+_PyImport_ReleaseLock()(sysv, r12base)
+_PyInt_Format()(sysv, r12base)
+_PyInt_FormatAdvanced()(sysv, r12base)
+_PyLong_Format()(sysv, r12base)
+_PyLong_FormatAdvanced()(sysv, r12base)
+_PyLong_Frexp()(sysv, r12base)
+_PyLong_Init()(sysv, r12base)
+_PyNumber_ConvertIntegralToInt()(sysv, r12base)
+_PyOS_ResetGetOpt()(sysv, r12base)
+_PyObject_LookupSpecial()(sysv, r12base)
+_PyObject_NextNotImplemented()(sysv, r12base)
+_PyObject_RealIsInstance()(sysv, r12base)
+_PyObject_RealIsSubclass()(sysv, r12base)
+_PyRandom_Init()(sysv, r12base)
+_PyString_InsertThousandsGrouping()(sysv, r12base)
+_PyThreadState_Init()(sysv, r12base)
+_PyThreadState_Prealloc()(sysv, r12base)
+_PyTuple_MaybeUntrack()(sysv, r12base)
+_PyUnicodeUCS2_AsDefaultEncodedString()(sysv, r12base)
+_PyUnicodeUCS2_IsAlpha()(sysv, r12base)
+_PyUnicodeUCS2_IsDecimalDigit()(sysv, r12base)
+_PyUnicodeUCS2_IsDigit()(sysv, r12base)
+_PyUnicodeUCS2_IsLinebreak()(sysv, r12base)
+_PyUnicodeUCS2_IsLowercase()(sysv, r12base)
+_PyUnicodeUCS2_IsNumeric()(sysv, r12base)
+_PyUnicodeUCS2_IsTitlecase()(sysv, r12base)
+_PyUnicodeUCS2_IsUppercase()(sysv, r12base)
+_PyUnicodeUCS2_IsWhitespace()(sysv, r12base)
+_PyUnicodeUCS2_ToDecimalDigit()(sysv, r12base)
+_PyUnicodeUCS2_ToDigit()(sysv, r12base)
+_PyUnicodeUCS2_ToLowercase()(sysv, r12base)
+_PyUnicodeUCS2_ToNumeric()(sysv, r12base)
+_PyUnicodeUCS2_ToTitlecase()(sysv, r12base)
+_PyUnicodeUCS2_ToUppercase()(sysv, r12base)
+_PyUnicode_FormatAdvanced()(sysv, r12base)
+_PyWarnings_Init()(sysv, r12base)
+_Py_DisplaySourceLine()(sysv, r12base)
+_Py_add_one_to_index_C()(sysv, r12base)
+_Py_add_one_to_index_F()(sysv, r12base)
+_Py_c_abs()(sysv, r12base)
+_Py_dg_dtoa()(sysv, r12base)
+_Py_dg_freedtoa()(sysv, r12base)
+_Py_dg_strtod()(sysv, r12base)
+_Py_double_round()(sysv, r12base)
+_Py_hgidentifier()(sysv, r12base)
+_Py_hgversion()(sysv, r12base)
+_Py_parse_inf_or_nan()(sysv, r12base)
+PyCode_NewEmpty()(sysv, r12base)

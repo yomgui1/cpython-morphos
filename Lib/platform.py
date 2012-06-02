@@ -996,7 +996,7 @@ def _syscmd_uname(option,default=''):
 
     """ Interface to the system's uname command.
     """
-    if sys.platform in ('dos','win32','win16','os2'):
+    if sys.platform in ('dos','win32','win16','os2', 'morphos'):
         # XXX Others too ?
         return default
     try:

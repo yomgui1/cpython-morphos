@@ -1600,7 +1600,7 @@ makeargvobject(int argc, char **argv)
 void
 PySys_SetArgvEx(int argc, char **argv, int updatepath)
 {
-#if defined(HAVE_REALPATH)
+#if defined(HAVE_REALPATH) || defined(__MORPHOS__)
     char fullpath[MAXPATHLEN];
 #elif defined(MS_WINDOWS) && !defined(MS_WINCE)
     char fullpath[MAX_PATH];
@@ -1670,6 +1670,18 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
                     n--; /* Drop trailing separator */
             }
         }
+#elif defined(__AMIGA__) /* Special case for AmigaDOS path */
+        BPTR lock = Lock(argv0, SHARED_LOCK);
+        if (lock != NULL) {
+            if (NameFromLock(lock, fullpath, MAXPATHLEN)) {
+                argv0 = fullpath;
+            }
+            UnLock(lock);
+        }
+        p = PathPart(argv0);
+        if (p && *p == SEP)
+            p--;
+        n = p + 1 - argv0;
 #else /* All other filename syntaxes */
         if (argc > 0 && argv0 != NULL && strcmp(argv0, "-c") != 0) {
 #if defined(HAVE_REALPATH)
@@ -1678,11 +1690,6 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
             }
 #endif
             p = strrchr(argv0, SEP);
-#ifdef ___MORPHOS__
-            /* Test for volume sep */
-            if (!p)
-                p = strrchr(arg0, ':');
-#endif
         }
         if (p != NULL) {
 #ifndef RISCOS
@@ -1690,12 +1697,10 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
 #else /* don't include trailing separator */
             n = p - argv0;
 #endif /* RISCOS */
-#ifndef __MORPHOS__
 #if SEP == '/' /* Special case for Unix filename syntax */
             if (n > 1)
                 n--; /* Drop trailing separator */
 #endif /* Unix */
-#endif /* MorphOS */
         }
 #endif /* All others */
         a = PyString_FromStringAndSize(argv0, n);

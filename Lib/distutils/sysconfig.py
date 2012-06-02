@@ -91,7 +91,11 @@ def get_python_inc(plat_specific=0, prefix=None):
         return os.path.join(prefix, "Include")
     elif os.name == "morphos":
         if python_build:
-            return os.path.join(os.curdir, "MorphOS", "include")
+            base = os.getcwd()
+            if plat_specific:
+                return os.path.join(base, "MorphOS", "include")
+            else:
+                return os.path.join(base, "Include")
         else:
             # Includes dir is pointed by PYTHONINCLUDEDIR on morphos
             # By default it's in usr:local/include/pythonX.Y
@@ -535,6 +539,7 @@ def _init_morphos():
     # XXX hmmm.. a normal install puts include files here
     g['INCLUDEPY'] = get_python_inc(plat_specific=0)
 
+    g['AR'] = 'ar'
     g['CC'] = 'gcc'
     g['CPP'] = 'gcc -E'
     g['CXX'] = 'g++'
@@ -548,7 +553,8 @@ def _init_morphos():
     g['OPT'] = '-O2 -mmultiple -mstring -mregnames -fno-strict-aliasing  -fcall-saved-r13 -ffixed-13'
 
     g['CFLAGS'] = g['OPT'] + ' ' + g['BASECFLAGS']
- 
+    g['ARFLAGS'] = 'sur'
+    
     g['BINDIR'] = ''
     g['EXE'] = ''
     g['SO'] = '.pym'

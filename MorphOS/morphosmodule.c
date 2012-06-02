@@ -654,7 +654,6 @@ morphos_ctermid(PyObject *self, PyObject *noargs)
 }//-
 #endif
 
-//+ morphos_chdir()
 PyDoc_STRVAR(morphos_chdir__doc__,
 "chdir(path)\n\n\
 Change the current working directory to the specified path.");
@@ -663,9 +662,21 @@ static PyObject *
 morphos_chdir(PyObject *self, PyObject *args)
 {
     return morphos_1str(args, "et:chdir", chdir);
-}//-
+}
 
-//+ morphos_chmod()
+#ifdef HAVE_FCHDIR
+PyDoc_STRVAR(morphos_fchdir__doc__,
+"fchdir(fildes)\n\n\
+Change to the directory of the given file descriptor.  fildes must be\n\
+opened on a directory, not a file.");
+
+static PyObject *
+morphos_fchdir(PyObject *self, PyObject *fdobj)
+{
+    return morphos_fildes(fdobj, fchdir);
+}
+#endif /* HAVE_FCHDIR */
+
 PyDoc_STRVAR(morphos_chmod__doc__,
 "chmod(path, mode)\n\n\
 Change the access permissions of a file.");
@@ -687,10 +698,9 @@ morphos_chmod(PyObject *self, PyObject *args)
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
-}//-
+}
 
 #ifdef HAVE_CHROOT
-//+ morphos_chroot()
 PyDoc_STRVAR(morphos_chroot__doc__,
 "chroot(path)\n\n\
 Change root directory to path.");
@@ -699,11 +709,10 @@ static PyObject *
 morphos_chroot(PyObject *self, PyObject *args)
 {
     return morphos_1str(args, "et:chroot", chroot);
-}//-
+}
 #endif
 
-#ifdef _HAVE_FSYNC
-//+ morphos_fsync()
+#ifdef HAVE_FSYNC
 PyDoc_STRVAR(morphos_fsync__doc__,
 "fsync(fildes)\n\n\
 force write of file with filedescriptor to disk.");
@@ -711,12 +720,11 @@ force write of file with filedescriptor to disk.");
 static PyObject *
 morphos_fsync(PyObject *self, PyObject *fdobj)
 {
-       return morphos_fildes(fdobj, fsync);
-}//-
+    return morphos_fildes(fdobj, fsync);
+}
 #endif /* HAVE_FSYNC */
 
-#ifdef _HAVE_FDATASYNC
-//+ morphos_fdatasync()
+#ifdef HAVE_FDATASYNC
 PyDoc_STRVAR(morphos_fdatasync__doc__,
 "fdatasync(fildes)\n\n\
 force write of file with filedescriptor to disk.\n\
@@ -726,7 +734,7 @@ static PyObject *
 morphos_fdatasync(PyObject *self, PyObject *fdobj)
 {
        return morphos_fildes(fdobj, fdatasync);
-}//-
+}/
 #endif /* HAVE_FDATASYNC */
 
 #ifdef HAVE_CHOWN

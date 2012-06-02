@@ -232,14 +232,21 @@ class build_ext (Command):
                 self.library_dirs.append('.')
 
         if os.name == 'morphos':
-            self.include_dirs.append('gg:os-include')
-            self.include_dirs.append('gg:includestd')
-            self.include_dirs.append('usr:include')
-            self.include_dirs.append('usr:local/include')
-            self.library_dirs.append('gg:ppc-morphos/lib/libnix')
-            self.library_dirs.append('gg:ppc-morphos/lib') 
-            self.library_dirs.append('usr:lib')
-            self.library_dirs.append('usr:local/lib')
+            self.include_dirs += [ "gg:os-include",
+                                   "gg:includestd",
+                                   "usr:include",
+                                   "usr:local/include", ]
+            self.library_dirs += [ "gg:ppc-morphos/lib/libnix",
+                                   "gg:ppc-morphos/lib",
+                                   "usr:lib",
+                                   "usr:local/lib", ]
+                                   
+            path = os.path.dirname(sysconfig.get_config_h_filename())
+            if path not in self.include_dirs:
+                self.include_dirs.append(path)
+                
+            if plat_py_include.endswith('MorphOS/include'):
+                self.library_dirs.append('MorphOS/objs/final')
 
             # On morphos, we use different directories for release or debug builds.
             if self.debug:

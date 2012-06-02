@@ -218,6 +218,8 @@ class PyBuildExt(build_ext):
                     line = line.split()
                     remove_modules.append(line[0])
                 input.close()
+        else:
+            remove_modules = []
 
         for ext in self.extensions[:]:
             if ext.name in remove_modules:
@@ -482,7 +484,8 @@ class PyBuildExt(build_ext):
         # Check for MorphOS which has libraries in non-standard locations
         if platform == 'morphos':
             lib_dirs += os.getenv('LIBRARY_PATH', '').split(os.pathsep)
-            lib_dirs += ['gg:ppc-morphos/lib', 'gg:ppc-morphos/lib/libnix']
+            lib_dirs += [ 'gg:ppc-morphos/lib',
+                          'gg:ppc-morphos/lib/libnix' ]
             inc_dirs += os.getenv('C_INCLUDE_PATH', '').split(os.pathsep)
             for d in list(inc_dirs):
                 if not d or not os.path.isdir(d):
@@ -544,8 +547,8 @@ class PyBuildExt(build_ext):
         exts.append( Extension('_testcapi', ['_testcapimodule.c'],
                                depends=['testcapi_long.h']) )
         # profilers (_lsprof is for cProfile.py)
-        exts.append( Extension('_hotshot', ['_hotshot.c']) )
-
+        if os.name != 'morphos':
+            exts.append( Extension('_hotshot', ['_hotshot.c']) )
         exts.append( Extension('_lsprof', ['_lsprof.c', 'rotatingtree.c']) )
         # static Unicode character database
         if have_unicode:
@@ -1970,9 +1973,8 @@ class PyBuildExt(build_ext):
                              sources=['_ctypes/_ctypes_test.c'])
         self.extensions.extend([ext, ext_test])
 
-        if sys.platform != 'morphos':
-            if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
-                return
+        if not '--with-system-ffi' in sysconfig.get_config_var("CONFIG_ARGS"):
+            return
 
         if sys.platform == 'darwin':
             # OS X 10.5 comes with libffi.dylib; the include files are

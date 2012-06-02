@@ -112,37 +112,18 @@ PyThread_get_thread_ident(void)
     return (long) FindTask(NULL)->tc_ETask->UniqueID;
 }
 
-static
-void do_PyThread_exit_thread(int no_cleanup)
+void
+PyThread_exit_thread(void)
 {
     jmp_buf *jmpbuf = GET_THREAD_DATA(GET_THREAD_DATA_PTR(), JmpBuf);
 
     DPRINT("PyThread_exit_thread called\n");
     if (!initialized) {
-        if (no_cleanup)
-            _exit(0);
-        else
-            exit(0);
+        exit(0);
     }
 
     longjmp(*jmpbuf, 1);
 }
-
-void
-PyThread_exit_thread(void)
-{
-    do_PyThread_exit_thread(0);
-}
-
-void
-PyThread__exit_thread(void)
-{
-    do_PyThread_exit_thread(1);
-}
-
-#ifndef NO_EXIT_PROG
-#error "No MorphOS support for EXIT_PROG feature"
-#endif /* NO_EXIT_PROG */
 
 typedef struct
 {
@@ -270,3 +251,16 @@ PyThread_release_lock(PyThread_type_lock lock)
 
     ReleaseSemaphore(&_lock->Sem);
 }
+
+/* set the thread stack size.
+ * Return 0 if size is valid, -1 if size is invalid,
+ * -2 if setting stack size is not supported.
+ */
+static int
+_morphos_pthread_set_stacksize(size_t size)
+{
+	/* TODO */
+	return -2;
+}
+
+#define THREAD_SET_STACKSIZE(x) _morphos_pthread_set_stacksize(x)
