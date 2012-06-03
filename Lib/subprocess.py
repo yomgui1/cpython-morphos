@@ -427,7 +427,7 @@ if mswindows:
     class pywintypes:
         error = IOError
 elif morphos:
-        pass
+    pass
 else:
     import select
     _has_poll = hasattr(select, 'poll')
@@ -1043,6 +1043,9 @@ class Popen(object):
 
         kill = terminate
 
+    elif morphos:
+        pass
+        
     else:
         #
         # POSIX methods
@@ -1567,7 +1570,7 @@ def _demo_morphos():
 if __name__ == "__main__":
     if mswindows:
         _demo_windows()
-    elif mos:
+    elif morphos:
         _demo_morphos()
     else:
         _demo_posix()

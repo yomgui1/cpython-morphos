@@ -297,12 +297,13 @@ def getsitepackages():
             continue
         seen.add(prefix)
 
-        if sys.platform in ('os2emx', 'riscos', 'morphos'):
+        if sys.platform in ('os2emx', 'riscos'):
             sitepackages.append(os.path.join(prefix, "Lib", "site-packages"))
         elif os.sep == '/':
-            sitepackages.append(os.path.join(prefix, "lib",
-                                        "python" + sys.version[:3],
-                                        "site-packages"))
+            sitepackages.append(os.path.join(prefix,
+                                ("lib" if os.name != 'morphos' else "libs"),
+                                "python" + sys.version[:3],
+                                "site-packages"))
             sitepackages.append(os.path.join(prefix, "lib", "site-python"))
         else:
             sitepackages.append(prefix)

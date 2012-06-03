@@ -1135,37 +1135,41 @@ def printlist(x, width=70, indent=4):
 _expectations = {
     'morphos':
         """
-        test_al
-        test_applesingle
         test_bsddb
         test_bsddb185
         test_bsddb3
-        test_cd
-        test_cl
         test_commands
         test_curses
         test_dbm
         test_fcntl
         test_gdbm
-        test_gl
         test_hotshot
-        test_imgfile
         test_ioctl
         test_largefile
-        test_linuxaudiodev
         test_mmap
-        test_nis
         test_openpty
         test_ossaudiodev
-        test_posix    
-        test_posixpath
+        test_posix
         test_resource
-        test_sunaudiodev
         test__locale
-        test_locale
         test_pty
         test_fork1
         test_poll
+        test_multiprocessing
+        test_tcl
+        test_tk
+        test_ttk_guionly
+        test_ttk_textonly
+        test_wait3
+        test_wait4
+        test_epoll
+        test_kqueue
+        test_readline
+        test_pipes
+        test_mhlib
+        test_posixpath
+        test_ntpath
+        test_signal
         """,
     'win32':
         """

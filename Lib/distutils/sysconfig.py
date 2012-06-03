@@ -49,6 +49,7 @@ def _python_build():
     return False
 python_build = _python_build()
 
+
 def get_python_version():
     """Return a string containing the major and minor Python version,
     leaving off the patchlevel.  Sample return values could be '1.5'
