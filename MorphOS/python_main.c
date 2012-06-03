@@ -5,7 +5,7 @@
  * So we'll set a minimum of 100kB.
  */
 
-unsigned long __stack = 100 * 1024;
+unsigned long __stack = 200 * 1024;
 const unsigned char *version = "$VER: python-" VERSION " " LIBVERSION "." LIBREVISION " (" BUILDDATE ") Python Interpreter";
 
 int main(int argc, char **argv)

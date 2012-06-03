@@ -653,7 +653,6 @@ test: $(BUILDDIR)/$(BINARY_NAME)
         -x test_ntpath \
         -x test_ascii_formatd \
         -x test_ctypes \
-        -x test_compile \
         -x test_httpservers \
         -x test_ftplib \
         -x test_logging \
