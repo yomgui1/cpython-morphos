@@ -250,7 +250,8 @@ BOOL __PyMorphOS_InitModule(pPythonLibrary_t _PythonBase)
         stderr = PythonBase->Exported.ex_stderr;
 
         /* Globals Python vars access */
-        PyMorphOS_InitGVars(&__pym_GVars);
+        APTR gvars = PyMorphOS_GetGVars();
+        CopyMem(gvars, &__pym_GVars, sizeof(__pym_GVars));
 
         /* User initialisation */
         res = PyMorphOS_InitModule();

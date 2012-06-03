@@ -138,6 +138,7 @@ extern int _PyOS_ReadlineTState;
 extern int _PyOS_optarg;
 extern int _PyOS_opterr;
 extern int _PyOS_optind;
+extern int _PyParser_Grammar;
 extern int _PyParser_TokenNames;
 extern int _PyThreadState_Current;
 extern int _PyThreadState_GetFrame;
@@ -163,7 +164,7 @@ extern int _Py_ctype_table;
 extern int _Py_ctype_tolower;
 extern int _Py_ctype_toupper;
 
-void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
+void _PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
 {
     PythonBase->PythonGVars = storage;
 
@@ -301,6 +302,7 @@ void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
     storage->p__PyOS_optarg                        = &_PyOS_optarg;
     storage->p__PyOS_opterr                        = &_PyOS_opterr;
     storage->p__PyOS_optind                        = &_PyOS_optind;
+    storage->p__PyParser_Grammar                   = &_PyParser_Grammar;
     storage->p__PyParser_TokenNames                = &_PyParser_TokenNames;
     storage->p__PyThreadState_Current              = &_PyThreadState_Current;
     storage->p__PyThreadState_GetFrame             = &_PyThreadState_GetFrame;

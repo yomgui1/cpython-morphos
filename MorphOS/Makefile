@@ -131,7 +131,7 @@ LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfil
 	-Wl,--warn-common -Wl,--warn-once
  
 #LIBS = -lc -ldl -laboxstubs -labox -lc -lm -lmath -lsyscall -lauto
-LIBS = -L/usr/local/lib -lsyscall -lm
+LIBS = -L/usr/local/lib -lm -lsyscall
 
 ifneq ("$(OS)", "MorphOS")
 LIBS += -lnix
@@ -647,9 +647,28 @@ release:
 endif
 
 test: $(BUILDDIR)/$(BINARY_NAME)
-	(cd /ram; $(BINARY_NAME) -u -m test.regrtest -x test_capi -x test_cpickle -x test_cmd_line -x test_compile \
-		-x test_ctypes -x test_logging -x test_mailbox -x test_minidom -x test_marshal \
-		-x test_pyexpat -x test_sax -x test_socket -x test_subprocess -x test_thread -x test_threading)
+	(cd /ram; $(BINARY_NAME) -E -tt -Wd -3 -u -m test.regrtest -udecimal \
+        -x test_posixpath \
+        -x test_ntpath \
+        -x test_ascii_formatd \
+        -x test_ctypes \
+        -x test_compile \
+        -x test_httpservers \
+        -x test_ftplib \
+        -x test_logging \
+        -x test_mailbox \
+        -x test_marshal \
+        -x test_poplib \
+        -x test_smtplib \
+        -x test_socket \
+        -x test_threading \
+        -x test_urllib2_localnet \
+        -x test_xmlrpc \
+        -x test_imaplib \
+        -x test_ssl \
+        -x test_socketserver \
+        -x test_docxmlrpc \
+        )
 
 # CRASH: test_capi, test_minidom
 # Cause Insert device popup: test_mailbox

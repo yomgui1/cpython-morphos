@@ -282,7 +282,9 @@ PyMorphOS_AddTermFunc()(sysv, r12base)
 PyMorphOS_GetFullPath()(sysv, r12base)
 PyMorphOS_GetGVars()(sysv, r12base)
 PyMorphOS_HandleArgv()(sysv, r12base)
-PyMorphOS_InitGVars()(sysv, r12base)
+##private
+private()()
+##public
 PyMorphOS_InitThread()(sysv, r12base)
 PyMorphOS_SetConfigA()(sysv, r12base)
 PyMorphOS_Term()(sysv, r12base)

@@ -582,13 +582,12 @@ int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
                         old_stdio[0] = stdin;
                         old_stdio[1] = stdout;
                         old_stdio[2] = stderr;
-
                         stdin = prog_stdin; stdout = prog_stdout; stderr = prog_stderr;
                         
                         PythonBase->Exported.ex_LocaleBase = libnix_LocaleBase;
-
-                        PyMorphOS_InitGVars(gvars_storage);
-                        setlocale(LC_ALL, "");
+                        _PyMorphOS_InitGVars(gvars_storage);
+                        
+                        setlocale(LC_ALL, "C");
 
                         gInitDone = TRUE;
                         return RETURN_OK;

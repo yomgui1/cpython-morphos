@@ -281,7 +281,6 @@ extern int PyMorphOS_AddTermFunc (void);
 extern int PyMorphOS_GetFullPath (void);
 extern int PyMorphOS_GetGVars (void);
 extern int PyMorphOS_HandleArgv (void);
-extern int PyMorphOS_InitGVars (void);
 extern int PyMorphOS_InitThread (void);
 extern int PyMorphOS_SetConfigA (void);
 extern int PyMorphOS_Term (void);

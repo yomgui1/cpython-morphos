@@ -137,6 +137,7 @@ struct PyMorphOS_GVar_STRUCT {
     void* p__PyOS_optarg;
     void* p__PyOS_opterr;
     void* p__PyOS_optind;
+    void* p__PyParser_Grammar;
     void* p__PyParser_TokenNames;
     void* p__PyThreadState_Current;
     void* p__PyThreadState_GetFrame;
@@ -163,7 +164,7 @@ struct PyMorphOS_GVar_STRUCT {
     void* p__Py_ctype_toupper;
 };
 
-extern void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *);
+extern void _PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *);
 extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 
 #ifndef DONT_WRAP_VARS
@@ -295,13 +296,14 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define Py_UnicodeFlag                      (*(int *)__pym_GVars.p_Py_UnicodeFlag)
 #define Py_UseClassExceptionsFlag           (*(int *)__pym_GVars.p_Py_UseClassExceptionsFlag)
 #define Py_VerboseFlag                      (*(int *)__pym_GVars.p_Py_VerboseFlag)
-#define _PyByteArray_empty_string           (*(char* *)__pym_GVars.p__PyByteArray_empty_string)
-#define _PyLong_DigitValue                  (*(int* *)__pym_GVars.p__PyLong_DigitValue)
+#define _PyByteArray_empty_string           ((char *)__pym_GVars.p__PyByteArray_empty_string)
+#define _PyLong_DigitValue                  ((int *)__pym_GVars.p__PyLong_DigitValue)
 #define _PyOS_ReadlineTState                (*(PyThreadState* *)__pym_GVars.p__PyOS_ReadlineTState)
 #define _PyOS_optarg                        (*(char * *)__pym_GVars.p__PyOS_optarg)
 #define _PyOS_opterr                        (*(int *)__pym_GVars.p__PyOS_opterr)
 #define _PyOS_optind                        (*(int *)__pym_GVars.p__PyOS_optind)
-#define _PyParser_TokenNames                (*(char ** *)__pym_GVars.p__PyParser_TokenNames)
+#define _PyParser_Grammar                   (*(grammar *)__pym_GVars.p__PyParser_Grammar)
+#define _PyParser_TokenNames                ((char * *)__pym_GVars.p__PyParser_TokenNames)
 #define _PyThreadState_Current              (*(PyThreadState * *)__pym_GVars.p__PyThreadState_Current)
 #define _PyThreadState_GetFrame             (*(PyThreadFrameGetter *)__pym_GVars.p__PyThreadState_GetFrame)
 #define _PyTrash_delete_later               (*(PyObject * *)__pym_GVars.p__PyTrash_delete_later)
@@ -317,13 +319,13 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define _Py_NotImplementedStruct            (*(PyObject *)__pym_GVars.p__Py_NotImplementedStruct)
 #define _Py_PackageContext                  (*(char * *)__pym_GVars.p__Py_PackageContext)
 #define _Py_QnewFlag                        (*(int *)__pym_GVars.p__Py_QnewFlag)
-#define _Py_SwappedOp                       (*(int* *)__pym_GVars.p__Py_SwappedOp)
+#define _Py_SwappedOp                       ((int *)__pym_GVars.p__Py_SwappedOp)
 #define _Py_Ticker                          (*(volatile int *)__pym_GVars.p__Py_Ticker)
 #define _Py_TrueStruct                      (*(PyIntObject *)__pym_GVars.p__Py_TrueStruct)
 #define _Py_ZeroStruct                      (*(PyIntObject *)__pym_GVars.p__Py_ZeroStruct)
-#define _Py_ascii_whitespace                (*(unsigned char* *)__pym_GVars.p__Py_ascii_whitespace)
-#define _Py_ctype_table                     (*(const unsigned int* *)__pym_GVars.p__Py_ctype_table)
-#define _Py_ctype_tolower                   (*(const unsigned char* *)__pym_GVars.p__Py_ctype_tolower)
-#define _Py_ctype_toupper                   (*(const unsigned char* *)__pym_GVars.p__Py_ctype_toupper)
+#define _Py_ascii_whitespace                ((unsigned char *)__pym_GVars.p__Py_ascii_whitespace)
+#define _Py_ctype_table                     ((const unsigned int *)__pym_GVars.p__Py_ctype_table)
+#define _Py_ctype_tolower                   ((const unsigned char *)__pym_GVars.p__Py_ctype_tolower)
+#define _Py_ctype_toupper                   ((const unsigned char *)__pym_GVars.p__Py_ctype_toupper)
 #endif /* !DONT_WRAP_VARS */
 #endif /* LIB_PYTHON_GVARS_H */

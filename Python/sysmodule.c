@@ -1683,7 +1683,6 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
             if (p && *p == SEP)
                 p--;
             n = p + 1 - argv0;
-            dprintf("%s\n", argv0);
         }
 #else /* All other filename syntaxes */
         if (argc > 0 && argv0 != NULL && strcmp(argv0, "-c") != 0) {

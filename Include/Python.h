@@ -182,12 +182,15 @@ extern "C" {
 #endif
 
 #ifndef Py_BUILD_CORE
+/* adding some non included header containing PyAPI_xxx() macro
+ * before including our python gvar header.
+ * Adding them after cause compiler error.
+ */
 #include <frameobject.h>
+#include <token.h>
+
 #include <libraries/python2_gvars.h>
 extern struct Library *PythonBase;
-
-/* From python_gvars.c */
-PyAPI_FUNC(void) PyMorphOS_InitGVars( struct PyMorphOS_GVar_STRUCT * );
 #endif
 
 /* From morphos.c */

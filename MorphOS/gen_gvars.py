@@ -38,17 +38,22 @@ for item in os.listdir(newincludedir):
     if l: d[item] = l
 
 gvars = sum(d.itervalues(), [])
+
+# Adding one not in include but in Python/graminit.c
+gvars.append("_PyParser_Grammar;grammar")
+
 print "** %lu global variables found" % len(gvars)
 
 print "** Cleanup gvars ..."
 l = set()
+arrays = []
 for i,x in enumerate(gvars):
     n,t = x.split(';')
 
     if n.endswith(']'):
         n = n[:n.find('[')]
-        t += '*'
         gvars[i] = '%s;%s' % (n, t)
+        arrays.append(n)
         print "Array    : %-65s (was '%s')" % (gvars[i], x)
         x = gvars[i]
         
@@ -97,7 +102,7 @@ gvars_c_template = """/* GENERATED FILE. DO NOT EDIT IT MANUALLY */
 
 %s
 
-void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
+void _PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
 {
     PythonBase->PythonGVars = storage;
 
@@ -113,7 +118,7 @@ struct PyMorphOS_GVar_STRUCT {
 %s
 };
 
-extern void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *);
+extern void _PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *);
 extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 
 #ifndef DONT_WRAP_VARS
@@ -133,6 +138,10 @@ if not os.path.exists(dirname):
     os.mkdir(dirname)
     
 print "** Creating '%s' ..." % gvars_h_filename
+templates = [
+    "#define %-35s (*(%s *)__pym_GVars.p_%s)",
+    "#define %-35s ((%s *)__pym_GVars.p_%s)"
+]
 with open(gvars_h_filename, 'w') as f:
     f.write(gvars_h_template % ('\n'.join("    void* p_%s;" % x.split(';')[0] for x in gvars),
-                                '\n'.join("#define %-35s (*(%s *)__pym_GVars.p_%s)" % tuple(x.split(';') + [ x.split(';')[0] ]) for x in gvars)))
+                                '\n'.join(templates[1 if x.split(';')[0] in arrays else 0] % tuple(x.split(';') + [ x.split(';')[0] ]) for x in gvars)))

@@ -39,7 +39,9 @@
 #include "ast.h"
 #include "pyarena.h"
 
+#ifndef __MORPHOS__
 extern grammar _PyParser_Grammar; /* From graminit.c */
+#endif
 
 #ifdef lint
 #include <note.h>
