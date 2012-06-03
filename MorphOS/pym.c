@@ -18,7 +18,7 @@
 ** System Includes
 */
 
-#include <dos/dosextens.h>       
+#include <dos/dosextens.h>
 
 #include <proto/exec.h>
 #include <proto/dos.h>

@@ -775,7 +775,7 @@ class build_ext (Command):
             v = (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff)
             pythonlib = "python%d.%d" % v
             pymlib = "pym%u.%u" % v
-            return [pymlib, pythonlib] + ext.libraries
+            return ext.libraries + [pymlib, pythonlib]
         elif sys.platform == 'darwin':
             # Don't use the default code below
             return ext.libraries
