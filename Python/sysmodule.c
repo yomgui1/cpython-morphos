@@ -1670,18 +1670,21 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
                     n--; /* Drop trailing separator */
             }
         }
-#elif defined(__AMIGA__) /* Special case for AmigaDOS path */
-        BPTR lock = Lock(argv0, SHARED_LOCK);
-        if (lock != NULL) {
-            if (NameFromLock(lock, fullpath, MAXPATHLEN)) {
-                argv0 = fullpath;
+#elif defined(__MORPHOS__) /* Special case for AmigaDOS path */
+        if (argc > 0 && argv0 != NULL && strcmp(argv0, "-c") != 0) {
+            BPTR lock = Lock(argv0, SHARED_LOCK);
+            if (lock != NULL) {
+                if (NameFromLock(lock, fullpath, MAXPATHLEN)) {
+                    argv0 = fullpath;
+                }
+                UnLock(lock);
             }
-            UnLock(lock);
+            p = PathPart(argv0);
+            if (p && *p == SEP)
+                p--;
+            n = p + 1 - argv0;
+            dprintf("%s\n", argv0);
         }
-        p = PathPart(argv0);
-        if (p && *p == SEP)
-            p--;
-        n = p + 1 - argv0;
 #else /* All other filename syntaxes */
         if (argc > 0 && argv0 != NULL && strcmp(argv0, "-c") != 0) {
 #if defined(HAVE_REALPATH)
