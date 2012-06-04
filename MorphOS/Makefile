@@ -42,7 +42,7 @@ endif
 
 BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
-SCMVERSION		:= $(shell python c:hg parent --template "{latesttag}-{latesttagdistance}")
+LASTTAGVERSION	:= $(shell python c:hg parent --template "{latesttag}-{latesttagdistance}")
 SVNVERSION		:= $(shell svnversion $(SRCDIR))
 HGVERSION		:= $(shell python c:hg id -i)
 HGTAG			:= $(shell python c:hg parent --template "{latesttag}")
@@ -53,7 +53,7 @@ OBJDIR := $(BUILDDIR)/objs/$(MODE)
 LIBSDIR := $(BUILDDIR)/libs/$(MODE)
 INCDIR := $(BUILDDIR)/include
 
-LIBRARY_SHORTNAME = python$(VERSION_MAJOR).library
+LIBRARY_SHORTNAME = python$(MOSVERSION).library
 
 SUFFIX = $(VERSION_MAJOR).$(VERSION_MINOR)
 BINARY_NAME = python$(SUFFIX)
@@ -512,7 +512,7 @@ $(OBJDIR)/$(MACHDEP_DIR)/libheader.o : \
 	DEFINES+=LIBRARY_VERSION=$(PYTHON_SHAREDLIB_VERSION) \
 		LIBRARY_REVISION=$(PYTHON_SHAREDLIB_REVISION) \
 		COMPILE_DATE='"$(COMPILE_DATE)"' \
-	LIBRARY_SHORTNAME='"$(LIBRARY_SHORTNAME)"' \
+		LIBRARY_SHORTNAME='"$(LIBRARY_SHORTNAME)"' \
 		LIBRARY_VERSION_STR='"$(PYTHON_SHAREDLIB_VERSION).$(PYTHON_SHAREDLIB_REVISION)"' \
 		MORPHOS_VERSION_STR='"$(MOSVERSION)"'
 
@@ -587,6 +587,7 @@ ALL_SOURCES_SAFE = $(filter-out %/libheader.c,$(ALL_SOURCES))
 sdk: $(SDK_DEPS)
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME)
+	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
 	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS build_scripts)
 
 install-bin: library $(SRCDIR)/$(BINARY_NAME)
@@ -622,7 +623,7 @@ install: install-bin install-sdk install-dynlib install-purelib
 
 ifneq ("$(RELEASE_DIR)","")
 release:
-	arcname=Python-$(SCMVERSION); \
+	arcname=Python-$(LASTTAGVERSION); \
 		dir=$(RELEASE_DIR)/$$arcname; \
 		$(ECHO) $(COLOR_BOLD)"Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
 		rm -rf $$dir; \
