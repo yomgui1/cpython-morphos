@@ -1,7 +1,6 @@
-#include "morphos.h"
+#undef dprint /* defined in thread.c */
 
-#undef dprintf
-//#define DPRINT dprintf
+#include "morphos.h"
 
 #include <proto/exec.h>
 #include <proto/dos.h>

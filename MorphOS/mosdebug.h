@@ -1,5 +1,5 @@
 /*******************************************************************************
- *** $Id$
+ *** $Id:$
  ***
  *** Morphos serial debug functions
  */
@@ -7,38 +7,37 @@
 #ifndef MOSDEBUG_H
 #define MOSDEBUG_H 1
 
-#include <exec/types.h>
-
 /*
 ** System Includes
 */
 
-extern VOID dprintf ( CONST_STRPTR string, ... );
+#include <exec/types.h>
+#include <clib/debug_protos.h>
 
 
 /*
 ** Public Macros and Defines
 */
 
-#define DB dprintf
+#define DB kprintf
 
 #define FILE_SIZE       "30"
 #define FUNCTION_SIZE   "32"
 
 #ifndef NDEBUG
     // don't use following functions in functions without stack
-    #define DPRINTRAW(a...) dprintf(a)
+    #define DPRINTRAW(a...) kprintf(a)
 
-    #define DFUNC() ({ dprintf("%-"FILE_SIZE"s[%4lu]/%-"FUNCTION_SIZE"s", __FILE__, __LINE__, __FUNCTION__); })
+    #define DFUNC() ({ kprintf("%-"FILE_SIZE"s[%4lu]/%-"FUNCTION_SIZE"s", __FILE__, __LINE__, __FUNCTION__); })
 
     #define DPRINT(a...) \
-        ({ DFUNC(); dprintf(": "); dprintf(a); })
+        ({ DFUNC(); kprintf(": "); kprintf(a); })
 
     #define DPRINT_ERROR(a...) \
-        ({ DFUNC(); dprintf(": [ERROR] "); dprintf(a); })
+        ({ DFUNC(); kprintf(": [ERROR] "); kprintf(a); })
 
     #define DASSERT(c, f, a...) \
-        ({ if (!(c)) { DFUNC(); dprintf(": [ASSERT] "); dprintf((f) , ## a);} })
+        ({ if (!(c)) { DFUNC(); kprintf(": [ASSERT] "); kprintf((f) , ## a);} })
 
     // use following functions only in pure ASM funtions
     #define ASM_DPRINTRAW8(fmt, a, b, c, d, e, f, g, h) ({ \
@@ -52,12 +51,12 @@ extern VOID dprintf ( CONST_STRPTR string, ... );
         __asm ("mr 10, %0": :"r"((g)):"r10"); \
         __asm ("mr 11, %0": :"r"((h)):"r11"); \
         __asm ("crclr 4*cr1+eq"); \
-        __asm ("bl dprintf"); })
+        __asm ("bl kprintf"); })
 
     #define ASM_DPRINTRAW(f) ({ \
         __asm ("mr 3, %0": :"r"((f)):"r3"); \
         __asm ("crclr 4*cr1+eq"); \
-        __asm ("bl dprintf"); })
+        __asm ("bl kprintf"); })
 
     #define ASM_DFUNC() ASM_DPRINTRAW8("%-"FILE_SIZE"s[%4lu]/%-"FUNCTION_SIZE"s", __FILE__, __LINE__, __FUNCTION__, 0, 0, 0, 0, 0);
 

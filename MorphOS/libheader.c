@@ -13,6 +13,7 @@
 #define PYTHON_LIBTABLE
 #include "libheader.h"
 #include "libprotos.h"
+#include "mosdebug.h"
 
 static const ULONG InitTable[];
 static const UBYTE VersionString[];
@@ -89,5 +90,4 @@ static const UBYTE VersionString[] = "\0$VER: " LIBRARY_SHORTNAME " " LIBRARY_VE
                                      " - Ported by Guillaume Roguez";
 static const UBYTE LibName[] = LIBRARY_SHORTNAME;
 
-extern void dprintf(const char *fmt, ...);
-void _t_private(void){dprintf("PYTHON BAD CALL! [%s]\n");}
+void _t_private(void){ kprintf("PYTHON BAD CALL! [%s]\n"); }

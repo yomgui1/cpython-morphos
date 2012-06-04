@@ -1,4 +1,4 @@
-## $Id:  $
+## $Id:$
 ##
 ## Top makefile designed to build Python for MorphOS platform.
 ##
@@ -14,6 +14,13 @@ BUILDDIR = .
 SRCDIR   = ..
 
 PLATFORM = morphos
+
+VERSION_MAJOR	 = 2
+VERSION_MINOR	 = 7
+VERSION_REVISION = 3
+
+VERSION			 = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
+MOSVERSION		 = $(VERSION_MAJOR)$(VERSION_MINOR)
 
 ifeq ("$(OS)", "MorphOS")
 TMPDIR = ram:t
@@ -46,27 +53,6 @@ OBJDIR := $(BUILDDIR)/objs/$(MODE)
 LIBSDIR := $(BUILDDIR)/libs/$(MODE)
 INCDIR := $(BUILDDIR)/include
 
-INCLUDES = $(SRCDIR) $(SRCDIR)/MorphOS $(SRCDIR)/Include $(SRCDIR)/MorphOS/include $(OBJDIR) .
-
-DEFINES  += \
-	__MORPHOS_SHAREDLIBS=1 \
-	AROS_ALMOST_COMPATIBLE \
-	USE_INLINE_STDARG \
-	PLATFORM=\"$(PLATFORM)\" \
-	Py_DEFAULT_RECURSION_LIMIT=200 \
-	SVNVERSION=\"$(SVNVERSION)\" \
-	HGVERSION=\"$(HGVERSION)\" \
-	HGTAG=\"$(HGTAG)\" \
-	HGBRANCH=\"$(HGBRANCH)\"
-
-VPATH := $(SRCDIR):$(OBJDIR)
-
-VERSION_MAJOR	 = 2
-VERSION_MINOR	 = 7
-VERSION_REVISION = 3
-VERSION			 = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
-MOSVERSION		 = $(VERSION_MAJOR)$(VERSION_MINOR)
-
 LIBRARY_SHORTNAME = python$(VERSION_MAJOR).library
 
 SUFFIX = $(VERSION_MAJOR).$(VERSION_MINOR)
@@ -81,12 +67,12 @@ PURELIB_INSTALL_DIR = $(SYS_INSTALL_DIR)/Libs/$(PYLIB_INSTALL_DIR)
 
 ######### Tools Binaries
 
-#GCCVER = -4.4.3
+#BIN_PREFIX = ppc-morphos-
+#GCC_BIN_VERSION = -4.4.3
 
 CP        = cp -av
 ECHO      = echo -e
-#BIN_PREFIX = ppc-morphos-
-CC        = $(BIN_PREFIX)gcc$(GCCVER)
+CC        = $(BIN_PREFIX)gcc$(GCC_BIN_VERSION)
 LD        = $(BIN_PREFIX)ld
 AR        = $(BIN_PREFIX)ar
 NM        = $(BIN_PREFIX)nm
@@ -95,7 +81,20 @@ CVINCLUDE = cvinclude.pl
 
 ######### Tools Flags
 
-ARFLAGS = rcsv
+ARFLAGS = rcs
+
+INCLUDES = $(SRCDIR) $(SRCDIR)/MorphOS $(SRCDIR)/Include $(SRCDIR)/MorphOS/include $(OBJDIR) .
+
+DEFINES  += \
+	__MORPHOS_SHAREDLIBS=1 \
+	AROS_ALMOST_COMPATIBLE \
+	USE_INLINE_STDARG \
+	PLATFORM=\"$(PLATFORM)\" \
+	Py_DEFAULT_RECURSION_LIMIT=200 \
+	SVNVERSION=\"$(SVNVERSION)\" \
+	HGVERSION=\"$(HGVERSION)\" \
+	HGTAG=\"$(HGTAG)\" \
+	HGBRANCH=\"$(HGBRANCH)\"
 
 OPT = -O2 -mmultiple -mstring -mregnames -fno-strict-aliasing
 OPT_BASEREL = $(OPT) -mbaserel32 -mresident32
@@ -108,7 +107,7 @@ CC_WARNS = \
 
 CC_WARNS += \
 	-Wno-pointer-sign \
-	-Wframe-larger-than=16384
+	-Wframe-larger-than=65535
 
 CFLAGS = -noixemul -pipe -g
 
@@ -123,16 +122,11 @@ LDFLAGS_SHARED = --traditional-format \
 	--cref -Map=$(BUILDDIR)/mapfile.txt -m morphos \
 	-fl libnix --warn-common --warn-once
 
-#LDFLAGS_SHARED_BASEREL = --traditional-format \
-#	 --cref -Map=$(BUILDDIR)/mapfile.txt -m morphos_baserel \
-#	 -datadata-reloc -fl libb32 -fl libnix --warn-common --warn-once
-
 LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfiles \
 	-Wl,--traditional-format -Wl,--cref -Wl,-Map=$(BUILDDIR)/mapfile.txt \
 	-Wl,--warn-common -Wl,--warn-once
- 
-#LIBS = -lc -ldl -laboxstubs -labox -lc -lm -lmath -lsyscall -lauto
-LIBS = -L/usr/local/lib -lm -lsyscall
+
+LIBS = -L/usr/local/lib -lm -ldebug
 
 ifneq ("$(OS)", "MorphOS")
 LIBS += -lnix
@@ -148,13 +142,15 @@ COLOR_HIGHLIGHT2 = "\033[32m"
 COLOR_BOLD       = "\033[0m\033[1m"
 COLOR_NORMAL     = "\033[0m"
 
-CREATING  = $(ECHO) $(COLOR_BOLD)">> Creating "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
-COMPILING = $(ECHO) $(COLOR_BOLD)">> CC "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
-LINKING	  = $(ECHO) $(COLOR_HIGHLIGHT1)">> Linking "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
-ARCHIVING = $(ECHO) $(COLOR_HIGHLIGHT1)">> Archiving "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
-MAKINGDIR = $(ECHO) $(COLOR_HIGHLIGHT1)">> Making directory "$(COLOR_BOLD)"$(@D)"$(COLOR_NORMAL)
+CREATING  = $(ECHO) $(COLOR_BOLD)"Creating "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
+COMPILING = $(ECHO) $(COLOR_BOLD)"CC "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
+LINKING	  = $(ECHO) $(COLOR_HIGHLIGHT1)"Linking "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
+ARCHIVING = $(ECHO) $(COLOR_HIGHLIGHT1)"Archiving "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
+MAKINGDIR = $(ECHO) $(COLOR_HIGHLIGHT1)"Making directory "$(COLOR_BOLD)"$(@D)"$(COLOR_NORMAL)
 
 ######### Automatic rules
+
+VPATH := $(SRCDIR):$(OBJDIR)
 
 .SUFFIXES:
 .SUFFIXES: .c .h .s .o .bro .a .X .fd .d .db .sym .library
@@ -473,7 +469,7 @@ $(OBJDIR)/$(PYMLIB_NAME): $(OBJDIR)/libpython_glue.a $(EMUL_OBJS:%=$(OBJDIR)/%) 
 	$(CP) $< $@
 	$(AR) $(ARFLAGS) $@ $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
 
-core : $(OBJDIR)/$(PYTHON_CORELIB)
+core: deps $(OBJDIR)/$(PYTHON_CORELIB)
 
 SDK_DEPS = \
 	$(SRCDIR)/pyconfig.h \
@@ -562,7 +558,7 @@ binary: $(SRCDIR)/$(BINARY_NAME)
 .PHONY: all clean distclean debug final force sdk deps core library binary
 .PHONY: install install-bin install-sdk install-dynlib install-purelib release mkdyn
 
-all: core library sdk binary
+all: core library sdk binary mkdyn
 
 force:;
 
@@ -590,12 +586,12 @@ ALL_SOURCES_SAFE = $(filter-out %/libheader.c,$(ALL_SOURCES))
 
 sdk: $(SDK_DEPS)
 
-mkdyn: $(SRCDIR)/$(BINARY_NAME) install-bin install-sdk
+mkdyn: $(SRCDIR)/$(BINARY_NAME)
 	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS build_scripts)
 
 install-bin: library $(SRCDIR)/$(BINARY_NAME)
 	-[ "$(OS)" = "MorphOS" ] && ( \
-		$(ECHO) $(COLOR_BOLD)">> Installing binaries in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Installing binaries in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
 		[ -d $(SYS_INSTALL_DIR)/Libs ] || mkdir -p $(SYS_INSTALL_DIR)/Libs; \
 		[ -d $(SYS_INSTALL_DIR)/C ] || mkdir -p $(SYS_INSTALL_DIR)/C; \
 		cp -a $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SYS_INSTALL_DIR)/Libs; \
@@ -604,7 +600,7 @@ install-bin: library $(SRCDIR)/$(BINARY_NAME)
 		ln -fs $(SYS_INSTALL_DIR)/C/$(BINARY_NAME) $(SYS_INSTALL_DIR)/C/python; )
 
 install-sdk: sdk
-	$(ECHO) $(COLOR_BOLD)">> Installing SDK in "$(COLOR_HIGHLIGHT1)$(SDK_INSTALL_PREFIX)$(COLOR_NORMAL)
+	$(ECHO) $(COLOR_BOLD)"Installing SDK in "$(COLOR_HIGHLIGHT1)$(SDK_INSTALL_PREFIX)$(COLOR_NORMAL)
 	[ -d $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR) ] || mkdir -p $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	[ -d $(SDK_INSTALL_PREFIX)/lib ] || mkdir -p $(SDK_INSTALL_PREFIX)/lib
 	cp -a $(SRCDIR)/MorphOS/include $(SDK_INSTALL_PREFIX)
@@ -614,21 +610,21 @@ install-sdk: sdk
 
 install-dynlib: mkdyn
 	-[ "$(OS)" = "MorphOS" ] && ( \
-		$(ECHO) $(COLOR_BOLD)">> Installing .pym modules in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Installing .pym modules in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
 		[ -d $(DYNLIB_INSTALL_DIR) ] || mkdir -p $(DYNLIB_INSTALL_DIR); \
 		cp -a $(SRCDIR)/build/lib.$(PLATFORM)-$(SUFFIX)/*.pym $(DYNLIB_INSTALL_DIR); )
 
 install-purelib:
-	$(ECHO) $(COLOR_BOLD)">> Installing Python lib files in "$(COLOR_HIGHLIGHT1)$(PURELIB_INSTALL_DIR)$(COLOR_NORMAL);
+	$(ECHO) $(COLOR_BOLD)"Installing Python lib files in "$(COLOR_HIGHLIGHT1)$(PURELIB_INSTALL_DIR)$(COLOR_NORMAL);
 	cp -a $(SRCDIR)/Lib/* $(PURELIB_INSTALL_DIR)
 
 install: install-bin install-sdk install-dynlib install-purelib
 
 ifneq ("$(RELEASE_DIR)","")
-release: mkdyn
+release:
 	arcname=Python-$(SCMVERSION); \
 		dir=$(RELEASE_DIR)/$$arcname; \
-		$(ECHO) $(COLOR_BOLD)">> Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
 		rm -rf $$dir; \
 		mkdir -p $$dir; \
 		$(MAKE) $(MODE) install SYS_INSTALL_DIR=$$dir SDK_INSTALL_PREFIX=$$dir/DevEnv; \
@@ -639,7 +635,7 @@ release: mkdyn
 				$(STRIP) -R .comment --strip-debug --discard-locals {} ";" ; \
 		cp -a $(SRCDIR)/build/scripts-$(SUFFIX)/* $$dir/C/; \
 		cp -a $(SRCDIR)/LICENSE $$dir; \
-		$(ECHO) $(COLOR_BOLD)">> Archiving "$(COLOR_HIGHLIGHT2)"$$arcname.tar.bz2"$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Archiving "$(COLOR_HIGHLIGHT2)"$$arcname.tar.bz2"$(COLOR_NORMAL); \
 		(cd $(RELEASE_DIR); tar cp -O $$arcname | bzip2 > $$arcname.tar.bz2)
 else
 release:
@@ -670,14 +666,9 @@ test: $(BUILDDIR)/$(BINARY_NAME)
         -x test_docxmlrpc \
         )
 
-# CRASH: test_capi, test_minidom
-# Cause Insert device popup: test_mailbox
-# Block threads: test_logging
-# Use non supported subprocess: test_cmd_line
-
 deps: $(ALL_SOURCES_SAFE:%.c=$(DEPDIR)/%.d)
 
 ifeq ("$(filter clean distclean,$(MAKECMDGOALS))","")
 $(info Including dependencies...)
-include $(ALL_SOURCES_SAFE:%.c=$(DEPDIR)/%.d)
+include $(wildcard $(DEPDIR)/*.d)
 endif

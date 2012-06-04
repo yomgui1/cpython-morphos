@@ -498,10 +498,10 @@ static ULONG readArgs( int *pargc, char ***pargv )
 }
 //-
 //+ null_malloc
-static void *null_malloc(size_t s) { dprintf("%p called (return NULL)\n", __FUNCTION__); return NULL; }
+static void *null_malloc(size_t s) { kprintf("%p called (return NULL)\n", __FUNCTION__); return NULL; }
 //-
 //+ null_free
-static void null_free(void *p) { dprintf("%p called\n", __FUNCTION__); }
+static void null_free(void *p) { kprintf("%p called\n", __FUNCTION__); }
 //-
 
 /*===== LIBRARY EXPOSED SECTION ==============================================*/
