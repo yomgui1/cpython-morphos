@@ -545,17 +545,6 @@ set_error(void)
         }
         return NULL;
     }
-#elif defined(__MORPHOS__)
-    if (Errno() != 0) {
-        PyObject *v;
-        errno = Errno();
-        v = Py_BuildValue("(is)", errno, strerror(errno));
-        if (v != NULL) {
-            PyErr_SetObject(socket_error, v);
-            Py_DECREF(v);
-        }
-        return NULL;
-    }
 #endif
 
     return PyErr_SetFromErrno(socket_error);
@@ -4476,6 +4465,7 @@ os_init(void)
 static int
 os_init(void)
 {
+    /* link errno to socket library */
     SocketBaseTags(SBTM_SETVAL(SBTC_ERRNOLONGPTR), &errno, TAG_DONE);
     return 1; /* Success */
 }

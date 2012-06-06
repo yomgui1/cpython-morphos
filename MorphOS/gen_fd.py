@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# usage: gen_fd.py /Include <path_to>/libcore.a [include/fd/python2_lib.fd]
+# usage: gen_fd.py /Include <path_to>/libcore.a [include/fd/python27_lib.fd]
 
 from __future__ import with_statement
 import os, sys, re
@@ -98,7 +98,7 @@ if oldfd_filename:
 else:
     oldfds = newfunc
 
-fd_filename = 'include/fd/python2_lib.fd'
+fd_filename = 'include/fd/python27_lib.fd'
 print "** Creating '%s'" % fd_filename
 with open(fd_filename, 'w') as f:
     f.write("##base _PythonBase\n##bias 30\n##public\n")
@@ -148,7 +148,7 @@ specials = {
         PyArena *)""",
     }
     
-clib_filename = 'include/clib/python2_protos.h'
+clib_filename = 'include/clib/python27_protos.h'
 print "** Creating '%s'" % clib_filename
 with open(clib_filename, 'w') as f:
     data = []

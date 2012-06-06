@@ -189,7 +189,7 @@ extern "C" {
 #include <frameobject.h>
 #include <token.h>
 
-#include <libraries/python2_gvars.h>
+#include <libraries/python27_gvars.h>
 extern struct Library *PythonBase;
 #endif
 

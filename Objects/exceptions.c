@@ -1012,6 +1012,181 @@ MiddlingExtendsException(PyExc_OSError, VMSError, EnvironmentError,
                          "OpenVMS OS system call failed.");
 #endif
 
+/*
+ *    MorphOSError extends OSError
+ */
+#ifdef __MORPHOS__
+
+static int
+MorphOSError_clear(PyMorphOSErrorObject *self)
+{
+    Py_CLEAR(self->myerrno);
+    Py_CLEAR(self->strerror);
+    Py_CLEAR(self->filename);
+    Py_CLEAR(self->moserror);
+    return BaseException_clear((PyBaseExceptionObject *)self);
+}
+
+static void
+MorphOSError_dealloc(PyMorphOSErrorObject *self)
+{
+    _PyObject_GC_UNTRACK(self);
+    MorphOSError_clear(self);
+    Py_TYPE(self)->tp_free((PyObject *)self);
+}
+
+static int
+MorphOSError_traverse(PyMorphOSErrorObject *self, visitproc visit, void *arg)
+{
+    Py_VISIT(self->myerrno);
+    Py_VISIT(self->strerror);
+    Py_VISIT(self->filename);
+    Py_VISIT(self->moserror);
+    return BaseException_traverse((PyBaseExceptionObject *)self, visit, arg);
+}
+
+static int
+MorphOSError_init(PyMorphOSErrorObject *self, PyObject *args, PyObject *kwds)
+{
+    PyObject *o_errcode = NULL;
+    long errcode;
+    long posix_errno;
+
+    if (EnvironmentError_init((PyEnvironmentErrorObject *)self, args, kwds)
+            == -1)
+        return -1;
+
+    if (self->myerrno == NULL)
+        return 0;
+
+    /* Set errno to the POSIX errno, and moserror to the dos error code. */
+    errcode = PyInt_AsLong(self->myerrno);
+    if (errcode == -1 && PyErr_Occurred())
+        return -1;
+    posix_errno = errcode < 0 ? errcode : 0;
+
+    Py_CLEAR(self->moserror);
+    self->moserror = self->myerrno;
+
+    o_errcode = PyInt_FromLong(posix_errno);
+    if (!o_errcode)
+        return -1;
+
+    self->myerrno = o_errcode;
+
+    return 0;
+}
+
+
+static PyObject *
+MorphOSError_str(PyMorphOSErrorObject *self)
+{
+    PyObject *rtnval = NULL;
+
+    if (self->filename) {
+        PyObject *fmt;
+        PyObject *repr;
+        PyObject *tuple;
+
+        fmt = PyString_FromString("[Error %s] %s: %s");
+        if (!fmt)
+            return NULL;
+
+        repr = PyObject_Repr(self->filename);
+        if (!repr) {
+            Py_DECREF(fmt);
+            return NULL;
+        }
+        tuple = PyTuple_New(3);
+        if (!tuple) {
+            Py_DECREF(repr);
+            Py_DECREF(fmt);
+            return NULL;
+        }
+
+        if (self->moserror) {
+            Py_INCREF(self->moserror);
+            PyTuple_SET_ITEM(tuple, 0, self->moserror);
+        }
+        else {
+            Py_INCREF(Py_None);
+            PyTuple_SET_ITEM(tuple, 0, Py_None);
+        }
+        if (self->strerror) {
+            Py_INCREF(self->strerror);
+            PyTuple_SET_ITEM(tuple, 1, self->strerror);
+        }
+        else {
+            Py_INCREF(Py_None);
+            PyTuple_SET_ITEM(tuple, 1, Py_None);
+        }
+
+        PyTuple_SET_ITEM(tuple, 2, repr);
+
+        rtnval = PyString_Format(fmt, tuple);
+
+        Py_DECREF(fmt);
+        Py_DECREF(tuple);
+    }
+    else if (self->moserror && self->strerror) {
+        PyObject *fmt;
+        PyObject *tuple;
+
+        fmt = PyString_FromString("[Error %s] %s");
+        if (!fmt)
+            return NULL;
+
+        tuple = PyTuple_New(2);
+        if (!tuple) {
+            Py_DECREF(fmt);
+            return NULL;
+        }
+
+        if (self->moserror) {
+            Py_INCREF(self->moserror);
+            PyTuple_SET_ITEM(tuple, 0, self->moserror);
+        }
+        else {
+            Py_INCREF(Py_None);
+            PyTuple_SET_ITEM(tuple, 0, Py_None);
+        }
+        if (self->strerror) {
+            Py_INCREF(self->strerror);
+            PyTuple_SET_ITEM(tuple, 1, self->strerror);
+        }
+        else {
+            Py_INCREF(Py_None);
+            PyTuple_SET_ITEM(tuple, 1, Py_None);
+        }
+
+        rtnval = PyString_Format(fmt, tuple);
+
+        Py_DECREF(fmt);
+        Py_DECREF(tuple);
+    }
+    else
+        rtnval = EnvironmentError_str((PyEnvironmentErrorObject *)self);
+
+    return rtnval;
+}
+
+static PyMemberDef MorphOSError_members[] = {
+    {"errno", T_OBJECT, offsetof(PyMorphOSErrorObject, myerrno), 0,
+        PyDoc_STR("POSIX exception code")},
+    {"strerror", T_OBJECT, offsetof(PyMorphOSErrorObject, strerror), 0,
+        PyDoc_STR("exception strerror")},
+    {"filename", T_OBJECT, offsetof(PyMorphOSErrorObject, filename), 0,
+        PyDoc_STR("exception filename")},
+    {"moserror", T_OBJECT, offsetof(PyMorphOSErrorObject, moserror), 0,
+        PyDoc_STR("MorphOS exception code")},
+    {NULL}  /* Sentinel */
+};
+
+ComplexExtendsException(PyExc_OSError, MorphOSError, MorphOSError,
+                        MorphOSError_dealloc, 0, MorphOSError_members,
+                        MorphOSError_str, "MorphOS OS system call failed.");
+
+#endif /* __MORPHOS__ */
 
 /*
  *    EOFError extends StandardError
@@ -2075,6 +2250,9 @@ _PyExc_Init(void)
 #ifdef __VMS
     PRE_INIT(VMSError)
 #endif
+#ifdef __MORPHOS__
+    PRE_INIT(MorphOSError)
+#endif
     PRE_INIT(EOFError)
     PRE_INIT(RuntimeError)
     PRE_INIT(NotImplementedError)
@@ -2143,6 +2321,9 @@ _PyExc_Init(void)
 #endif
 #ifdef __VMS
     POST_INIT(VMSError)
+#endif
+#ifdef __MORPHOS__
+    POST_INIT(MorphOSError)
 #endif
     POST_INIT(EOFError)
     POST_INIT(RuntimeError)

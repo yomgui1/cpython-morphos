@@ -313,13 +313,13 @@ PyErr_SetFromErrnoWithFilenameObject(PyObject *exc, PyObject *filenameObject)
     rerrstr(errbuf, sizeof errbuf);
     s = errbuf;
 #elif defined(__MORPHOS__)
-    /* Use AmigaDOS Fault() message if error code is not an ANSI one */
+    /* Use dos Fault() message if error code is not an ANSI one */
     if (i <= 0)
     {
         char errbuf[81+14];
  
         i = IoErr();
-        if ((i > 0) && (Fault(i, "AmigaDOS Error", errbuf, sizeof(errbuf)) > 0))
+        if ((i > 0) && (Fault(i, "DOS Error", errbuf, sizeof(errbuf)) > 0))
             s = errbuf;
         else
             s = "Error"; /* Sometimes errno didn't get set */
@@ -527,6 +527,70 @@ PyObject *PyErr_SetFromWindowsErrWithUnicodeFilename(
     return result;
 }
 #endif /* MS_WINDOWS */
+
+#ifdef __MORPHOS__
+/* MorphOS specific error code handling */
+PyObject *PyErr_SetExcFromMorphOSErrWithFilenameObject(
+    PyObject *exc,
+    int ierr,
+    PyObject *filenameObject)
+{
+    PyObject *v;
+    char buffer[81];
+    int len;
+    
+    if (!ierr) ierr = IoErr();
+    len = Fault(ierr, "DOS Error", buffer, sizeof(buffer));
+    if (!len) {
+        /* should not happen, but */
+        snprintf(buffer, sizeof(buffer), "DOS Error 0x%u", ierr);
+    }
+    if (filenameObject != NULL)
+        v = Py_BuildValue("(isO)", ierr, buffer, filenameObject);
+    else
+        v = Py_BuildValue("(is)", ierr, buffer);
+    if (v != NULL) {
+        PyErr_SetObject(exc, v);
+        Py_DECREF(v);
+    }
+    return NULL;
+}
+
+PyObject *PyErr_SetExcFromMorphOSErrWithFilename(
+    PyObject *exc,
+    int ierr,
+    const char *filename)
+{
+    PyObject *name = filename ? PyString_FromString(filename) : NULL;
+    PyObject *ret = PyErr_SetExcFromMorphOSErrWithFilenameObject(exc,
+                                                                 ierr,
+                                                                 name);
+    Py_XDECREF(name);
+    return ret;
+}
+
+PyObject *PyErr_SetExcFromMorphOSErr(PyObject *exc, int ierr)
+{
+    return PyErr_SetExcFromMorphOSErrWithFilename(exc, ierr, NULL);
+}
+
+PyObject *PyErr_SetFromMorphOSErr(int ierr)
+{
+    return PyErr_SetExcFromMorphOSErrWithFilename(PyExc_MorphOSError,
+                                                  ierr, NULL);
+}
+PyObject *PyErr_SetFromMorphOSErrWithFilename(
+    int ierr,
+    const char *filename)
+{
+    PyObject *name = filename ? PyString_FromString(filename) : NULL;
+    PyObject *result = PyErr_SetExcFromMorphOSErrWithFilenameObject(
+                                                  PyExc_MorphOSError,
+                                                  ierr, name);
+    Py_XDECREF(name);
+    return result;
+}
+#endif
 
 void
 _PyErr_BadInternalCall(char *filename, int lineno)

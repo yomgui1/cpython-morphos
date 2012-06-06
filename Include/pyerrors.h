@@ -70,6 +70,18 @@ typedef struct {
     PyObject *winerror;
 } PyWindowsErrorObject;
 #endif
+#ifdef __MORPHOS__
+typedef struct {
+    PyObject_HEAD
+    PyObject *dict;
+    PyObject *args;
+    PyObject *message;
+    PyObject *myerrno;
+    PyObject *strerror;
+    PyObject *filename;
+    PyObject *moserror;
+} PyMorphOSErrorObject;
+#endif
 
 /* Error handling definitions */
 
@@ -159,6 +171,9 @@ PyAPI_DATA(PyObject *) PyExc_WindowsError;
 #ifdef __VMS
 PyAPI_DATA(PyObject *) PyExc_VMSError;
 #endif
+#ifdef __MORPHOS__
+PyAPI_DATA(PyObject *) PyExc_MorphOSError;
+#endif
 
 PyAPI_DATA(PyObject *) PyExc_BufferError;
 
@@ -211,6 +226,17 @@ PyAPI_FUNC(PyObject *) PyErr_SetExcFromWindowsErrWithUnicodeFilename(
     PyObject *,int, const Py_UNICODE *);
 PyAPI_FUNC(PyObject *) PyErr_SetExcFromWindowsErr(PyObject *, int);
 #endif /* MS_WINDOWS */
+
+#ifdef __MORPHOS__
+PyAPI_FUNC(PyObject *) PyErr_SetExcFromMorphOSErrWithFilenameObject(
+    PyObject *,int, PyObject *);
+PyAPI_FUNC(PyObject *) PyErr_SetExcFromMorphOSErrWithFilename(
+    PyObject *,int, const char *);
+PyAPI_FUNC(PyObject *) PyErr_SetExcFromMorphOSErr(PyObject *, int);
+PyAPI_FUNC(PyObject *) PyErr_SetFromMorphOSErr(int);
+PyAPI_FUNC(PyObject *) PyErr_SetFromMorphOSErrWithFilename(
+    int, const char *);
+#endif
 
 /* Export the old function so that the existing API remains available: */
 PyAPI_FUNC(void) PyErr_BadInternalCall(void);

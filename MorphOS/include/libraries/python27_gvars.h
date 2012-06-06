@@ -51,6 +51,7 @@ struct PyMorphOS_GVar_STRUCT {
     void* p_PyExc_LookupError;
     void* p_PyExc_MemoryError;
     void* p_PyExc_MemoryErrorInst;
+    void* p_PyExc_MorphOSError;
     void* p_PyExc_NameError;
     void* p_PyExc_NotImplementedError;
     void* p_PyExc_OSError;
@@ -216,6 +217,7 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #define PyExc_LookupError                   (*(PyObject * *)__pym_GVars.p_PyExc_LookupError)
 #define PyExc_MemoryError                   (*(PyObject * *)__pym_GVars.p_PyExc_MemoryError)
 #define PyExc_MemoryErrorInst               (*(PyObject * *)__pym_GVars.p_PyExc_MemoryErrorInst)
+#define PyExc_MorphOSError                  (*(PyObject * *)__pym_GVars.p_PyExc_MorphOSError)
 #define PyExc_NameError                     (*(PyObject * *)__pym_GVars.p_PyExc_NameError)
 #define PyExc_NotImplementedError           (*(PyObject * *)__pym_GVars.p_PyExc_NotImplementedError)
 #define PyExc_OSError                       (*(PyObject * *)__pym_GVars.p_PyExc_OSError)

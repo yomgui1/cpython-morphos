@@ -26,7 +26,7 @@
 #include <proto/dos.h>
 #include <proto/intuition.h>
 
-#include "libraries/python2_gvars.h"
+#include "libraries/python27_gvars.h"
 #include "libheader.h"
 
 

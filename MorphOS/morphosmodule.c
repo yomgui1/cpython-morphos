@@ -33,6 +33,8 @@
 ** Private Macros and Definitions
 */
 
+extern void __seterrno(void);
+
 PyDoc_STRVAR(morphos__doc__,
 "This module provides access to operating system functionality that is\n\
 standardized by the C Standard and the Morphos standard (ABox). \n\
@@ -98,9 +100,6 @@ for more information on calls.");
 #include <sys/mkdev.h>
 #endif
 #endif
-
-extern void __seterrno(void); // this function set errno depend on IoErr() return value
-
 
 //+ convertenviron()
 /*
@@ -226,6 +225,28 @@ convertenviron(
 }//-
 
 /***********************************************************
+** Set a POSIX-specific error from errno, and return NULL
+*/
+static PyObject *
+posix_error(void)
+{
+    return PyErr_SetFromErrno(PyExc_OSError);
+}
+static PyObject *
+posix_error_with_filename(char* name)
+{
+    return PyErr_SetFromErrnoWithFilename(PyExc_OSError, name);
+}
+
+static PyObject *
+posix_error_with_allocated_filename(char* name)
+{
+    PyObject *rc = PyErr_SetFromErrnoWithFilename(PyExc_OSError, name);
+    PyMem_Free(name);
+    return rc;
+}
+
+/***********************************************************
 ** Set a Morphos-specific error from errno, and return NULL
 */
 
@@ -233,29 +254,21 @@ convertenviron(
 static PyObject *
 morphos_error(void)
 {
-    if (IoErr() || !errno)
-        __seterrno();
-    return PyErr_SetFromErrno(PyExc_OSError);
+    return PyErr_SetFromMorphOSErr(IoErr());
 }//-
 
 //+ morphos_error_with_filename()
 static PyObject *
 morphos_error_with_filename(char* name)
 {
-    if (IoErr() || !errno)
-        __seterrno();
-    return PyErr_SetFromErrnoWithFilename(PyExc_OSError, name);
+    return PyErr_SetFromMorphOSErrWithFilename(IoErr(), name);
 }//-
 
 //+ morphos_error_with_allocated_filename()
 static PyObject *
 morphos_error_with_allocated_filename(char* name)
 {
-    PyObject *rc;
-
-    if (IoErr() || !errno)
-        __seterrno();
-    rc = PyErr_SetFromErrnoWithFilename(PyExc_OSError, name);
+    PyObject *rc = PyErr_SetFromMorphOSErrWithFilename(IoErr(), name);
     PyMem_Free(name);
     return rc;
 }//-
@@ -277,7 +290,7 @@ morphos_fildes(PyObject *fdobj, int (*func)(int))
     res = (*func)(fd);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -296,7 +309,7 @@ morphos_1str(PyObject *args, char *format, int (*func)(const char*))
     res = (*func)(path1);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error_with_allocated_filename(path1);
+        return posix_error_with_allocated_filename(path1);
     PyMem_Free(path1);
     Py_INCREF(Py_None);
     return Py_None;
@@ -320,7 +333,7 @@ morphos_2str(PyObject *args, char *format, int (*func)(const char *, const char 
     PyMem_Free(path2);
     if (res != 0)
         /* XXX how to report both path1 and path2??? */
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -584,7 +597,7 @@ morphos_do_stat(PyObject *self, PyObject *args,
     res = (*statfunc)(path, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return morphos_error_with_allocated_filename(pathfree);
+        return posix_error_with_allocated_filename(pathfree);
 
     PyMem_Free(pathfree);
     return _pystat_fromstructstat(st);
@@ -649,7 +662,7 @@ morphos_ctermid(PyObject *self, PyObject *noargs)
         ret = ctermid(buffer);
 #endif
     if (ret == NULL)
-        return(morphos_error());
+        return(posix_error());
     return(PyString_FromString(buffer));
 }//-
 #endif
@@ -694,7 +707,7 @@ morphos_chmod(PyObject *self, PyObject *args)
     res = chmod(path, i);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error_with_allocated_filename(path);
+        return posix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -757,7 +770,7 @@ morphos_chown(PyObject *self, PyObject *args)
     res = chown(path, (uid_t) uid, (gid_t) gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error_with_allocated_filename(path);
+        return posix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -785,7 +798,7 @@ morphos_lchown(PyObject *self, PyObject *args)
     res = lchown(path, (uid_t) uid, (gid_t) gid);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error_with_allocated_filename(path);
+        return posix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -807,7 +820,7 @@ morphos_getcwd(PyObject *self, PyObject *noargs)
     res = getcwd(buf, sizeof buf);
     Py_END_ALLOW_THREADS
     if (res == NULL)
-        return morphos_error();
+        return posix_error();
     return PyString_FromString(buf);
 }//-
 
@@ -827,7 +840,7 @@ morphos_getcwdu(PyObject *self, PyObject *noargs)
     res = getcwd(buf, sizeof buf);
     Py_END_ALLOW_THREADS
     if (res == NULL)
-        return morphos_error();
+        return posix_error();
     return PyUnicode_Decode(buf, strlen(buf), Py_FileSystemDefaultEncoding,"strict");
 }//-
 #endif
@@ -948,7 +961,7 @@ morphos_mkdir(PyObject *self, PyObject *args)
     res = mkdir(path, mode);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error_with_allocated_filename(path);
+        return posix_error_with_allocated_filename(path);
     PyMem_Free(path);
     Py_INCREF(Py_None);
     return Py_None;
@@ -994,10 +1007,12 @@ morphos_rename(PyObject *self, PyObject *args)
     PyMem_Free(path1);
     PyMem_Free(path2);
 
-    if (!res)
+    if (!res) {
         /* XXX how to report both path1 and path2??? */
-        return morphos_error();
-
+        __seterrno();
+        return posix_error();
+    }
+    
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1069,7 +1084,7 @@ morphos_umask(PyObject *self, PyObject *args)
         return NULL;
     i = (int)umask(i);
     if (i < 0)
-        return morphos_error();
+        return posix_error();
     return PyInt_FromLong((long)i);
 }//-
 
@@ -1104,7 +1119,7 @@ morphos_uname(PyObject *self, PyObject *noargs)
     res = uname(&u);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
     return Py_BuildValue("(sssss)",
                  u.sysname,
                  u.nodename,
@@ -1187,7 +1202,7 @@ morphos_utime(PyObject *self, PyObject *args)
         Py_END_ALLOW_THREADS
     }
     if (res < 0)
-        return morphos_error_with_filename(path);
+        return posix_error_with_filename(path);
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1294,7 +1309,7 @@ morphos_getgroups(PyObject *self, PyObject *noargs)
 
     n = getgroups(MAX_GROUPS, grouplist);
     if (n < 0)
-        morphos_error();
+        posix_error();
     else {
         result = PyList_New(n);
         if (result != NULL) {
@@ -1345,7 +1360,7 @@ morphos_getlogin(PyObject *self, PyObject *noargs)
     name = getlogin();
     if (name == NULL) {
         if (errno)
-            morphos_error();
+            posix_error();
         else
             PyErr_SetString(PyExc_OSError,
                             "unable to determine login name");
@@ -1386,7 +1401,7 @@ morphos_plock(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:plock", &op))
         return NULL;
     if (plock(op) == -1)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1420,10 +1435,7 @@ morphos_popen(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (fp == NULL)
-    {
-        SetIoErr(errno);
-        return morphos_error();
-    }
+        return posix_error();
 
     f = PyFile_FromFile(fp, name, mode, pclose);
     if (f != NULL)
@@ -1444,7 +1456,7 @@ morphos_setuid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:setuid", &uid))
         return NULL;
     if (setuid(uid) < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1461,7 +1473,7 @@ morphos_setreuid (PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "ii", &ruid, &euid)) {
         return NULL;
     } else if (setreuid(ruid, euid) < 0) {
-        return morphos_error();
+        return posix_error();
     } else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -1480,7 +1492,7 @@ morphos_setregid (PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "ii", &rgid, &egid)) {
         return NULL;
     } else if (setregid(rgid, egid) < 0) {
-        return morphos_error();
+        return posix_error();
     } else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -1499,7 +1511,7 @@ morphos_setgid(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "i:setgid", &gid))
         return NULL;
     if (setgid(gid) < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1544,7 +1556,7 @@ morphos_setgroups(PyObject *self, PyObject *args)
     }
 
     if (setgroups(len, grouplist) < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1578,7 +1590,7 @@ morphos_readlink(PyObject *self, PyObject *args)
     n = readlink(path, buf, (int) sizeof buf);
     Py_END_ALLOW_THREADS
     if (n < 0)
-        return morphos_error_with_filename(path);
+        return posix_error_with_filename(path);
     return PyString_FromStringAndSize(buf, n);
 }//-
 #endif /* HAVE_READLINK */
@@ -1634,37 +1646,33 @@ static PyObject *
 morphos_symlink(PyObject *self, PyObject *args)
 {
     char *path1 = NULL, *path2 = NULL;
-    int res = -1;
+    int error = -1;
     BPTR lock;
 
     if (!PyArg_ParseTuple(args, "etet:symlink",
                           Py_FileSystemDefaultEncoding, &path1,
                           Py_FileSystemDefaultEncoding, &path2))
         return NULL;
+        
     Py_BEGIN_ALLOW_THREADS
-
     /* XXX don't check for empty path1, because empty src is equivalent to 'current directory'.
     ** or we can link the current directory
     */
     lock = Lock(path1, SHARED_LOCK);
     if (lock)
     {
-        res = !MakeLink(path2, (LONG)path1, TRUE);
-        if (res)
-            __seterrno();
+        error = !MakeLink(path2, (LONG)path1, TRUE);
         UnLock(lock);
     }
-    else
-        __seterrno();
     Py_END_ALLOW_THREADS
-    PyMem_Free(path1);
+    
     PyMem_Free(path2);
-    if (res != 0)
+    if (error)
         /* XXX how to report both path1 and path2??? */
-        return morphos_error();
+        return morphos_error_with_filename(path1);
+    PyMem_Free(path1);
     Py_INCREF(Py_None);
     return Py_None;
-
 }//-
 
 #ifdef HAVE_TIMES
@@ -1685,7 +1693,7 @@ morphos_times(PyObject *self, PyObject *noargs)
     errno = 0;
     c = times(&t);
     if (c == (clock_t) -1)
-        return morphos_error();
+        return posix_error();
     return Py_BuildValue("ddddd",
                  (double)t.tms_utime / HZ,
                  (double)t.tms_stime / HZ,
@@ -1704,7 +1712,7 @@ static PyObject *
 morphos_setsid(PyObject *self, PyObject *noargs)
 {
     if (setsid() < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1734,7 +1742,7 @@ morphos_GetOSFileHandle(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
     if (NULL == fh)
         return morphos_error();
-    return PyInt_FromLong((long)fh);
+    return PyLong_FromUnsignedLong((long)fh);
 }
 //-
 
@@ -1760,7 +1768,7 @@ morphos_open(PyObject *self, PyObject *args)
     fd = open(file, flag, mode);
     Py_END_ALLOW_THREADS
     if (fd < 0)
-        return morphos_error_with_allocated_filename(file);
+        return posix_error_with_allocated_filename(file);
     PyMem_Free(file);
     return PyInt_FromLong((long)fd);
 }//-
@@ -1780,7 +1788,7 @@ morphos_close(PyObject *self, PyObject *args)
     res = close(fd);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1801,7 +1809,7 @@ morphos_dup(PyObject *self, PyObject *args)
     fd = dup(fd);
     Py_END_ALLOW_THREADS
     if (fd < 0)
-        return morphos_error();
+        return posix_error();
     return PyInt_FromLong((long)fd);
 }//-
 
@@ -1820,7 +1828,7 @@ morphos_dup2(PyObject *self, PyObject *args)
     res = dup2(fd, fd2);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1861,7 +1869,7 @@ morphos_lseek(PyObject *self, PyObject *args)
     res = lseek(fd, pos, how);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
 
 #if !defined(HAVE_LARGEFILE_SUPPORT)
     return PyInt_FromLong(res);
@@ -1890,7 +1898,7 @@ morphos_read(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
     if (n < 0) {
         Py_DECREF(buffer);
-        return morphos_error();
+        return posix_error();
     }
     if (n != size)
         _PyString_Resize(&buffer, n);
@@ -1913,7 +1921,7 @@ morphos_write(PyObject *self, PyObject *args)
     size = write(fd, buffer, size);
     Py_END_ALLOW_THREADS
     if (size < 0)
-        return morphos_error();
+        return posix_error();
     return PyInt_FromLong((long)size);
 }//-
 
@@ -1935,7 +1943,7 @@ morphos_fstat(PyObject *self, PyObject *args)
     res = fstat(fd, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return morphos_error();
+        return posix_error();
 
     return _pystat_fromstructstat(st);
 }//-
@@ -1966,7 +1974,7 @@ morphos_fdopen(PyObject *self, PyObject *args)
     fp = fdopen(fd, mode);
     Py_END_ALLOW_THREADS
     if (fp == NULL)
-        return morphos_error();
+        return posix_error();
     f = PyFile_FromFile(fp, "<fdopen>", mode, fclose);
     if (f != NULL)
         PyFile_SetBufSize(f, bufsize);
@@ -2006,7 +2014,7 @@ morphos_mkfifo(PyObject *self, PyObject *args)
     res = mkfifo(filename, mode);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -2037,7 +2045,7 @@ morphos_mknod(PyObject *self, PyObject *args)
     res = mknod(filename, mode, device);
     Py_END_ALLOW_THREADS
     if (res < 0)
-        return morphos_error();
+        return posix_error();
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -2117,7 +2125,7 @@ morphos_ftruncate(PyObject *self, PyObject *args)
     res = ftruncate(fd, length);
     Py_END_ALLOW_THREADS
     if (res < 0) {
-        PyErr_SetFromErrno(PyExc_IOError);
+        posix_error();
         return NULL;
     }
     Py_INCREF(Py_None);
@@ -2157,7 +2165,7 @@ morphos_putenv(PyObject *self, PyObject *args)
     PyOS_snprintf(new, len, "%s=%s", s1, s2);
     if (putenv(new)) {
                 Py_DECREF(newstr);
-                morphos_error();
+                posix_error();
                 return NULL;
     }
     /* Install the first arg and newstr in morphos_putenv_garbage;
@@ -2293,7 +2301,7 @@ morphos_fstatvfs(PyObject *self, PyObject *args)
     res = fstatvfs(fd, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return morphos_error();
+        return posix_error();
 
         return _pystatvfs_fromstructstatvfs(st);
 }//-
@@ -2319,7 +2327,7 @@ morphos_statvfs(PyObject *self, PyObject *args)
     res = statvfs(path, &st);
     Py_END_ALLOW_THREADS
     if (res != 0)
-        return morphos_error_with_filename(path);
+        return posix_error_with_filename(path);
 
         return _pystatvfs_fromstructstatvfs(st);
 }//-
@@ -2344,7 +2352,7 @@ morphos_tmpfile(PyObject *self, PyObject *noargs)
 
     fp = fopen(buf, "w+b");
     if (fp == NULL)
-        return morphos_error();
+        return posix_error();
 
     return PyFile_FromFile(fp, "<tmpfile>", "w+b", fclose);
 }//-

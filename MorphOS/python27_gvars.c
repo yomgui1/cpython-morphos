@@ -1,5 +1,5 @@
 /* GENERATED FILE. DO NOT EDIT IT MANUALLY */
-#include "libraries/python2_gvars.h"
+#include "libraries/python27_gvars.h"
 #include "libheader.h"
 
 /* declared as weak symbols for final build (replaced if debug build) */
@@ -52,6 +52,7 @@ extern int PyExc_KeyboardInterrupt;
 extern int PyExc_LookupError;
 extern int PyExc_MemoryError;
 extern int PyExc_MemoryErrorInst;
+extern int PyExc_MorphOSError;
 extern int PyExc_NameError;
 extern int PyExc_NotImplementedError;
 extern int PyExc_OSError;
@@ -216,6 +217,7 @@ void _PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
     storage->p_PyExc_LookupError                   = &PyExc_LookupError;
     storage->p_PyExc_MemoryError                   = &PyExc_MemoryError;
     storage->p_PyExc_MemoryErrorInst               = &PyExc_MemoryErrorInst;
+    storage->p_PyExc_MorphOSError                  = &PyExc_MorphOSError;
     storage->p_PyExc_NameError                     = &PyExc_NameError;
     storage->p_PyExc_NotImplementedError           = &PyExc_NotImplementedError;
     storage->p_PyExc_OSError                       = &PyExc_OSError;

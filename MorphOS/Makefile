@@ -431,7 +431,7 @@ $(OBJDIR)/$(PYTHON_CORELIB) : $(PYTHON_COREOBJS:%=$(OBJDIR)/%)
 syms : $(OBJDIR)/$(PYTHON_CORELIB)
 	$(NM) -fposix -ACg --defined-only $(OBJDIR)/$(PYTHON_CORELIB) | sed -n "s/.*: \(_*Py\w*\) \(\w\).*/\2:\1/p" > $@
 
-syms.func : $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd
+syms.func : $(INCDIR)/fd/python$(MOSVERSION)_lib.fd
 	sed -ne "/)$$/ s/(.*)(.*)//p" $< > $@
 
 $(BUILDDIR)/libprotos.h : syms.func
@@ -442,14 +442,14 @@ $(BUILDDIR)/libprotos.h : syms.func
 	sed 's/\(.*\)/  LIBDECL(\1) \\/g' $< >> $@
 	echo -e "  (APTR) -1\n\n#endif /* PYTHON_LIBPROTOS_H */" >> $@
 
-$(OBJDIR)/libpython_glue.a : $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h
+$(OBJDIR)/libpython_glue.a : $(INCDIR)/fd/python$(MOSVERSION)_lib.fd $(INCDIR)/clib/python$(MOSVERSION)_protos.h
 	-@test ! -d "$(@D)" && $(MAKINGDIR) && mkdir -p "$(@D)"
 	@$(CREATING)
-	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd --clib $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h --gluelib $@
+	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(MOSVERSION)_lib.fd --clib $(INCDIR)/clib/python$(MOSVERSION)_protos.h --gluelib $@
 
-%/trampolines.s: $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h
+%/trampolines.s: $(INCDIR)/fd/python$(MOSVERSION)_lib.fd $(INCDIR)/clib/python$(MOSVERSION)_protos.h
 	@$(CREATING)
-	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd --clib $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h --breltrampolines $@
+	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(MOSVERSION)_lib.fd --clib $(INCDIR)/clib/python$(MOSVERSION)_protos.h --breltrampolines $@
 
 ALL_SOURCES += $(MACHDEP_DIR)/libpython-shared.c
 
@@ -473,9 +473,9 @@ core: deps $(OBJDIR)/$(PYTHON_CORELIB)
 
 SDK_DEPS = \
 	$(SRCDIR)/pyconfig.h \
-	$(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd \
-	$(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h \
-	$(INCDIR)/libraries/python$(VERSION_MAJOR)_gvars.h \
+	$(INCDIR)/fd/python$(MOSVERSION)_lib.fd \
+	$(INCDIR)/clib/python$(MOSVERSION)_protos.h \
+	$(INCDIR)/libraries/python$(MOSVERSION)_gvars.h \
 	$(OBJDIR)/$(PYLIB_NAME) \
 	$(OBJDIR)/$(PYMLIB_NAME)
 
@@ -517,8 +517,8 @@ $(OBJDIR)/$(MACHDEP_DIR)/libheader.o : \
 		MORPHOS_VERSION_STR='"$(MOSVERSION)"'
 
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: DEFINES+=DONT_WRAP_VARS Py_BUILD_CORE
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(VERSION_MAJOR)_gvars.bro $(OBJDIR)/$(PYTHON_CORELIB)
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(PYTHON_CORELIB) $(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(VERSION_MAJOR)_gvars.bro
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro $(OBJDIR)/$(PYTHON_CORELIB)
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(PYTHON_CORELIB) $(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
 
 ifneq ("$(OS)", "MorphOS")
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(MACHDEP_DIR)/stubs.bro

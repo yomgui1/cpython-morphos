@@ -13,7 +13,7 @@
 #include "Python.h"
 #include "morphos.h"
 #include "mosdebug.h"
-#include "libraries/python2_gvars.h"
+#include "libraries/python27_gvars.h"
 
 
 /*

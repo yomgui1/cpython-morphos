@@ -427,7 +427,8 @@ if mswindows:
     class pywintypes:
         error = IOError
 elif morphos:
-    pass
+    import threading
+    #import _subprocess
 else:
     import select
     _has_poll = hasattr(select, 'poll')
@@ -703,11 +704,6 @@ class Popen(object):
                 c2pread = msvcrt.open_osfhandle(c2pread.Detach(), 0)
             if errread is not None:
                 errread = msvcrt.open_osfhandle(errread.Detach(), 0)
-        elif morphos:
-            # TODO
-            p2cwrite = None
-            c2pread = None
-            errread = None
 
         if p2cwrite is not None:
             self.stdin = os.fdopen(p2cwrite, 'wb', bufsize)
@@ -1044,8 +1040,128 @@ class Popen(object):
         kill = terminate
 
     elif morphos:
-        pass
+        #
+        # POSIX methods
+        #
+        def _get_handles(self, stdin, stdout, stderr):
+            """Construct and return tuple with IO objects:
+            p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite
+            """
+            p2cread, p2cwrite = None, None
+            c2pread, c2pwrite = None, None
+            errread, errwrite = None, None
+            
+            if stdin is None:
+                pass
+            elif stdin == PIPE:
+                p2cread = os.popen("PIPE:sp_%X_p2c"%id(self), 'r').fileno()
+                p2cwrite = os.popen("PIPE:sp_%X_p2c"%id(self), 'w').fileno()
+            elif isinstance(stdin, int):
+                p2cread = stdin
+            else:
+                # Assuming file-like object
+                p2cread = stdin.fileno()
+                
+            if stdout is None:
+                pass
+            elif stdout == PIPE:
+                c2pread = os.popen("PIPE:sp_%X_c2p"%id(self), 'r').fileno()
+                c2pwrite = os.popen("PIPE:sp_%X_c2p"%id(self), 'w').fileno()
+            elif isinstance(stdout, int):
+                c2pwrite = stdout
+            else:
+                # Assuming file-like object
+                c2pwrite = stdout.fileno()
+                
+            if stderr is None:
+                pass
+            elif stderr == PIPE:
+                errread = os.popen("PIPE:sp_%X_err"%id(self), 'r').fileno()
+                errwrite = os.popen("PIPE:sp_%X_err"%id(self), 'w').fileno()
+            elif stderr == STDOUT:
+                errwrite = c2pwrite
+            elif isinstance(stderr, int):
+                errwrite = stderr
+            else:
+                # Assuming file-like object
+                errwrite = stderr.fileno()
+
+            return (p2cread, p2cwrite,
+                    c2pread, c2pwrite,
+                    errread, errwrite)
         
+        def _execute_child(self, args, executable, preexec_fn, close_fds,
+                           cwd, env, universal_newlines,
+                           startupinfo, creationflags, shell,
+                           p2cread, p2cwrite,
+                           c2pread, c2pwrite,
+                           errread, errwrite):
+            """Execute program (MorphOS version)"""
+            
+            if not isinstance(args, types.StringTypes):
+                args = list2cmdline(args)
+            
+            try:
+                pid = _subprocess.CreateProcess(executable, args,
+                                         int(not close_fds),
+                                         creationflags,
+                                         env,
+                                         cwd,
+                                         startupinfo)
+            finally:
+                # Child is launched. Close the parent's copy of those pipe
+                # handles that only the child should have open.  You need
+                # to make sure that no handles to the write end of the
+                # output pipe are maintained in this process or else the
+                # pipe will not close when the child process exits and the
+                # ReadFile will hang.
+                if p2cread is not None:
+                    p2cread.Close()
+                if c2pwrite is not None:
+                    c2pwrite.Close()
+                if errwrite is not None:
+                    errwrite.Close()
+                    
+            # Retain the process handle, but close the thread handle
+            self._child_created = True
+            self._handle = hp
+            self.pid = pid
+            
+        def _internal_poll(self):
+            """Check if child process has terminated.  Returns returncode
+            attribute.
+
+            This method is called by __del__, so it cannot reference anything
+            outside of the local scope (nor can any methods it calls).
+
+            """
+            pass
+            
+        def wait(self):
+            """Wait for child process to terminate.  Returns returncode
+            attribute."""
+            pass
+            
+        def _communicate(self, input):
+            pass
+            
+        def send_signal(self, sig):
+            """Send a signal to the process
+            """
+            """Send a signal to the process
+            """
+            if sig == signal.SIGTERM:
+                self.terminate()
+            else:
+                raise ValueError("Unsupported signal: {}".format(sig))
+
+        def terminate(self):
+            """Terminate the process
+            """
+            pass
+
+        kill = terminate
+            
     else:
         #
         # POSIX methods
