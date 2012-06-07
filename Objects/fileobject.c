@@ -894,17 +894,20 @@ file_truncate(PyFileObject *f, PyObject *args)
         goto onioerror;
 #endif /* !MS_WINDOWS */
 
+#ifdef __MORPHOS__
+    /* MorphOS's libnix fseek doesn't accept seeking beyond EOF.
+     * But Python truncate's doc doesn't say that it's an error.
+     * Just that it's platform-dependant behavior.
+     * I've choosen to limit the seek to the end of file.
+     */
+    if (initialpos > newsize)
+        initialpos = newsize;
+#endif
+
     /* Restore original file position. */
     FILE_BEGIN_ALLOW_THREADS(f)
     errno = 0;
-#ifdef __MORPHOS__
     ret = _portable_fseek(f->f_fp, initialpos, SEEK_SET) != 0;
-#else
-    if (initialpos < newsize)
-        ret = _portable_fseek(f->f_fp, initialpos, SEEK_SET) != 0;
-    else
-        ret = _portable_fseek(f->f_fp, 0, SEEK_END) != 0;
-#endif /* MORPHOS */
     FILE_END_ALLOW_THREADS(f)
     if (ret)
         goto onioerror;
