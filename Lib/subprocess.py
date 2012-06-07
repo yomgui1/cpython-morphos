@@ -1054,8 +1054,7 @@ class Popen(object):
             if stdin is None:
                 pass
             elif stdin == PIPE:
-                p2cread = os.popen("PIPE:sp_%X_p2c"%id(self), 'r').fileno()
-                p2cwrite = os.popen("PIPE:sp_%X_p2c"%id(self), 'w').fileno()
+                pass
             elif isinstance(stdin, int):
                 p2cread = stdin
             else:
@@ -1065,8 +1064,7 @@ class Popen(object):
             if stdout is None:
                 pass
             elif stdout == PIPE:
-                c2pread = os.popen("PIPE:sp_%X_c2p"%id(self), 'r').fileno()
-                c2pwrite = os.popen("PIPE:sp_%X_c2p"%id(self), 'w').fileno()
+                pass
             elif isinstance(stdout, int):
                 c2pwrite = stdout
             else:
@@ -1076,8 +1074,7 @@ class Popen(object):
             if stderr is None:
                 pass
             elif stderr == PIPE:
-                errread = os.popen("PIPE:sp_%X_err"%id(self), 'r').fileno()
-                errwrite = os.popen("PIPE:sp_%X_err"%id(self), 'w').fileno()
+                pass
             elif stderr == STDOUT:
                 errwrite = c2pwrite
             elif isinstance(stderr, int):
@@ -1102,12 +1099,13 @@ class Popen(object):
                 args = list2cmdline(args)
             
             try:
-                pid = _subprocess.CreateProcess(executable, args,
-                                         int(not close_fds),
-                                         creationflags,
-                                         env,
-                                         cwd,
-                                         startupinfo)
+                pid = -1
+                #pid = _subprocess.CreateProcess(executable, args,
+                #                         int(not close_fds),
+                #                         creationflags,
+                #                          env,
+                #                          cwd,
+                #                         startupinfo)
             finally:
                 # Child is launched. Close the parent's copy of those pipe
                 # handles that only the child should have open.  You need
@@ -1124,10 +1122,9 @@ class Popen(object):
                     
             # Retain the process handle, but close the thread handle
             self._child_created = True
-            self._handle = hp
             self.pid = pid
             
-        def _internal_poll(self):
+        def _internal_poll(self, *a, **k):
             """Check if child process has terminated.  Returns returncode
             attribute.
 

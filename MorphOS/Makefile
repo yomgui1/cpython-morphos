@@ -648,6 +648,9 @@ test: $(BUILDDIR)/$(BINARY_NAME)
 	(cd /ram; $(BINARY_NAME) -E -tt -Wd -3 -u -m test.regrtest -udecimal \
         -x test_posixpath \
         -x test_ntpath \
+        -x test_hotshot \
+        -x test_doctest \
+        \
         -x test_ascii_formatd \
         -x test_ctypes \
         -x test_httpservers \
