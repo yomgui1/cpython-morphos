@@ -33,8 +33,6 @@
 ** Private Macros and Definitions
 */
 
-extern void __seterrno(void);
-
 PyDoc_STRVAR(morphos__doc__,
 "This module provides access to operating system functionality that is\n\
 standardized by the C Standard and the Morphos standard (ABox). \n\
@@ -268,7 +266,7 @@ morphos_error_with_filename(char* name)
 static PyObject *
 morphos_error_with_allocated_filename(char* name)
 {
-    PyObject *rc = PyErr_SetFromMorphOSErrWithFilename(IoErr(), name);
+    PyObject *rc=PyErr_SetFromMorphOSErrWithFilename(IoErr(), name);
     PyMem_Free(name);
     return rc;
 }//-
@@ -1007,12 +1005,10 @@ morphos_rename(PyObject *self, PyObject *args)
     PyMem_Free(path1);
     PyMem_Free(path2);
 
-    if (!res) {
+    if (!res)
         /* XXX how to report both path1 and path2??? */
-        __seterrno();
-        return posix_error();
-    }
-    
+        return morphos_error();
+
     Py_INCREF(Py_None);
     return Py_None;
 }//-
@@ -1619,13 +1615,12 @@ morphos_link(PyObject *self, PyObject *args)
     lock = Lock(path1, SHARED_LOCK);
     if (lock)
     {
+        LONG ioerr;
         res = !MakeLink(path2, lock, FALSE);
-        if (res)
-            __seterrno();
+        ioerr = IoErr();
         UnLock(lock);
+        SetIoErr(ioerr);
     }
-    else
-        __seterrno();
     Py_END_ALLOW_THREADS
     PyMem_Free(path1);
     PyMem_Free(path2);
@@ -1661,8 +1656,11 @@ morphos_symlink(PyObject *self, PyObject *args)
     lock = Lock(path1, SHARED_LOCK);
     if (lock)
     {
+        LONG ioerr;
         error = !MakeLink(path2, (LONG)path1, TRUE);
+        ioerr = IoErr();
         UnLock(lock);
+        SetIoErr(ioerr);
     }
     Py_END_ALLOW_THREADS
     
@@ -1724,7 +1722,7 @@ morphos_setsid(PyObject *self, PyObject *noargs)
 //+ morphos_GetOSFileHandle
 PyDoc_STRVAR(morphos_GetOSFileHandle__doc__,
 "getosfh(fd) -> os fh\n\n\
-Return AmigaDOS specific filehandle (BPTR) from given file descriptor.");
+Return MorphOS specific filehandle from given file descriptor.");
 
 extern unsigned long __get_handle(int fd);
 

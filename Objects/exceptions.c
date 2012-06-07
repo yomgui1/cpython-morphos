@@ -1016,6 +1016,7 @@ MiddlingExtendsException(PyExc_OSError, VMSError, EnvironmentError,
  *    MorphOSError extends OSError
  */
 #ifdef __MORPHOS__
+extern void __seterrno(void); /* from libnix */
 
 static int
 MorphOSError_clear(PyMorphOSErrorObject *self)
@@ -1063,7 +1064,12 @@ MorphOSError_init(PyMorphOSErrorObject *self, PyObject *args, PyObject *kwds)
     errcode = PyInt_AsLong(self->myerrno);
     if (errcode == -1 && PyErr_Occurred())
         return -1;
-    posix_errno = errcode < 0 ? errcode : 0;
+
+    SetIoErr(errcode);
+    __seterrno();
+    posix_errno = errno;
+    errno = 0;
+    SetIoErr(0);
 
     Py_CLEAR(self->moserror);
     self->moserror = self->myerrno;
