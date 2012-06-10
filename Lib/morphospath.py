@@ -102,7 +102,8 @@ def join(a, *p):
     path = a
     for b in p:
         path = AddPart(path, b)
-    if p and not p[-1] and path[-1] not in ':/':
+    # Add a trailing path separator if requested (last part of p is empty)
+    if path and p and not p[-1] and not path.endswith( (':', '/') ):
         path += '/'
     return path
 
