@@ -901,8 +901,42 @@ typedef struct fd_set {
 #define Py_ULL(x) Py_LL(x##U)
 #endif
 
+/* MorphOS API
+ */
 #if defined(__MORPHOS__)
-#include <clib/dos_protos.h> /* this include permit to not break this file by a Python type */
+
+/* this include permit to not break this file by a Python type */
+#include <clib/dos_protos.h>
+
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+/* From morphos.c */
+PyAPI_FUNC(int) PyMorphOS_SetConfigA(int, struct TagItem *);
+PyAPI_FUNC(void) PyMorphOS_Term(void);
+PyAPI_FUNC(int) PyMorphOS_HandleArgv(int *, char ***);
+PyAPI_FUNC(APTR) PyMorphOS_GetGVars(void);
+PyAPI_FUNC(LONG) PyMorphOS_GetFullPath(const char *, char *, ULONG);
+PyAPI_FUNC(LONG) PyMorphOS_AddTermFunc(void (*func)(void), CONST_STRPTR);
+PyAPI_FUNC(APTR) PyMorphOS_InitThread(void);
+PyAPI_FUNC(void) PyMorphOS_TermThread(void);
+
+#include <utility/tagitem.h> /* For TAG_USER */
+#define PYMOSATTR_DUMMY         (TAG_USER|0xa68f0000)
+#define PYMOSATTR_GVARS_STORAGE (PYMOSATTR_DUMMY+0)
+#define PYMOSATTR_EXIT_FUNC     (PYMOSATTR_DUMMY+2)
+#define PYMOSATTR__EXIT_FUNC    (PYMOSATTR_DUMMY+3)
+#define PYMOSATTR_STDIN         (PYMOSATTR_DUMMY+4)
+#define PYMOSATTR_STDOUT        (PYMOSATTR_DUMMY+5)
+#define PYMOSATTR_STDERR        (PYMOSATTR_DUMMY+6)
+#define PYMOSATTR_MALLOC_FUNC   (PYMOSATTR_DUMMY+7)
+#define PYMOSATTR_FREE_FUNC     (PYMOSATTR_DUMMY+8)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __MORPHOS__ */
 
 #endif /* Py_PYPORT_H */

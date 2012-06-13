@@ -483,6 +483,8 @@ ALL_SOURCES += \
 	$(MACHDEP_DIR)/pym.c \
 	$(MACHDEP_DIR)/pym_exported.c
 
+.PHONY: deps core
+
 ##########################################################################
 # Python Shared Library
 
@@ -518,14 +520,19 @@ $(OBJDIR)/$(MACHDEP_DIR)/libheader.o : \
 
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: DEFINES+=DONT_WRAP_VARS Py_BUILD_CORE
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro $(OBJDIR)/$(PYTHON_CORELIB)
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(PYTHON_CORELIB) $(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: \
+	core \
+	$(PYTHON_SHAREDLIB_HEADOBJS) \
+	$(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
 
 ifneq ("$(OS)", "MorphOS")
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(MACHDEP_DIR)/stubs.bro
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS+=$(OBJDIR)/$(MACHDEP_DIR)/stubs.bro
 endif
 
-library:  $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
+library: $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
+
+.PHONY: library
 
 ##########################################################################
 # Python shell interpreter
@@ -555,7 +562,7 @@ binary: $(SRCDIR)/$(BINARY_NAME)
 # General Rules
 
 .DEFAULT: all
-.PHONY: all clean distclean debug final force sdk deps core library binary
+.PHONY: all clean distclean debug final force sdk binary
 .PHONY: install install-bin install-sdk install-dynlib install-purelib release mkdyn
 
 all: core library sdk binary mkdyn
