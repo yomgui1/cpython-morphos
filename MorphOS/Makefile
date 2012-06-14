@@ -454,7 +454,7 @@ $(OBJDIR)/libpython_glue.a : $(INCDIR)/fd/python$(MOSVERSION)_lib.fd $(INCDIR)/c
 ALL_SOURCES += $(MACHDEP_DIR)/libpython-shared.c
 
 $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o: \
-	DEFINES+=LIBRARY_SHORTNAME='"$(LIBRARY_SHORTNAME)"' VERSION=$(MOSVERSION) Py_BUILD_CORE
+	DEFINES+=LIBRARY_SHORTNAME='"$(LIBRARY_SHORTNAME)"' MOSVERSION=$(MOSVERSION) Py_BUILD_CORE
 
 $(OBJDIR)/$(PYLIB_NAME): $(OBJDIR)/libpython_glue.a $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o
 	$(CP) $< $@

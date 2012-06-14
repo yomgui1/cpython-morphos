@@ -90,7 +90,7 @@ static void openpythonerror(ULONG version, const char *name)
 /* Priority shall be up to the stdio constructor (currently libnix stdio prio is 118)! */
 CONSTRUCTOR_P(init_PythonBase, 150)
 {
-    PythonBase = (pPythonLibrary_t) OpenLibrary((STRPTR)libname, VERSION);
+    PythonBase = (pPythonLibrary_t) OpenLibrary((STRPTR)libname, MOSVERSION);
 
     if (NULL != PythonBase) {
         /* Globals sharing.
@@ -117,7 +117,7 @@ CONSTRUCTOR_P(init_PythonBase, 150)
         CloseLibrary((struct Library *)PythonBase);
         PythonBase = NULL;
     } else
-        openpythonerror(VERSION, libname);
+        openpythonerror(MOSVERSION, libname);
 
     return TRUE;
 }
