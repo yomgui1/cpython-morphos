@@ -238,18 +238,8 @@ PyAPI_FUNC(Py_ssize_t) PyGC_Collect(void);
 #define PyType_IS_GC(t) PyType_HasFeature((t), Py_TPFLAGS_HAVE_GC)
 
 /* Test if an object has a GC head */
-#if defined(__MORPHOS__) && !defined(Py_BUILD_CORE)
-#define PyObject_IS_GC(o) \
-    (PyType_IS_GC((o)->ob_type) && \
-    ((o)->ob_type->tp_is_gc == NULL || \
-    ({  register PyObject *_o = (PyObject *)(o); \
-    __asm __volatile__ ("mr 14,13; mr 12,%0; lwz 13,36(12)": :"r"(PythonBase):"12", "13", "14"); \
-    Py_TYPE(o)->tp_is_gc(o); \
-    __asm __volatile__ ("mr 13,14": : :"13"); })))
-#else
-#define PyObject_IS_GC(o) (PyType_IS_GC(Py_TYPE(o)) && \
-    (Py_TYPE(o)->tp_is_gc == NULL || Py_TYPE(o)->tp_is_gc(o)))
-#endif
+#define PyObject_IS_GC(o) (PyType_IS_GC(Py_TYPE(o)) &&  \
+    (Py_TYPE(o)->tp_is_gc == NULL || Py_PROTECT_TP_FUNC_CALL(Py_TYPE(o)->tp_is_gc(o))))
 
 PyAPI_FUNC(PyVarObject *) _PyObject_GC_Resize(PyVarObject *, Py_ssize_t);
 #define PyObject_GC_Resize(type, op, n) \

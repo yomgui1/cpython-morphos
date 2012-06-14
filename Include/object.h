@@ -757,18 +757,9 @@ PyAPI_FUNC(void) _Py_AddToAllObjects(PyObject *, int force);
 
 #define _Py_ForgetReference(op) _Py_INC_TPFREES(op)
 
-#if defined(__MORPHOS__) && !defined(Py_BUILD_CORE)
-#define _Py_Dealloc(op) (               \
-    _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA \
-    ({ register PyObject *_o = (PyObject *)(op); \
-    __asm __volatile__ ("mr 14,13; mr 12,%0; lwz 13,36(12)": :"r"(PythonBase):"12", "13", "14"); \
-    (*Py_TYPE(op)->tp_dealloc)((PyObject *)(op)); \
-    __asm __volatile__ ("mr 13,14": : :"13"); }))
-#else
 #define _Py_Dealloc(op) (                               \
     _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA          \
-    (*Py_TYPE(op)->tp_dealloc)((PyObject *)(op)))
-#endif
+    Py_PROTECT_TP_FUNC_CALL((*Py_TYPE(op)->tp_dealloc)((PyObject *)(op))))
 #endif /* !Py_TRACE_REFS */
 
 #define Py_INCREF(op) (                         \

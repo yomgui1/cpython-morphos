@@ -901,6 +901,19 @@ typedef struct fd_set {
 #define Py_ULL(x) Py_LL(x##U)
 #endif
 
+/* Macros to protect direct type's callback calls */
+#if defined(__MORPHOS__) && !defined(Py_BUILD_CORE)
+#   define Py_PROTECT_TP_FUNC_CALL(x)                       \
+        ({ __asm __volatile__ ("mr 14,13;"                  \
+                                "mr 12,%0;"                 \
+                                "lwz 13,36(12)"::           \
+                                "r"(PythonBase):            \
+                                "12", "13", "14");          \
+        (x); __asm __volatile__ ("mr 13,14": : :"13"); })
+#else /* others */
+#   define Py_PROTECT_TP_FUNC_CALL(x) (x)
+#endif
+
 /* MorphOS API
  */
 #if defined(__MORPHOS__)
