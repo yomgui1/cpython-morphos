@@ -531,7 +531,7 @@ def _init_morphos():
     """Initialize the module as appropriate for MorphOS systems"""
     g = {}
 
-    defines = """AROS_ALMOST_COMPATIBLE USE_INLINE_STDARG"""
+    defines = "AROS_ALMOST_COMPATIBLE USE_INLINE_STDARG"
     
     # set basic install directories
     g['LIBDEST'] = get_python_lib(plat_specific=0, standard_lib=1)
@@ -551,8 +551,8 @@ def _init_morphos():
 
     g['CFLAGS'] = g['OPT'] + ' ' + g['BASECFLAGS']
     g['ARFLAGS'] = 'sur'
-    
-    g['BINDIR'] = os.path.dirname(os.path.abspath(sys.executable))
+
+    g['BINDIR'] = ''
     g['EXE'] = ''
     g['SO'] = '.pym'
 

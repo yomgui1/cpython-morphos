@@ -344,7 +344,7 @@ def _init_morphos(vars):
     vars['SO'] = '.pym'
     vars['EXE'] = ''
     vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
-    vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
+    vars['BINDIR'] = ''
     vars['CONFIG_ARGS'] = '--disable-shared --disable-ipv6 --with-system-ffi --without-signal-module --with-threads'
     vars['LIBFFI_INCLUDEDIR'] = 'usr:local/include'
     
