@@ -772,10 +772,8 @@ class build_ext (Command):
             # extensions, it is a reference to the original list
             return ext.libraries + [pythonlib, "m"] + extra
         elif sys.platform == 'morphos':
-            v = (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff)
-            pythonlib = "python%d.%d" % v
-            pymlib = "pym%u.%u" % v
-            return ext.libraries + [pymlib, pythonlib]
+            vertail = "%d.%d" % (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff)
+            return ["pym" + vertail] + ext.libraries + ["python" + vertail]
         elif sys.platform == 'darwin':
             # Don't use the default code below
             return ext.libraries

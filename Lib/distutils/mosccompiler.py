@@ -149,7 +149,7 @@ class MOSCCompiler(CCompiler):
 
         if self._need_link(objects, output_filename):
             ld_args = (objects + self.objects +
-                       lib_opts + ['-o', output_filename])
+                        lib_opts + ['-o', output_filename])
             if debug:
                 ld_args[:0] = ['-g']
             if extra_preargs:

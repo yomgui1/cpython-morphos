@@ -545,22 +545,16 @@ def _init_morphos():
     g['CPP'] = 'gcc -E'
     g['CXX'] = 'g++'
     g['CCSHARED'] = ''
-    if python_build:
-        pym_lib = '.'
-    else:
-        pym_lib = os.path.join(os.path.dirname(get_python_inc(plat_specific=1)), 'lib')
-    g['LDSHARED'] = ' '.join([g['CC'], '-noixemul -nostartfiles -Wl,--traditional-format', '-L' + pym_lib])
+    g['LDSHARED'] = ' '.join([g['CC'], '-noixemul -nostartfiles -Wl,--traditional-format'])
     g['BASECFLAGS'] = '-noixemul -pipe -fomit-frame-pointer ' + ' '.join(' -D'+x for x in defines.split())
     g['OPT'] = '-O2 -mmultiple -mstring -mregnames -fno-strict-aliasing  -fcall-saved-r13 -ffixed-13'
 
     g['CFLAGS'] = g['OPT'] + ' ' + g['BASECFLAGS']
     g['ARFLAGS'] = 'sur'
     
-    g['BINDIR'] = ''
+    g['BINDIR'] = os.path.dirname(os.path.abspath(sys.executable))
     g['EXE'] = ''
     g['SO'] = '.pym'
-
-    g['srcdir'] = os.path.dirname(os.path.abspath(sys.executable))
 
     global _config_vars
     _config_vars = g

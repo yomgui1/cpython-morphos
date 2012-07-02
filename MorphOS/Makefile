@@ -465,8 +465,7 @@ PYM_OBJS = $(_PYM_OBJS:%=$(OBJDIR)/$(MACHDEP_DIR)/%)
 
 $(PYM_OBJS): DEFINES+=Py_BUILD_CORE
 
-$(OBJDIR)/$(PYMLIB_NAME): $(OBJDIR)/libpython_glue.a $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
-	$(CP) $< $@
+$(OBJDIR)/$(PYMLIB_NAME): $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
 	$(AR) $(ARFLAGS) $@ $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
 
 core: deps $(OBJDIR)/$(PYTHON_CORELIB)
@@ -595,7 +594,7 @@ sdk: $(SDK_DEPS)
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME)
 	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
-	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS -ldebug build_scripts)
+	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS -ldebug build_scripts)
 
 install-bin: library $(SRCDIR)/$(BINARY_NAME)
 	-[ "$(OS)" = "MorphOS" ] && ( \
