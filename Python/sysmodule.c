@@ -1679,10 +1679,20 @@ PySys_SetArgvEx(int argc, char **argv, int updatepath)
                 }
                 UnLock(lock);
             }
+            
             p = PathPart(argv0);
-            if (p && *p == SEP)
-                p--;
-            n = p + 1 - argv0;
+            if (p) {
+                char c = *p;
+                
+                /* Change PROGDIR: assignment */
+                extern void _PyMorphOS_SetProgDir(BPTR lock);
+                
+                *p = '\0';
+                _PyMorphOS_SetProgDir(Lock(argv0, SHARED_LOCK));
+                *p = c;
+            }
+            
+            n = p - argv0;
         }
 #else /* All other filename syntaxes */
         if (argc > 0 && argv0 != NULL && strcmp(argv0, "-c") != 0) {

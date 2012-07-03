@@ -39,6 +39,7 @@
 #include <sys/param.h>
 #include <sys/file.h>
 #include <locale.h>
+#include <signal.h>
 
 
 /*
@@ -147,7 +148,8 @@ pPythonLibrary_t    PythonBase = NULL;
 
 struct Task *gMainThread = NULL;
 BOOL gStartedFromWB = FALSE;
-BPTR gOldProgDirLock = 0;
+BPTR gOldProgDirLock=NULL;
+BPTR gLastProgDirLock=NULL;
 STRPTR gProgDir = NULL;
 STRPTR gProgName = NULL;
 STRPTR gConsoleDesc = NULL;
@@ -166,7 +168,7 @@ int ThisRequiresConstructorHandling = 1;
 ** Private Functions
 */
 
-//+ ANSI de/constructor handlers
+/* ANSI de/constructor handlers */
 static void CallFuncArray(const void (* const FuncArray[])(void))
 {
     struct FuncSeg *seg;
@@ -251,15 +253,13 @@ static void UnInitLibnix(void)
         ctdt++;
     }
 }
-//-
-//+ readArgs
+
 /* Note: when started from WB, the arguments are Tooltypes from program icon.
 */
 static ULONG readArgs( int *pargc, char ***pargv )
 {
     ULONG result = RETURN_FAIL;
-    BPTR prgLock = 0;
-
+    
     if (0 == *pargc) { /* Started from WB */
         struct Library      *IconBase = NULL;
         struct WBStartup    *wb_msg;
@@ -291,7 +291,7 @@ static ULONG readArgs( int *pargc, char ***pargv )
                 if (0 != lock) {
                     switch (i) {
                         case 0: // Program Icon Path + Name
-                            prgLock = lock;
+                            gOldProgDirLock = lock;
                             oldDirLock = CurrentDir(lock);
 
                             // set program name
@@ -462,13 +462,13 @@ static ULONG readArgs( int *pargc, char ***pargv )
             if (NULL == arg) (*pargc)--;
 
             // try to obtain a lock on program path
-            prgLock = GetProgramDir();
+            gOldProgDirLock = GetProgramDir();
         } else
             DMSG_NOMEM();
     }
 
     /* get program path name from a lock */
-    if (0 != prgLock) {
+    if (0 != gOldProgDirLock) {
         BOOL res;
         APTR ptr;
 
@@ -476,7 +476,7 @@ static ULONG readArgs( int *pargc, char ***pargv )
         ptr = malloc(MAXPATHLEN + 1);
         gProgDir = ptr;
         if (ptr != NULL) {
-            res = NameFromLock(prgLock, ptr, MAXPATHLEN + 1);
+            res = NameFromLock(gOldProgDirLock, ptr, MAXPATHLEN + 1);
             if (res) {
                 /* we have everythings that we need... ;-) */
                 result = RETURN_OK;
@@ -496,17 +496,12 @@ static ULONG readArgs( int *pargc, char ***pargv )
 
     return result;
 }
-//-
-//+ null_malloc
+
 static void *null_malloc(size_t s) { kprintf("%p called (return NULL)\n", __FUNCTION__); return NULL; }
-//-
-//+ null_free
 static void null_free(void *p) { kprintf("%p called\n", __FUNCTION__); }
-//-
 
 /*===== LIBRARY EXPOSED SECTION ==============================================*/
 
-//+ PyMorphOS_SetConfigA
 int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
 {
     struct TagItem *tag;
@@ -609,8 +604,7 @@ int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
     DPRINTRAW("\n-********************** MORPHOS PYTHON INIT ****************************\n");
     return RETURN_FAIL;
 }
-//-
-//+ PyMorphOS_Term
+
 void PyMorphOS_Term( void )
 {
     APTR ptr;
@@ -633,18 +627,10 @@ void PyMorphOS_Term( void )
         free(node);
     }
 
-    if (gOldProgDirLock)
-    {
-        BPTR oldlock = SetProgramDir(gOldProgDirLock);
-
-        DPRINT("Old PROGDIR: lock @ %p, unlock @ %p\n", gOldProgDirLock, oldlock);
-
-        if (oldlock)
-            UnLock(oldlock);
-
-        gOldProgDirLock = 0;
-    }
-
+    /* Restore original ProgramDir */
+    SetProgramDir(gOldProgDirLock);
+    if (gLastProgDirLock)
+        UnLock(gLastProgDirLock);
 
     /* Freeing allocated memory */
     DPRINT("freeing allocated globals...\n");
@@ -667,8 +653,7 @@ void PyMorphOS_Term( void )
 
     DPRINTRAW("\n-********************** MORPHOS PYTHON TERM ****************************\n\n");
 }
-//-
-//+ PyMorphOS_HandleArgv
+
 int PyMorphOS_HandleArgv(int *pargc, char ***pargv)
 {
     int result;
@@ -689,15 +674,13 @@ int PyMorphOS_HandleArgv(int *pargc, char ***pargv)
 
     return result;
 }
-//-
-//+ PyMorphOS_GetGVars
+
 APTR PyMorphOS_GetGVars( void )
 {
     DPRINT("PythonGVars @ %p\n", PythonBase->PythonGVars);
     return PythonBase->PythonGVars;
 }
-//-
-//+ PyMorphOS_GetFullPath
+
 LONG PyMorphOS_GetFullPath( const char *path, char *buffer, ULONG size )
 {
     BPTR lock = 0;
@@ -713,8 +696,7 @@ LONG PyMorphOS_GetFullPath( const char *path, char *buffer, ULONG size )
 
     return result;
 }
-//-
-//+ PyMorphOS_AddTermFunc
+
 LONG PyMorphOS_AddTermFunc( void (*func)(void), CONST_STRPTR name )
 {
     pTermFuncNode_t node;
@@ -747,8 +729,7 @@ LONG PyMorphOS_AddTermFunc( void (*func)(void), CONST_STRPTR name )
 
     return 0;
 }
-//-
-//+ PyMorphOS_InitThread
+
 /* This function should be called by the thread itself to support Python calls.
 ** Data structure should be allocated with the same memory pool for each thread.
 */
@@ -805,8 +786,7 @@ APTR PyMorphOS_InitThread(void)
 
     return NULL;
 }
-//-
-//+ PyMorphOS_TermThread
+
 void PyMorphOS_TermThread(void)
 {
     pPyMorphOS_ThreadData_t td;
@@ -851,20 +831,15 @@ void PyMorphOS_TermThread(void)
         FreeMem(td, sizeof(PyMorphOS_ThreadData_t));
     }
 }
-//-
 
-//+ _PyMorphOS_SetProgDir
 void _PyMorphOS_SetProgDir(BPTR lock)
 {
-    BPTR oldlock;
-
     DPRINT("Use PROGDIR: lock @ %p\n", lock);
-    oldlock = SetProgramDir(lock);
-    if (gOldProgDirLock)
-        UnLock(gOldProgDirLock);
-    gOldProgDirLock = oldlock;
+    SetProgramDir(lock);
+    if (gLastProgDirLock)
+        UnLock(gLastProgDirLock);
+    gLastProgDirLock = lock;
 }
-//-
 
 /* Wrapped routines on application's ones */
 void exit( int e ) { Wrapper_exit(e); }
@@ -872,9 +847,8 @@ void _exit( int e ) { Wrapper__exit(e); }
 void *malloc(size_t s) { return Wrapper_malloc(s); }
 void free(void *p) { Wrapper_free(p); }
 
-/* Disable CTRL-C check in libc routines */
+/* forbid the exit() call in libnix */
 void __chkabort(void) {}
-
 
 /* De/constructor section-placeholders (MUST be last in the source (don't compile this with -O3)!) */
 __asm("\n.section \".ctdt\",\"a\",@progbits\n__ctdtlist:\n.long -1,-1\n");
