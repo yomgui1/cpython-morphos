@@ -304,13 +304,11 @@ static PyMethodDef signal_methods[] =
 ** Private Functions
 */
 
-/*! checksignals_witharg()
-*/
 static int
 checksignals_witharg(void * unused)
 {
-    return PyErr_CheckSignals();
-}///
+    return  PyErr_CheckSignals();
+}
 
 /*! finisignal()
 */
@@ -439,7 +437,7 @@ PyErr_CheckSignals(void)
 {
     int res = 0;
     ULONG sigs = SetSignal(0, 0);
-
+    
     // only the root task can checks for signals
     if ((sigs & HANDLED_SIGNALS_MASK) && IsMainThread())
     {
@@ -450,7 +448,7 @@ PyErr_CheckSignals(void)
             PyObject *result = NULL;
             PyObject *arglist;
 
-            if (Handlers[i].sysSig & sigs)
+            if (sigs & Handlers[i].sysSig)
             {
                 PyObject *f;
 
@@ -489,7 +487,6 @@ void
 PyErr_SetInterrupt(void)
 {
     Signal(gMainThread, SIGBREAKF_CTRL_C);
-    Py_AddPendingCall((int (*)(void *))PyErr_CheckSignals, NULL);
 }///
 
 /*! PyOS_InitInterrupts()
@@ -514,15 +511,14 @@ PyOS_FiniInterrupts(void)
 int
 PyOS_InterruptOccurred(void)
 {
-    int res = 0;
     ULONG sigs = SetSignal(0, 0);
 
     if ((sigs & SIGBREAKF_CTRL_C) && IsMainThread()) {
         Py_AddPendingCall(checksignals_witharg, NULL);
-        res = 1;
+        return 1;
     }
-
-    return res;
+    
+    return 0;
 }///
 
 /*! PyOS_AfterFork()
@@ -532,6 +528,7 @@ PyOS_AfterFork(void)
 {
 #ifdef HAVE_THREAD
     PyEval_ReInitThreads();
+    PyThread_ReInitTLS();
 #endif
 }///
 

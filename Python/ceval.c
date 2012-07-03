@@ -996,11 +996,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             ticked = 1;
 #endif
 #ifdef __MORPHOS__
-            /* Yomgui: I'm not happy of this check but as signal() is not handled on MorphOS */
-            if (PyOS_InterruptOccurred())
-                PyErr_SetNone(PyExc_KeyboardInterrupt);
+            PyOS_InterruptOccurred();
 #endif
-            
             if (pendingcalls_to_do) {
                 if (Py_MakePendingCalls() < 0) {
                     why = WHY_EXCEPTION;

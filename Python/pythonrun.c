@@ -1845,8 +1845,6 @@ PyOS_getsig(int sig)
     if (sigaction(sig, NULL, &context) == -1)
         return SIG_ERR;
     return context.sa_handler;
-#elif defined(__MORPHOS__)
-    return (PyOS_sighandler_t) -1;
 #else
     PyOS_sighandler_t handler;
 /* Special signal handling for the secure CRT in Visual Studio 2005 */
@@ -1888,8 +1886,6 @@ PyOS_setsig(int sig, PyOS_sighandler_t handler)
     if (sigaction(sig, &context, &ocontext) == -1)
         return SIG_ERR;
     return ocontext.sa_handler;
-#elif defined(__MORPHOS__)
-    return (PyOS_sighandler_t) -1;
 #else
     PyOS_sighandler_t oldhandler;
     oldhandler = signal(sig, handler);
