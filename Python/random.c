@@ -128,7 +128,11 @@ dev_urandom_noraise(char *buffer, Py_ssize_t size)
 
     assert (0 < size);
 
+#ifdef __MORPHOS__
+    fd = open("RANDOM:", O_RDONLY);
+#else
     fd = open("/dev/urandom", O_RDONLY);
+#endif
     if (fd < 0)
         Py_FatalError("Failed to open /dev/urandom");
 
@@ -161,7 +165,11 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
         return 0;
 
     Py_BEGIN_ALLOW_THREADS
+#ifdef __MORPHOS__
+    fd = open("RANDOM:", O_RDONLY);
+#else
     fd = open("/dev/urandom", O_RDONLY);
+#endif
     Py_END_ALLOW_THREADS
     if (fd < 0)
     {

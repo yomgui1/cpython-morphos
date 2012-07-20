@@ -2430,47 +2430,26 @@ Return a string of n random bytes suitable for cryptographic use.");
 static PyObject*
 morphos_urandom(PyObject *self, PyObject *args)
 {
-    pPyMorphOS_ThreadData_t td = GET_THREAD_DATA_PTR();
-    struct Library * TimerBase = GET_THREAD_DATA(td, TimerBase);
-    PyObject* result;
-    char * s;
-    ULONG i, count, seed;
-    struct timeval tv;
+    Py_ssize_t size;
+    PyObject *result;
+    int ret;
 
-    GetSysTime(&tv);
-    seed = tv.tv_micro;
-
-    /* Read arguments */
-    if (! PyArg_ParseTuple(args, "i:urandom", &count))
+     /* Read arguments */
+    if (!PyArg_ParseTuple(args, "n:urandom", &size))
         return NULL;
-    if (count < 0)
+    if (size < 0)
         return PyErr_Format(PyExc_ValueError,
-                    "negative argument not allowed");
+                            "negative argument not allowed");
+    result = PyBytes_FromStringAndSize(NULL, size);
+    if (result == NULL)
+        return NULL;
 
-    /* Allocate bytes */
-    result = PyString_FromStringAndSize(NULL, count);
-    if (result != NULL)
-    {
-        /* Get random data */
-
-        s = PyString_AS_STRING(result);
-        for (i=count >> 2; i; i--)
-        {
-            ULONG *p = (ULONG *)s;
-
-            seed = FastRand(seed);
-            *(p++) = seed;
-        }
-
-        for (; count % 4; count--)
-        {
-            seed = FastRand(seed);
-            *(s++) = seed;
-        }
-
-        *s = '\0';
+    ret = _PyOS_URandom(PyBytes_AS_STRING(result),
+                        PyBytes_GET_SIZE(result));
+    if (ret == -1) {
+        Py_DECREF(result);
+        return NULL;
     }
-
     return result;
 }//-
 
