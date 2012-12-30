@@ -54,9 +54,9 @@ wait_for_stm(struct StartupMsg *stm, ULONG mask)
     stm->waiter = task;
     ReleaseSemaphore(&stm->sem);
     
-    kprintf("_subprocess: wait...\n");
+    //kprintf("_subprocess: wait...\n");
     sigs = Wait(sigs);
-    kprintf("_subprocess: wait done, sigs=%X\n", sigs);
+    //kprintf("_subprocess: wait done, sigs=%X\n", sigs);
     
     ObtainSemaphore(&stm->sem);
     ATOMIC_STORE((ULONG *)&stm->waiter, NULL);
@@ -81,9 +81,9 @@ wait_for_stm(struct StartupMsg *stm, ULONG mask)
 
 static void runcmd(CONST_STRPTR cmd, struct StartupMsg *stm)
 {
-    kprintf("_subprocess: cmd: [%s]\n", cmd);
+    //kprintf("_subprocess: cmd: [%s]\n", cmd);
     stm->retcode = SystemTags(cmd, TAG_DONE);
-    kprintf("_subprocess: result=%ld for [%s]\n", stm->retcode, cmd);
+    //kprintf("_subprocess: result=%ld for [%s]\n", stm->retcode, cmd);
 
     ObtainSemaphore(&stm->sem);
     stm->proc = NULL;
@@ -335,7 +335,7 @@ sp_ExecuteSubprocess(PyObject* self, PyObject* args)
     }
     
     if (!(fh_in && fh_out && fh_err)) {
-        kprintf("_subprocess: fh_in=%p, fh_out=%p, fh_err=%p\n", fh_in, fh_out, fh_err);
+        //kprintf("_subprocess: fh_in=%p, fh_out=%p, fh_err=%p\n", fh_in, fh_out, fh_err);
         Py_RETURN_NONE;
     }
     
