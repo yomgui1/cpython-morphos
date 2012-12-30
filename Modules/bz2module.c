@@ -9,7 +9,6 @@ Copyright (c) 2002  Python Software Foundation; All Rights Reserved
 
 #include "Python.h"
 #include <stdio.h>
-#undef __MORPHOS_SHAREDLIBS /* FIXME: remove me when new fixed SDK is available */
 #include <bzlib.h>
 #include "structmember.h"
 
