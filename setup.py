@@ -542,7 +542,8 @@ class PyBuildExt(build_ext):
         # _functools
         exts.append( Extension("_functools", ["_functoolsmodule.c"]) )
         # _json speedups
-        exts.append( Extension("_json", ["_json.c"]) )
+        exts.append( Extension("_json", ["_json.c"],
+                               libraries=math_libs) )
         # Python C API test module
         exts.append( Extension('_testcapi', ['_testcapimodule.c'],
                                depends=['testcapi_long.h']) )
