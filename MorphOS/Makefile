@@ -42,11 +42,11 @@ endif
 
 BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
-LASTTAGVERSION	:= $(shell python c:hg parent --template "{latesttag}-{latesttagdistance}")
 SVNVERSION		:= $(shell svnversion $(SRCDIR))
 HGVERSION		:= $(shell python c:hg id -i)
 HGTAG			:= $(shell python c:hg parent --template "{latesttag}")
 HGBRANCH		:= $(shell python c:hg id -b)
+HGTAGDISTANCE	:= $(shell python c:hg parent --template "{latesttagdistance}")
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
@@ -629,9 +629,10 @@ install-purelib:
 install: install-bin install-sdk install-dynlib install-purelib
 
 ifneq ("$(RELEASE_DIR)","")
+REMOVE_FROM_ARCHIVE := C/idle C/smtpd.py
 release:
-	arcname=Python-$(LASTTAGVERSION); \
-		dir=$(RELEASE_DIR)/$$arcname; \
+	arcname=Python$(MOSVERSION)-v$(MOSVERSION).$(VERSION_REVISION)-$(HGTAGDISTANCE); \
+		dir=$(RELEASE_DIR)/Python$(MOSVERSION); \
 		$(ECHO) $(COLOR_BOLD)"Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
 		rm -rf $$dir; \
 		mkdir -p $$dir; \
@@ -643,8 +644,9 @@ release:
 				$(STRIP) -R .comment --strip-debug --discard-locals {} ";" ; \
 		cp -a $(SRCDIR)/build/scripts-$(SUFFIX)/* $$dir/C/; \
 		cp -a $(SRCDIR)/LICENSE $$dir; \
+		rm -f $(REMOVE_FROM_ARCHIVE:%=$$dir/%); \
 		$(ECHO) $(COLOR_BOLD)"Archiving "$(COLOR_HIGHLIGHT2)"$$arcname.tar.bz2"$(COLOR_NORMAL); \
-		(cd $(RELEASE_DIR); tar cp -O $$arcname | bzip2 > $$arcname.tar.bz2)
+		(cd $(RELEASE_DIR); tar cp -O Python$(MOSVERSION) | bzip2 > $$arcname.tar.bz2)
 else
 release:
 	$(ECHO) "RELEASE_DIR shall be defined to use 'release' target"
