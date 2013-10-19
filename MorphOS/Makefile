@@ -26,10 +26,14 @@ ifeq ("$(OS)", "MorphOS")
 TMPDIR = ram:t
 SDK_INSTALL_PREFIX ?= /usr/local
 SYS_INSTALL_DIR ?= /sys
+HG = python c:hg
 else
 TMPDIR = /tmp
 SDK_INSTALL_PREFIX ?= /opt/gg/usr/local
 SYS_INSTALL_DIR = $(SDK_INSTALL_PREFIX)
+HG = hg
+BIN_PREFIX = ppc-morphos-
+#GCC_BIN_VERSION = -4.4.3
 endif
 
 ifneq ($(findstring debug, $(MAKECMDGOALS)), debug)
@@ -43,10 +47,10 @@ endif
 BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
 SVNVERSION		:= $(shell svnversion $(SRCDIR))
-HGVERSION		:= $(shell python c:hg id -i)
-HGTAG			:= $(shell python c:hg parent --template "{latesttag}")
-HGBRANCH		:= $(shell python c:hg id -b)
-HGTAGDISTANCE	:= $(shell python c:hg parent --template "{latesttagdistance}")
+HGVERSION		:= $(shell $(HG) id -i)
+HGTAG			:= $(shell $(HG) parent --template "{latesttag}")
+HGBRANCH		:= $(shell $(HG) id -b)
+HGTAGDISTANCE	:= $(shell $(HG) parent --template "{latesttagdistance}")
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
@@ -66,9 +70,6 @@ DYNLIB_INSTALL_DIR = $(SYS_INSTALL_DIR)/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload
 PURELIB_INSTALL_DIR = $(SYS_INSTALL_DIR)/Libs/$(PYLIB_INSTALL_DIR)
 
 ######### Tools Binaries
-
-#BIN_PREFIX = ppc-morphos-
-#GCC_BIN_VERSION = -4.4.3
 
 CP        = cp -av
 ECHO      = echo -e
@@ -91,7 +92,6 @@ DEFINES  += \
 	USE_INLINE_STDARG \
 	PLATFORM=\"$(PLATFORM)\" \
 	Py_DEFAULT_RECURSION_LIMIT=200 \
-	SVNVERSION=\"$(SVNVERSION)\" \
 	HGVERSION=\"$(HGVERSION)\" \
 	HGTAG=\"$(HGTAG)\" \
 	HGBRANCH=\"$(HGBRANCH)\"
@@ -127,10 +127,6 @@ LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfil
 	-Wl,--warn-common -Wl,--warn-once
 
 LIBS = -L/usr/local/lib -lm -ldebug
-
-ifneq ("$(OS)", "MorphOS")
-LIBS += -lnix
-endif
 
 STRIPFLAGS = -R.comment -o $@ $<
 
@@ -524,11 +520,6 @@ $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: \
 	core \
 	$(PYTHON_SHAREDLIB_HEADOBJS) \
 	$(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
-
-ifneq ("$(OS)", "MorphOS")
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(MACHDEP_DIR)/stubs.bro
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS+=$(OBJDIR)/$(MACHDEP_DIR)/stubs.bro
-endif
 
 library: $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
 
