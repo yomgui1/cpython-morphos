@@ -27,6 +27,7 @@ TMPDIR = ram:t
 SDK_INSTALL_PREFIX ?= /usr/local
 SYS_INSTALL_DIR ?= /sys
 HG = python c:hg
+LOGFILE=RAM:error.log
 else
 TMPDIR = /tmp
 SDK_INSTALL_PREFIX ?= /opt/gg/usr/local
@@ -34,6 +35,7 @@ SYS_INSTALL_DIR = $(SDK_INSTALL_PREFIX)
 HG = hg
 BIN_PREFIX = ppc-morphos-
 #GCC_BIN_VERSION = -4.4.3
+LOGFILE=/tmp/python_build.log
 endif
 
 ifneq ($(findstring debug, $(MAKECMDGOALS)), debug)
@@ -198,7 +200,7 @@ $(OBJDIR)/%.bro : $(SRCDIR)/%.s
 $(DEPDIR)/%.d : %.c pyconfig.h
 	-@test ! -z "$(@D)" -a ! -d "$(@D)" && $(MAKINGDIR) && mkdir -p "$(@D)"
 	@$(CREATING)
-	$(SHELL) -ec '$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>ram:error.log \
+	$(SHELL) -ec '$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>$(LOGFILE) \
 		| sed '\''s%\($(notdir $*)\)\.o[ :]*%$(OBJDIR)/$(dir $*)\1.o $(OBJDIR)/$(dir $*)\1.bro : %g'\'' > $@; \
 		[ -s $@ ] || rm -fv $@'
 
@@ -221,7 +223,6 @@ MACHDEP_SRCS = \
 
 MACHDEP_MODULES_SRCS = \
 	Modules/errnomodule.c \
-	Modules/pwdmodule.c \
 	Modules/_sre.c \
 	Modules/_codecsmodule.c \
 	Modules/_weakref.c \
