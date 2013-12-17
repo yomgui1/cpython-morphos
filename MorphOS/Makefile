@@ -234,6 +234,7 @@ MACHDEP_MODULES_SRCS = \
 	Modules/binascii.c \
 	Modules/cStringIO.c \
 	Modules/mathmodule.c \
+	Modules/_math.c \
 	Modules/_randommodule.c \
 	$(MACHDEP_DIR)/morphosmodule.c \
 	$(MACHDEP_DIR)/timemodule.c
