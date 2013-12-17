@@ -1882,7 +1882,7 @@ PyOS_getsig(int sig)
     }
 #endif /* _MSC_VER && _MSC_VER >= 1400 */
     handler = signal(sig, SIG_IGN);
-    if (handler != SIG_ERR)
+    if (handler != (PyOS_sighandler_t)SIG_ERR)
         signal(sig, handler);
     return handler;
 #endif

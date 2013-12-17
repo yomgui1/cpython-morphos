@@ -52,7 +52,6 @@ extern "C" {
 /* Base modules */
 extern void initthread(void);
 extern void initerrno(void);
-extern void initpwd(void);
 extern void init_sre(void);
 extern void init_codecs(void);
 extern void init_weakref(void);
@@ -85,7 +84,6 @@ struct _inittab _PyImport_Inittab[] = {
     /* Base modules */
     {"thread",      initthread},
     {"errno",       initerrno},
-    {"pwd",         initpwd},
     {"_sre",        init_sre},
     {"_codecs",     init_codecs},
     {"_weakref",    init_weakref},

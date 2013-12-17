@@ -660,10 +660,11 @@ class PyBuildExt(build_ext):
             libs = ['bsd']
         if platform not in ['morphos']:
             exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
-        # pwd(3)
-        exts.append( Extension('pwd', ['pwdmodule.c']) )
-        # grp(3)
-        exts.append( Extension('grp', ['grpmodule.c']) )
+            # pwd(3)
+            exts.append( Extension('pwd', ['pwdmodule.c']) )
+            # grp(3)
+            exts.append( Extension('grp', ['grpmodu
+le.c']) )
         # spwd, shadow passwords
         if (config_h_vars.get('HAVE_GETSPNAM', False) or
                 config_h_vars.get('HAVE_GETSPENT', False)):

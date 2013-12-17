@@ -1,8 +1,6 @@
 ################################################################################
 ### File: morphospath.py
-### Author: Guillaume Roguez (aka Yomgui)
-### Date (YYYY/MM/DD): 20041213
-###
+### Author: Guillaume Roguez <yomgui1@gmail.com>
 ###
 ### Description:
 ###
@@ -12,24 +10,6 @@
 ###
 ### Adapted from original posixpath.py
 ###
-###
-### History:
-###
-### Date     | Author       | Desciption of modifications
-### ---------|--------------|-------------------------------------------------
-### 20041213 | Yomgui       | Initial Release.
-### 20041218 | Yomgui       | port of functions: normcase, isabs.
-### 20050114 | Yomgui       | AddPart is in _doslib now.
-### 20050217 | Yomgui       | FIX: split() was unported.
-### 20050221 | Yomgui       | FIX: normcase() does nothing now.
-### 20050223 | Yomgui       | FIX: splitdrive() is now right implemented.
-### 20050303 | Yomgui       | Move AddPart() from os to os.path
-### 20050316 | Yomgui       | FIX: normcase() is s.lower()
-### 20050316 | Yomgui       | FIX: ':' is not an alt-separator !
-### 20050420 | Yomgui       | defpath is computed from result of command 'Path'
-### 20050605 | Yomgui       | FIX: normpath wasn't ported
-### 20050717 | Yomgui       | PB: normpath is not correct yet!
-### 20061009 | Yomgui       | FIX: join didn't put a '/' at end in some cases.
 ###
 ################################################################################
  
@@ -373,22 +353,8 @@ def expanduser(path):
     if i < 0:
         i = len(path)
     if i == 1:
-        if 'HOME' not in os.environ:
-            import pwd
-            try:
-                userhome = pwd.getpwuid(os.getuid()).pw_dir
-            except:
-                userhome = "PROGDIR:"
-        else:
-            userhome = os.environ['HOME']
-    else:
-        import pwd
-        try:
-            pwent = pwd.getpwnam(path[1:i])
-        except KeyError:
-            return path
-        userhome = pwent.pw_dir
-    return join(userhome, path[i:])
+        return join(os.environ.get("HOME", "PROGDIR:"), path[i:])
+    return path
 
 
 # Expand paths containing shell variable substitutions.
