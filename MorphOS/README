@@ -1,0 +1,31 @@
+*** Caveats on not supported modules ***
+
+/pwd/
+
+This module is always build for all platforms, but I removed it for MorphOS.
+By design its a pure Unix module and sources even include "posixmodule.h"!
+I've checked the Python dependency on this module and found:
+
+	 Lib/distutils: used on posix only platforms or safely stubbed.
+	 Lib/getpass.py: needed by getuser(), but works if one of followings environments
+	 				 variables is set: LOGNAME, USER, LNAME, USERNAME.
+	 Lib/webbrowser.py: needed by Grail web browser, but not used on MorphOS.
+	 Lib/tarfile.py: stubbed if not existing.
+	 Lib/netrc.py: used on posix only platforms.
+	 Lib/shutil.py: stubbed if not existing.
+	 Lib/smtpd.py: can be run without pwd usage (-n option)
+	 Lib/morphospath.py: WTF! I'm going to fix that immediatly! :-)
+	 Lib/test/test_shutil.py: stubbed if not existing.
+	 Lib/CGIHTTPServer.py: stubbed if not existing.
+
+	 Following files are not supported on MorphOS platform:
+
+	 Lib/test/test_posix.py
+	 Lib/test/test_posixpath.py
+	 Lib/test/test_pwd.py
+	 Lib/posixpath.py
+
+
+/grp/
+
+ It's exactly the same problem as pwd.
