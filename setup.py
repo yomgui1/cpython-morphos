@@ -220,7 +220,7 @@ class PyBuildExt(build_ext):
             if ext.name in sys.builtin_module_names:
                 self.extensions.remove(ext)
 
-        if platform != 'morphos':
+        if host_platform != 'morphos':
             # Parse Modules/Setup and Modules/Setup.local to figure out which
             # modules are turned on in the file.
             remove_modules = []
@@ -558,7 +558,7 @@ class PyBuildExt(build_ext):
             math_libs = []
 
         # Check for MorphOS which has libraries in non-standard locations
-        if platform == 'morphos':
+        if host_platform == 'morphos':
             lib_dirs += os.getenv('LIBRARY_PATH', '').split(os.pathsep)
             lib_dirs += [ 'gg:ppc-morphos/lib',
                           'gg:ppc-morphos/lib/libnix' ]
@@ -590,7 +590,7 @@ class PyBuildExt(build_ext):
         # fast string operations implemented in C
         exts.append( Extension('strop', ['stropmodule.c']) )
         # time operations and variables
-        if platform != 'morphos':
+        if host_platform != 'morphos':
             exts.append( Extension('time', ['timemodule.c'],
                                    libraries=math_libs) )
             exts.append( Extension('datetime', ['datetimemodule.c', 'timemodule.c'],
@@ -644,7 +644,7 @@ class PyBuildExt(build_ext):
         else:
             locale_extra_link_args = []
 
-        if platform not in ['morphos']:
+        if host_platform not in ['morphos']:
             exts.append( Extension('_locale', ['_localemodule.c'],
                                    libraries=locale_libs,
                                    extra_link_args=locale_extra_link_args) )
@@ -658,13 +658,12 @@ class PyBuildExt(build_ext):
         if (config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
             # May be necessary on AIX for flock function
             libs = ['bsd']
-        if platform not in ['morphos']:
+        if host_platform not in ['morphos']:
             exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
             # pwd(3)
             exts.append( Extension('pwd', ['pwdmodule.c']) )
             # grp(3)
-            exts.append( Extension('grp', ['grpmodu
-le.c']) )
+            exts.append( Extension('grp', ['grpmodule.c']) )
         # spwd, shadow passwords
         if (config_h_vars.get('HAVE_GETSPNAM', False) or
                 config_h_vars.get('HAVE_GETSPENT', False)):
@@ -690,7 +689,7 @@ le.c']) )
 
         # Lance Ellinghaus's syslog module
         # syslog daemon interface
-        if platform not in ['morphos']:
+        if host_platform not in ['morphos']:
             exts.append( Extension('syslog', ['syslogmodule.c']) )
 
         # George Neville-Neil's timing module:
@@ -1125,7 +1124,7 @@ le.c']) )
                            ]
         if cross_compiling:
             sqlite_inc_paths = []
-        if platform == 'morphos':
+        if host_platform == 'morphos':
             sqlite_inc_paths = ['gg:includestd', 'gg:os-include', 'usr:include', 'usr:local/include']
         MIN_SQLITE_VERSION_NUMBER = (3, 0, 8)
         MIN_SQLITE_VERSION = ".".join([str(x)
@@ -1166,7 +1165,7 @@ le.c']) )
                     print "sqlite: %s had no SQLITE_VERSION"%(f,)
 
         if sqlite_incdir:
-            if platform == 'morphos':
+            if host_platform == 'morphos':
                 sqlite_dirs_to_check = [ os.path.join(sqlite_incdir, '/', 'lib') ]
             else:
                 sqlite_dirs_to_check = [
@@ -1414,7 +1413,7 @@ le.c']) )
         zlib_inc = find_file('zlib.h', [], inc_dirs)
         have_zlib = False
         if zlib_inc is not None:
-            if platform == 'morphos':
+            if host_platform == 'morphos':
                 zlib_h = os.path.join(zlib_inc[0], 'libraries', 'z.h')
             else:
                 zlib_h = zlib_inc[0] + '/zlib.h'
@@ -1431,13 +1430,13 @@ le.c']) )
                     version = line.split()[2]
                     break
             if version >= version_req:
-                if (self.compiler.find_library_file(lib_dirs, 'z')) or platform == 'morphos':
+                if (self.compiler.find_library_file(lib_dirs, 'z')) or host_platform == 'morphos':
                     if host_platform == "darwin":
                         zlib_extra_link_args = ('-Wl,-search_paths_first',)
                     else:
                         zlib_extra_link_args = ()
                     exts.append( Extension('zlib', ['zlibmodule.c'],
-                                           libraries = platform != 'morphos' and ['z'],
+                                           libraries = host_platform != 'morphos' and ['z'],
                                            extra_link_args = zlib_extra_link_args))
                     have_zlib = True
                 else:
@@ -1745,7 +1744,7 @@ le.c']) )
                         extra_link_args=['-framework', 'QuickTime',
                                      '-framework', 'Carbon']) )
 
-        if platform == 'morphos':
+        if host_platform == 'morphos':
             #exts.append( Extension('doslib', ['MorphOS/doslibmodule.c']) )
             exts.append( Extension('arexx', ['MorphOS/arexxmodule.c']) )
             exts.append( Extension('_subprocess', ['MorphOS/_subprocess.c']) )
