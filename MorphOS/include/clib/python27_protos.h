@@ -869,6 +869,11 @@ extern int _Py_hgidentifier (void);
 extern int _Py_hgversion (void);
 extern int _Py_parse_inf_or_nan (void);
 extern int _Py_svnversion (void);
+extern int _PyInt_AsInt (void);
+extern int _PyLong_AsInt (void);
+extern int _PyTrash_thread_deposit_object (void);
+extern int _PyTrash_thread_destroy_chain (void);
+extern int _PyNode_SizeOf (void);
 #endif
 
 #if defined(USE_INLINE_STDARG) && !defined(__STRICT_ANSI__)
