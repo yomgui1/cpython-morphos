@@ -1128,6 +1128,7 @@ class Popen(object):
             """Construct and return tuple with IO objects:
             p2cread, p2cwrite, c2pread, c2pwrite, errread, errwrite
             """
+            to_close = set()
             p2cread, p2cwrite = None, None
             c2pread, c2pwrite = None, None
             errread, errwrite = None, None
@@ -1179,11 +1180,11 @@ class Popen(object):
                 
             return (p2cread, p2cwrite,
                     c2pread, c2pwrite,
-                    errread, errwrite)
+                    errread, errwrite), to_close
         
         def _execute_child(self, args, executable, preexec_fn, close_fds,
                            cwd, env, universal_newlines,
-                           startupinfo, creationflags, shell,
+                           startupinfo, creationflags, shell, to_close
                            p2cread, p2cwrite,
                            c2pread, c2pwrite,
                            errread, errwrite):
@@ -1193,7 +1194,7 @@ class Popen(object):
                 args = list2cmdline(args)
             
             pid, stm = _subprocess.ExecuteSubprocess(args, p2cread, c2pwrite, errwrite)
-                
+            
             # Retain the process handle, but close the thread handle
             self._child_created = True
             self._stm = stm
