@@ -48,7 +48,6 @@ endif
 
 BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
-SVNVERSION		:= $(shell svnversion $(SRCDIR))
 HGVERSION		:= $(shell $(HG) id -i)
 HGTAG			:= $(shell $(HG) parent --template "{latesttag}")
 HGBRANCH		:= $(shell $(HG) id -b)
@@ -84,7 +83,9 @@ CVINCLUDE = cvinclude.pl
 
 ######### Tools Flags
 
-ARFLAGS = rcs
+GCCVER = $(shell $(CC) -dumpversion | cut -f 1 -d .)
+GCCREV = $(shell $(CC) -dumpversion | cut -f 2 -d .)
+GCCMINOR = $(shell $(CC) -dumpversion | cut -f 3 -d .)
 
 INCLUDES = $(SRCDIR) $(SRCDIR)/MorphOS $(SRCDIR)/Include $(SRCDIR)/MorphOS/include $(OBJDIR) .
 
@@ -98,29 +99,25 @@ DEFINES  += \
 	HGTAG=\"$(HGTAG)\" \
 	HGBRANCH=\"$(HGBRANCH)\"
 
-OPT = -O2 -mmultiple -mstring -mregnames -fno-strict-aliasing
-OPT_BASEREL = $(OPT) -mbaserel32 -mresident32
+OPT = -O2 -mmultiple -mstring -mregnames -fno-strict-aliasing -fno-unit-at-a-time
 CC_WARNS = \
 	-Wall \
 	-Wno-format \
 	-Wunused \
 	-Wuninitialized \
 	-Wstrict-prototypes \
-
-CC_WARNS += \
 	-Wno-pointer-sign \
-	-Wframe-larger-than=65535
+	-Wframe-larger-than=16384
 
 CFLAGS = -noixemul -pipe -g
-
-OPT += -fno-unit-at-a-time
-
-CFLAGS_BASEREL = $(CFLAGS)
-
 CPPFLAGS = $(CFLAGS) $(CC_WARNS) $(OPT) $(DEFINES:%=-D%) $(INCLUDES:%=-I%)
+
+OPT_BASEREL = $(OPT) -mbaserel32 -mresident32
+CFLAGS_BASEREL = $(CFLAGS)
 CPPFLAGS_BASEREL = $(CFLAGS_BASEREL) $(CC_WARNS) $(OPT_BASEREL) $(DEFINES:%=-D%) $(INCLUDES:%=-I%)
 
-LDFLAGS_SHARED = --traditional-format \
+LDFLAGS_SHARED = \
+	--traditional-format \
 	--cref -Map=$(BUILDDIR)/mapfile.txt -m morphos \
 	-fl libnix --warn-common --warn-once
 
@@ -128,8 +125,9 @@ LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfil
 	-Wl,--traditional-format -Wl,--cref -Wl,-Map=$(BUILDDIR)/mapfile.txt \
 	-Wl,--warn-common -Wl,--warn-once
 
-LIBS = -L/usr/local/lib -lm -ldebug
+LIBS = -L/usr/local/lib -lsyscall -ldebug -lm
 
+ARFLAGS = rcs
 STRIPFLAGS = -R.comment -o $@ $<
 
 ######### Shell output beautification
@@ -243,7 +241,6 @@ EMUL_OBJS = $(EMUL_SRCS:.c=.o)
 MACHDEP_OBJS = $(MACHDEP_SRCS:.c=.o)
 
 THREADSRC = Python/thread.c Modules/threadmodule.c
-UNICODE_SRCS = Objects/unicodeobject.c Objects/unicodectype.c
 SIGNAL_SRCS = $(MACHDEP_DIR)/signalmodule.c
 SIGNAL_OBJS = $(SIGNAL_SRCS:.c=.o)
 
@@ -257,7 +254,6 @@ ALL_SOURCES += $(MACHDEP_SRCS) $(SIGNAL_SRCS)
 # Modules
 
 MODULE_SRCS = \
-	Modules/getpath.c \
 	Modules/main.c \
 	Modules/gcmodule.c \
 	Modules/getbuildinfo.c \
@@ -306,50 +302,50 @@ ALL_SOURCES += $(PARSER_SRCS) $(PGENSRCS)
 DYNLOADFILE = dynload_morphos.c
 
 PYTHON_SRCS = \
-		Python/_warnings.c \
-		Python/Python-ast.c \
-		Python/asdl.c \
-		Python/ast.c \
-		Python/bltinmodule.c \
-		Python/ceval.c \
-		Python/compile.c \
-		Python/codecs.c \
-		Python/errors.c \
-		Python/frozen.c \
-		Python/frozenmain.c \
-		Python/future.c \
-		Python/getargs.c \
-		Python/getcompiler.c \
-		Python/getcopyright.c \
-		Python/getplatform.c \
-		Python/getversion.c \
-		Python/graminit.c \
-		Python/import.c \
-		Python/importdl.c \
-		Python/marshal.c \
-		Python/modsupport.c \
-		Python/mystrtoul.c \
-		Python/mysnprintf.c \
-		Python/peephole.c \
-		Python/pyarena.c \
-		Python/pyctype.c \
-		Python/pyfpe.c \
-		Python/pymath.c \
-		Python/pystate.c \
-		Python/pythonrun.c \
-		Python/random.c \
-		Python/structmember.c \
-		Python/symtable.c \
-		Python/sysmodule.c \
-		Python/traceback.c \
-		Python/getopt.c \
-		Python/pystrcmp.c \
-		Python/pystrtod.c \
-		Python/dtoa.c \
-		Python/formatter_unicode.c \
-		Python/formatter_string.c \
-		Python/$(DYNLOADFILE) \
-		$(THREADSRC)
+	Python/_warnings.c \
+	Python/Python-ast.c \
+	Python/asdl.c \
+	Python/ast.c \
+	Python/bltinmodule.c \
+	Python/ceval.c \
+	Python/compile.c \
+	Python/codecs.c \
+	Python/errors.c \
+	Python/frozen.c \
+	Python/frozenmain.c \
+	Python/future.c \
+	Python/getargs.c \
+	Python/getcompiler.c \
+	Python/getcopyright.c \
+	Python/getplatform.c \
+	Python/getversion.c \
+	Python/graminit.c \
+	Python/import.c \
+	Python/importdl.c \
+	Python/marshal.c \
+	Python/modsupport.c \
+	Python/mystrtoul.c \
+	Python/mysnprintf.c \
+	Python/peephole.c \
+	Python/pyarena.c \
+	Python/pyctype.c \
+	Python/pyfpe.c \
+	Python/pymath.c \
+	Python/pystate.c \
+	Python/pythonrun.c \
+	Python/random.c \
+	Python/structmember.c \
+	Python/symtable.c \
+	Python/sysmodule.c \
+	Python/traceback.c \
+	Python/getopt.c \
+	Python/pystrcmp.c \
+	Python/pystrtod.c \
+	Python/dtoa.c \
+	Python/formatter_unicode.c \
+	Python/formatter_string.c \
+	Python/$(DYNLOADFILE) \
+	$(THREADSRC)
 
 PYTHON_OBJS = $(PYTHON_SRCS:.c=.o)
 
@@ -395,9 +391,9 @@ OBJECT_SRCS = \
 	Objects/structseq.c \
 	Objects/tupleobject.c \
 	Objects/typeobject.c \
-	Objects/weakrefobject.c \
-	$(UNICODE_SRCS)
-
+	Objects/unicodeobject.c \
+	Objects/unicodectype.c \
+	Objects/weakrefobject.c
 OBJECT_OBJS = $(OBJECT_SRCS:.c=.o)
 
 ALL_SOURCES += $(OBJECT_SRCS)
@@ -408,11 +404,10 @@ ALL_SOURCES += $(OBJECT_SRCS)
 PYTHON_CORELIB = libcore.a
 
 _PYTHON_COREOBJS = \
-	$(MACHDEP_OBJS) \
-	$(SPECIAL_OBJS) \
 	$(PARSER_OBJS) \
 	$(OBJECT_OBJS) \
 	$(PYTHON_OBJS) \
+	$(MACHDEP_OBJS) \
 	$(MODULE_OBJS) \
 	$(SIGNAL_OBJS) \
 	$(MODOBJS)
@@ -468,6 +463,7 @@ $(OBJDIR)/$(PYMLIB_NAME): $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS) $(OBJDIR)/libpy
 	$(AR) $(ARFLAGS) $@ $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
 
 core: deps $(OBJDIR)/$(PYTHON_CORELIB)
+.PHONY: core
 
 SDK_DEPS = \
 	$(SRCDIR)/pyconfig.h \
@@ -480,8 +476,6 @@ SDK_DEPS = \
 ALL_SOURCES += \
 	$(MACHDEP_DIR)/pym.c \
 	$(MACHDEP_DIR)/pym_exported.c
-
-.PHONY: deps core
 
 ##########################################################################
 # Python Shared Library
@@ -524,7 +518,6 @@ $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: \
 	$(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
 
 library: $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
-
 .PHONY: library
 
 ##########################################################################
@@ -550,22 +543,25 @@ $(SRCDIR)/$(BINARY_NAME) : $(BUILDDIR)/$(BINARY_NAME).db
 	chmod +x $@
 
 binary: $(SRCDIR)/$(BINARY_NAME)
+.PHONY: binary
 
 ##########################################################################
 # General Rules
 
 .DEFAULT: all
-.PHONY: all clean distclean debug final force sdk binary
-.PHONY: install install-bin install-sdk install-dynlib install-purelib release mkdyn
 
 all: core library sdk binary mkdyn
+.PHONY: all
 
 force:;
+.PHONY: force
 
 debug final:
+.PHONY: debug final
 
 printvar:
 	-@echo $(VAR)
+.PHONY: printvar
 
 clean:
 	rm -f $(BUILDDIR)/mapfile.txt $(SRCDIR)/pyconfig.h $(SRCDIR)/$(MACHDEP_DIR)/libprotos.h $(BUILDDIR)/trampolines.s
@@ -574,10 +570,12 @@ clean:
 	-[ -d $(OBJDIR) ] && find $(OBJDIR) -name "*.[aoX]" -o -name "*.bro" -exec rm -v {} ";"
 	-[ -d $(LIBSDIR) ] && find $(LIBSDIR) -name "*.library*" -exec rm -v {} ";"
 	find $(SRCDIR) -name "*.py[oc]" -exec rm -v {} ";"
+.PHONY: clean
 
 distclean: clean
 	rm -f syms* dump* *~
 	rm -rf $(BUILDDIR)/deps $(BUILDDIR)/objs $(BUILDDIR)/libs
+.PHONY: distclean
 
 $(SRCDIR)/pyconfig.h: pyconfig.h.mos
 	$(CP) $< $@
@@ -585,12 +583,14 @@ $(SRCDIR)/pyconfig.h: pyconfig.h.mos
 ALL_SOURCES_SAFE = $(filter-out %/libheader.c,$(ALL_SOURCES))
 
 sdk: $(SDK_DEPS)
+.PHONY: sdk
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME)
 	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
 	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS build_scripts)
+.PHONY: mkdyn
 
-install-bin: library $(SRCDIR)/$(BINARY_NAME)
+install-bin: library binary
 	-[ "$(OS)" = "MorphOS" ] && ( \
 		$(ECHO) $(COLOR_BOLD)"Installing binaries in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
 		[ -d $(SYS_INSTALL_DIR)/Libs ] || mkdir -p $(SYS_INSTALL_DIR)/Libs; \
@@ -599,6 +599,7 @@ install-bin: library $(SRCDIR)/$(BINARY_NAME)
 		cp -a $(SRCDIR)/$(BINARY_NAME) $(SYS_INSTALL_DIR)/C; \
 		rm -f $(SYS_INSTALL_DIR)/C/python; \
 		ln -fs $(SYS_INSTALL_DIR)/C/$(BINARY_NAME) $(SYS_INSTALL_DIR)/C/python; )
+.PHONY: install-bin
 
 install-sdk: sdk
 	$(ECHO) $(COLOR_BOLD)"Installing SDK in "$(COLOR_HIGHLIGHT1)$(SDK_INSTALL_PREFIX)$(COLOR_NORMAL)
@@ -608,18 +609,22 @@ install-sdk: sdk
 	cp -dR $(SRCDIR)/Include/*.h $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	cp -dR $(SRCDIR)/pyconfig.h $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	cp -dR $(OBJDIR)/$(PYLIB_NAME) $(OBJDIR)/$(PYMLIB_NAME) $(SDK_INSTALL_PREFIX)/lib
+.PHONY: install-sdk
 
 install-dynlib: mkdyn
 	-[ "$(OS)" = "MorphOS" ] && ( \
-		$(ECHO) $(COLOR_BOLD)"Installing .pym modules in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Installing .pym modules in "$(COLOR_HIGHLIGHT1)$(DYNLIB_INSTALL_DIR)$(COLOR_NORMAL); \
 		[ -d $(DYNLIB_INSTALL_DIR) ] || mkdir -p $(DYNLIB_INSTALL_DIR); \
 		cp -a $(SRCDIR)/build/lib.$(PLATFORM)-$(SUFFIX)/*.pym $(DYNLIB_INSTALL_DIR); )
+.PHONY: install-dynlib
 
 install-purelib:
 	$(ECHO) $(COLOR_BOLD)"Installing Python lib files in "$(COLOR_HIGHLIGHT1)$(PURELIB_INSTALL_DIR)$(COLOR_NORMAL);
 	cp -a $(SRCDIR)/Lib/* $(PURELIB_INSTALL_DIR)
+.PHONY: install-purelib
 
 install: install-bin install-sdk install-dynlib install-purelib
+.PHONY: install
 
 ifneq ("$(RELEASE_DIR)","")
 REMOVE_FROM_ARCHIVE := C/idle C/smtpd.py
@@ -645,34 +650,36 @@ release:
 	$(ECHO) "RELEASE_DIR shall be defined to use 'release' target"
 	exit
 endif
+.PHONY: release
 
 test: $(BUILDDIR)/$(BINARY_NAME)
-	(cd /ram; $(BINARY_NAME) -E -tt -Wd -3 -u -m test.regrtest -udecimal \
-        -x test_posixpath \
-        -x test_ntpath \
-        -x test_hotshot \
-        -x test_doctest \
-        \
-        -x test_ascii_formatd \
-        -x test_ctypes \
-        -x test_httpservers \
-        -x test_ftplib \
-        -x test_logging \
-        -x test_mailbox \
-        -x test_marshal \
-        -x test_poplib \
-        -x test_smtplib \
-        -x test_socket \
-        -x test_threading \
-        -x test_urllib2_localnet \
-        -x test_xmlrpc \
-        -x test_imaplib \
-        -x test_ssl \
-        -x test_socketserver \
-        -x test_docxmlrpc \
-        )
+	(cd /tmp; $(BINARY_NAME) -E -tt -Wd -3 -u -m test.regrtest -udecimal \
+		-x test_posixpath \
+		-x test_ntpath \
+		-x test_hotshot \
+		-x test_doctest \
+		-x test_ascii_formatd \
+		-x test_ctypes \
+		-x test_httpservers \
+		-x test_ftplib \
+		-x test_logging \
+		-x test_mailbox \
+		-x test_marshal \
+		-x test_poplib \
+		-x test_smtplib \
+		-x test_socket \
+		-x test_threading \
+		-x test_urllib2_localnet \
+		-x test_xmlrpc \
+		-x test_imaplib \
+		-x test_ssl \
+		-x test_socketserver \
+		-x test_docxmlrpc \
+		)
+.PHONY: test
 
 deps: $(ALL_SOURCES_SAFE:%.c=$(DEPDIR)/%.d)
+.PHONY: deps
 
 ifeq ("$(filter clean distclean,$(MAKECMDGOALS))","")
 $(info Including dependencies...)
