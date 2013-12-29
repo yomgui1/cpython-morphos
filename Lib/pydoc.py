@@ -81,7 +81,7 @@ def pathdirs():
     dirs = []
     normdirs = []
     for dir in sys.path:
-        dir = os.path.abspath(dir or '.')
+        dir = os.path.abspath(dir or os.curdir)
         normdir = os.path.normcase(dir)
         if normdir not in normdirs and os.path.isdir(dir):
             dirs.append(dir)
@@ -1364,6 +1364,8 @@ def getpager():
         return plainpager
     if sys.platform == 'win32' or sys.platform.startswith('os2'):
         return lambda text: tempfilepager(plain(text), 'more <')
+    if os.name == 'morphos':
+        return lambda text: tempfilepager(plain(text), 'Multiview')
     if hasattr(os, 'system') and os.system('(less) 2>/dev/null') == 0:
         return lambda text: pipepager(text, 'less')
 

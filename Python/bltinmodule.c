@@ -27,6 +27,9 @@ int Py_HasFileSystemDefaultEncoding = 1;
 #elif defined(HAVE_LANGINFO_H) && defined(CODESET)
 const char *Py_FileSystemDefaultEncoding = NULL; /* set by initfsencoding() */
 int Py_HasFileSystemDefaultEncoding = 0;
+#elif defined(__MORPHOS__)
+const char *Py_FileSystemDefaultEncoding = "latin-1";
+int Py_HasFileSystemDefaultEncoding = 1;
 #else
 const char *Py_FileSystemDefaultEncoding = "utf-8";
 int Py_HasFileSystemDefaultEncoding = 1;

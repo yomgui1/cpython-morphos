@@ -117,6 +117,10 @@ zipimporter_init(ZipImporter *self, PyObject *args, PyObject *kwds)
             goto error;
         /* back up one path element */
         p = Py_UNICODE_strrchr(buf, SEP);
+#ifdef __MORPHOS__
+        if (p == NULL)
+            p = Py_UNICODE_strrchr(buf, ':');
+#endif
         if (prefix != NULL)
             *prefix = SEP;
         if (p == NULL)
@@ -149,7 +153,11 @@ zipimporter_init(ZipImporter *self, PyObject *args, PyObject *kwds)
     if (prefix != NULL) {
         prefix++;
         len = Py_UNICODE_strlen(prefix);
+#ifdef __MORPHOS__
+        if ((prefix[len-1] != SEP) && (prefix[len-1] != ':')) {
+#else
         if (prefix[len-1] != SEP) {
+#endif
             /* add trailing SEP */
             prefix[len] = SEP;
             prefix[len + 1] = '\0';

@@ -250,6 +250,22 @@ class build_ext(Command):
                 # building python standard extensions
                 self.library_dirs.append('.')
 
+        # For MorphOS, add GeegkGadgeds SDK pathnames.
+        if os.name == 'morphos':
+            self.include_dirs += [ "gg:os-include",
+                                   "gg:includestd",
+                                   "usr:include",
+                                   "usr:local/include", ]
+            self.library_dirs += [ "gg:ppc-morphos/lib/libnix",
+                                   "gg:ppc-morphos/lib",
+                                   "usr:lib",
+                                   "usr:local/lib", ]
+            # On morphos, we use different directories for release or debug builds.
+            if self.debug:
+                self.build_temp = os.path.join(self.build_temp, "debug")
+            else:
+                self.build_temp = os.path.join(self.build_temp, "release")
+
         # The argument parsing will result in self.define being a string, but
         # it has to be a list of 2-tuples.  All the preprocessor symbols
         # specified by the 'define' option will be set to '1'.  Multiple
@@ -279,7 +295,7 @@ class build_ext(Command):
             if os.path.isdir(user_lib):
                 self.library_dirs.append(user_lib)
                 self.rpath.append(user_lib)
-
+        
     def run(self):
         from distutils.ccompiler import new_compiler
 
@@ -749,6 +765,11 @@ class build_ext(Command):
         elif sys.platform[:3] == 'aix':
             # Don't use the default code below
             return ext.libraries
+        elif sys.platform.startswith('morphos'):
+            args = (sys.hexversion >> 24, (sys.hexversion >> 16) & 0xff)
+            pythonlib = 'python{}.{}'.format(*args)
+            pymlib = "pym{}.{}".format(*args)
+            return [pymlib, pythonlib] + ext.libraries
         else:
             from distutils import sysconfig
             if sysconfig.get_config_var('Py_ENABLE_SHARED'):

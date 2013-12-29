@@ -261,9 +261,105 @@ __inline static void _cond_signal(COND_T  *cond) {
     (timeout_result) = _cond_timed_wait(&(cond), &(mut), us); \
 } while (0)
 
+#elif defined(__MORPHOS__)
+
+#include <exec/semaphores.h>
+
+#define MUTEX_T struct SignalSemaphore
+#define MUTEX_INIT(mut) \
+    InitSemaphore(&(mut))
+#define MUTEX_FINI(mut)
+#define MUTEX_LOCK(mut) \
+    ObtainSemaphore(&mut)
+#define MUTEX_UNLOCK(mut) \
+    ReleaseSemaphore(&mut)
+
+/* Using quite the same implementation as Win32 for conditional sem */
+
+typedef struct COND_T
+{
+    MUTEX_T sem;    /* the semaphore */
+    int n_waiting; /* how many are unreleased */
+} COND_T;
+
+__inline static void _cond_init(COND_T *cond)
+{
+    MUTEX_INIT(cond->sem);
+    cond->n_waiting = 0;
+}
+
+__inline static void _cond_fini(COND_T *cond)
+{
+    /* nothing todo */
+}
+
+__inline static void _cond_wait(COND_T *cond, MUTEX_T *mut)
+{
+    ++cond->n_waiting;
+    MUTEX_UNLOCK(*mut);
+    /* "lost wakeup bug" would occur if the caller were interrupted here,
+     * but we are safe because we are using a semaphore which has an internal
+     * count.
+     */
+    MUTEX_LOCK(cond->sem);
+    MUTEX_LOCK(*mut);
+}
+
+__inline static int _cond_timed_wait(COND_T *cond, MUTEX_T *mut, int us)
+{
+    int timeout=0;
+    ++cond->n_waiting;
+    MUTEX_UNLOCK(*mut);
+    if (!AttemptSemaphore(&cond->sem)) {
+		if (us >= 0) {
+			usleep(us);
+			if (!AttemptSemaphore(&cond->sem))
+				timeout = 1;
+		} else
+			MUTEX_LOCK(cond->sem);
+	}
+    MUTEX_LOCK(*mut);
+    if (timeout)
+        --cond->n_waiting;
+        /* Here we have a benign race condition with _cond_signal.  If the
+         * wait operation has timed out, but before we can acquire the
+         * mutex again to decrement n_waiting, a thread holding the mutex
+         * still sees a positive n_waiting value and may call
+         * ReleaseSemaphore and decrement n_waiting.
+         * This will cause n_waiting to be decremented twice.
+         * This is benign, though, because ReleaseSemaphore will also have
+         * been called, leaving the semaphore state positive.  We may
+         * thus end up with semaphore in state 1, and n_waiting == -1, and
+         * the next time someone calls _cond_wait(), that thread will
+         * pass right through, decrementing the semaphore state and
+         * incrementing n_waiting, thus correcting the extra _cond_signal.
+         */
+    return timeout;
+}
+
+__inline static void _cond_signal(COND_T  *cond) {
+    /* NOTE: This must be called with the mutex held */
+    if (cond->n_waiting > 0) {
+        MUTEX_UNLOCK(cond->sem);
+        --cond->n_waiting;
+    }
+}
+
+#define COND_INIT(cond) \
+    _cond_init(&(cond))
+#define COND_FINI(cond) \
+    _cond_fini(&(cond))
+#define COND_SIGNAL(cond) \
+    _cond_signal(&(cond))
+#define COND_WAIT(cond, mut) \
+    _cond_wait(&(cond), &(mut))
+#define COND_TIMED_WAIT(cond, mut, us, timeout_result) do { \
+    (timeout_result) = _cond_timed_wait(&(cond), &(mut), us); \
+} while (0)
+
 #else
 
-#error You need either a POSIX-compatible or a Windows system!
+#error You need either a POSIX-compatible, Windows or MorphOS system!
 
 #endif /* _POSIX_THREADS, NT_THREADS */
 

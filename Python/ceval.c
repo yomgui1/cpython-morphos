@@ -1302,6 +1302,10 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
            async I/O handler); see Py_AddPendingCall() and
            Py_MakePendingCalls() above. */
 
+#ifdef __MORPHOS__
+        PyOS_InterruptOccurred(); /* This call is fast! See MorphOS/signalmodule.c */
+#endif
+
         if (_Py_atomic_load_relaxed(&eval_breaker)) {
             if (*next_instr == SETUP_FINALLY) {
                 /* Make the last opcode before

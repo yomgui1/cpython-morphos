@@ -284,6 +284,8 @@ def getsitepackages():
 
         if sys.platform in ('os2emx', 'riscos'):
             sitepackages.append(os.path.join(prefix, "Lib", "site-packages"))
+        elif os.name == 'morphos':
+            sitepackages.append(os.path.join(prefix, "python" + sys.version[:3], "site-packages"))
         elif os.sep == '/':
             sitepackages.append(os.path.join(prefix, "lib",
                                         "python" + sys.version[:3],
@@ -335,7 +337,7 @@ def setquit():
     The repr of each object contains a hint at how it works.
 
     """
-    if os.sep == ':':
+    if os.sep == ':' or os.name == 'morphos':
         eof = 'Cmd-Q'
     elif os.sep == '\\':
         eof = 'Ctrl-Z plus Return'

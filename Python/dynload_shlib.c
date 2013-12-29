@@ -50,7 +50,7 @@ const struct filedescr _PyImport_DynLoadFiletab[] = {
     {".EXE", "rb", C_EXTENSION},
     {"module.exe", "rb", C_EXTENSION},
     {"MODULE.EXE", "rb", C_EXTENSION},
-#else  /* !__VMS */
+#else
     {"." SOABI ".so", "rb", C_EXTENSION},
     {"module." SOABI ".so", "rb", C_EXTENSION},
     {".abi" PYTHON_ABI_STRING ".so", "rb", C_EXTENSION},
@@ -81,8 +81,8 @@ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
     dl_funcptr p;
     void *handle;
     char funcname[258];
-    char pathbuf[260];
     int dlopenflags=0;
+    char pathbuf[260];
 
     if (strchr(pathname, '/') == NULL) {
         /* Prefix bare filename with "./" */
@@ -145,6 +145,7 @@ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
         PyErr_SetString(PyExc_ImportError, error);
         return NULL;
     }
+
     if (fp != NULL && nhandles < 128)
         handles[nhandles++].handle = handle;
     p = (dl_funcptr) dlsym(handle, funcname);

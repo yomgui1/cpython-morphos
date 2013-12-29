@@ -112,7 +112,12 @@ static PyUnicodeObject *unicode_empty;
 static PyUnicodeObject *unicode_latin1[256];
 
 /* Fast detection of the most frequent whitespace characters */
+#ifdef __MORPHOS__
+/* see the note in unicodeobject.h  */
+unsigned char _Py_ascii_whitespace[] = {
+#else
 const unsigned char _Py_ascii_whitespace[] = {
+#endif
     0, 0, 0, 0, 0, 0, 0, 0,
 /*     case 0x0009: * CHARACTER TABULATION */
 /*     case 0x000A: * LINE FEED */

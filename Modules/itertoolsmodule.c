@@ -3676,6 +3676,7 @@ PyInit_itertools(void)
     int i;
     PyObject *m;
     char *name;
+#ifndef __MORPHOS__
     PyTypeObject *typelist[] = {
         &accumulate_type,
         &combinations_type,
@@ -3696,6 +3697,33 @@ PyInit_itertools(void)
         &groupby_type,
         NULL
     };
+#else
+    /* itertools is now a builtin mandatory module,
+     * but this kind of initialisation of type by using an array is not compatible
+     * with MorphOS baserel build (pointers will be differents)
+     * So I'm forcing pointers values at runtime, not using .rodata one.
+     */
+    PyTypeObject *typelist[18];
+    
+    typelist[0] = &accumulate_type;
+    typelist[1] = &combinations_type;
+    typelist[2] = &cwr_type;
+    typelist[3] = &cycle_type;
+    typelist[4] = &dropwhile_type;
+    typelist[5] = &takewhile_type;
+    typelist[6] = &islice_type;
+    typelist[7] = &starmap_type;
+    typelist[8] = &chain_type;
+    typelist[9] = &compress_type;
+    typelist[10] = &filterfalse_type;
+    typelist[11] = &count_type;
+    typelist[12] = &ziplongest_type;
+    typelist[13] = &permutations_type;
+    typelist[14] = &product_type;
+    typelist[15] = &repeat_type;
+    typelist[16] = &groupby_type;
+    typelist[17] = NULL;
+#endif
 
     Py_TYPE(&teedataobject_type) = &PyType_Type;
     m = PyModule_Create(&itertoolsmodule);

@@ -841,4 +841,10 @@ extern pid_t forkpty(int *, char *, struct termios *, struct winsize *);
 #endif
 #endif
 
+#if defined(__MORPHOS__)
+#include <clib/dos_protos.h> /* this include permit to not break this file by a Python type */
+#define PROTECT_CALL_START() __asm__ __volatile__ ("stwu 1,-16(1); stw 13,8(1); mr 12,%0; lwz 13,36(12)": :"r"(PythonBase):"1", "12", "13")
+#define PROTECT_CALL_END() __asm__ __volatile__ ("lwz 13,8(1); addi 1,1,16")
+#endif
+
 #endif /* Py_PYPORT_H */

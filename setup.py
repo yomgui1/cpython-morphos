@@ -215,21 +215,22 @@ class PyBuildExt(build_ext):
             if ext.name in sys.builtin_module_names:
                 self.extensions.remove(ext)
 
-        # Parse Modules/Setup and Modules/Setup.local to figure out which
-        # modules are turned on in the file.
-        remove_modules = []
-        for filename in ('Modules/Setup', 'Modules/Setup.local'):
-            input = text_file.TextFile(filename, join_lines=1)
-            while 1:
-                line = input.readline()
-                if not line: break
-                line = line.split()
-                remove_modules.append(line[0])
-            input.close()
+        if platform != 'morphos-ppc':
+            # Parse Modules/Setup and Modules/Setup.local to figure out which
+            # modules are turned on in the file.
+            remove_modules = []
+            for filename in ('Modules/Setup', 'Modules/Setup.local'):
+                input = text_file.TextFile(filename, join_lines=1)
+                while 1:
+                    line = input.readline()
+                    if not line: break
+                    line = line.split()
+                    remove_modules.append(line[0])
+                input.close()
 
-        for ext in self.extensions[:]:
-            if ext.name in remove_modules:
-                self.extensions.remove(ext)
+            for ext in self.extensions[:]:
+                if ext.name in remove_modules:
+                    self.extensions.remove(ext)
 
         # When you run "make CC=altcc" or something similar, you really want
         # those environment variables passed into the setup.py phase.  Here's
@@ -508,10 +509,11 @@ class PyBuildExt(build_ext):
                                depends=['_math.h'],
                                libraries=math_libs) )
         # time operations and variables
-        exts.append( Extension('time', ['timemodule.c', '_time.c'],
-                               libraries=math_libs) )
-        exts.append( Extension('_datetime', ['_datetimemodule.c', '_time.c'],
-                               libraries=math_libs) )
+        if platform != 'morphos-ppc':
+            exts.append( Extension('time', ['timemodule.c', '_time.c'],
+                                       libraries=math_libs) )
+            exts.append( Extension('_datetime', ['_datetimemodule.c', '_time.c'],
+                                       libraries=math_libs) )
         # random number generator implemented in C
         exts.append( Extension("_random", ["_randommodule.c"]) )
         # bisect
@@ -537,11 +539,12 @@ class PyBuildExt(build_ext):
         # supported...)
 
         # fcntl(2) and ioctl(2)
-        libs = []
-        if (config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
-            # May be necessary on AIX for flock function
-            libs = ['bsd']
-        exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
+        if platform != 'morphos-ppc':
+            libs = []
+            if (config_h_vars.get('FLOCK_NEEDS_LIBBSD', False)):
+                # May be necessary on AIX for flock function
+                libs = ['bsd']
+            exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
         # pwd(3)
         exts.append( Extension('pwd', ['pwdmodule.c']) )
         # grp(3)
@@ -560,11 +563,17 @@ class PyBuildExt(build_ext):
         exts.append( Extension('parser', ['parsermodule.c']) )
 
         # Memory-mapped files (also works on Win32).
-        exts.append( Extension('mmap', ['mmapmodule.c']) )
+        if platform != 'morphos-ppc':
+            exts.append( Extension('mmap', ['mmapmodule.c']) )
+        else:
+            missing.append('mmap')
 
         # Lance Ellinghaus's syslog module
-        # syslog daemon interface
-        exts.append( Extension('syslog', ['syslogmodule.c']) )
+        if platform not in ['mac', 'morphos-ppc']:
+            # syslog daemon interface
+            exts.append( Extension('syslog', ['syslogmodule.c']) )
+        else:
+            missing.append('syslog')
 
         #
         # Here ends the simple stuff.  From here on, modules need certain
@@ -665,7 +674,8 @@ class PyBuildExt(build_ext):
         exts.append( Extension('_csv', ['_csv.c']) )
 
         # POSIX subprocess module helper.
-        exts.append( Extension('_posixsubprocess', ['_posixsubprocess.c']) )
+        if os.name != 'morphos':
+            exts.append( Extension('_posixsubprocess', ['_posixsubprocess.c']) )
 
         # socket(2)
         exts.append( Extension('_socket', ['socketmodule.c'],
@@ -687,6 +697,10 @@ class PyBuildExt(build_ext):
                                      ['/usr/local/ssl/lib',
                                       '/usr/contrib/ssl/lib/'
                                      ] )
+
+        if os.name == 'morphos':
+            ssl_incs = ['usr:local/include']
+            ssl_libs = ['usr:local/lib']
 
         if (ssl_incs is not None and
             ssl_libs is not None):
@@ -968,6 +982,9 @@ class PyBuildExt(build_ext):
         MIN_SQLITE_VERSION = ".".join([str(x)
                                     for x in MIN_SQLITE_VERSION_NUMBER])
 
+        if platform == 'morphos-ppc':
+            sqlite_inc_paths = []
+
         # Scan the default include directories before the SQLite specific
         # ones. This allows one to override the copy of sqlite on OSX,
         # where /usr/include contains an old version of sqlite.
@@ -1060,7 +1077,7 @@ class PyBuildExt(build_ext):
 
         dbm_order = ['gdbm']
         # The standard Unix dbm module:
-        if platform not in ['cygwin']:
+        if platform not in ['cygwin', 'morphos-ppc']:
             config_args = [arg.strip("'")
                            for arg in sysconfig.get_config_var("CONFIG_ARGS").split()]
             dbm_args = [arg for arg in config_args
@@ -1138,7 +1155,7 @@ class PyBuildExt(build_ext):
             missing.append('_gdbm')
 
         # Unix-only modules
-        if platform != 'win32':
+        if platform not in ['win32', 'morphos-ppc']:
             # Steen Lumholt's termios module
             exts.append( Extension('termios', ['termios.c']) )
             # Jeremy Hylton's rlimit interface
@@ -1207,7 +1224,10 @@ class PyBuildExt(build_ext):
         zlib_inc = find_file('zlib.h', [], inc_dirs)
         have_zlib = False
         if zlib_inc is not None:
-            zlib_h = zlib_inc[0] + '/zlib.h'
+            if platform == 'morphos-ppc':
+                zlib_h = "gg:os-include/libraries/z.h"
+            else:
+                zlib_h = zlib_inc[0] + '/zlib.h'
             version = '"0.0.0"'
             version_req = '"1.1.3"'
             with open(zlib_h) as fp:
@@ -1317,7 +1337,8 @@ class PyBuildExt(build_ext):
                                   ['cjkcodecs/_codecs_%s.c' % loc]))
 
         # Thomas Heller's _ctypes module
-        self.detect_ctypes(inc_dirs, lib_dirs)
+        if os.name != 'morphos':
+            self.detect_ctypes(inc_dirs, lib_dirs)
 
         # Richard Oudkerk's multiprocessing module
         if platform == 'win32':             # Windows
@@ -1891,7 +1912,7 @@ def main():
           # If you change the scripts installed here, you also need to
           # check the PyBuildScripts command above, and change the links
           # created by the bininstall target in Makefile.pre.in
-          scripts = ["Tools/scripts/pydoc3", "Tools/scripts/idle3",
+          scripts = ["Tools/scripts/pydoc3", "Tools/scripts/idle3" if sys.platform != 'morphos-ppc' else '',
                      "Tools/scripts/2to3"]
         )
 

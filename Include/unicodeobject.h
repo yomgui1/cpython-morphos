@@ -1543,7 +1543,13 @@ PyAPI_FUNC(Py_ssize_t) _PyUnicode_InsertThousandsGrouping(Py_UNICODE *buffer,
 /* Helper array used by Py_UNICODE_ISSPACE(). */
 
 #ifndef Py_LIMITED_API
+
+#ifdef __MORPHOS__
+/* const variable goes in .rodata section... not exportable with baserel binaries */
+PyAPI_DATA(unsigned char) _Py_ascii_whitespace[];
+#else
 PyAPI_DATA(const unsigned char) _Py_ascii_whitespace[];
+#endif
 
 /* These should not be used directly. Use the Py_UNICODE_IS* and
    Py_UNICODE_TO* macros instead.

@@ -3,6 +3,10 @@
 
 #include <locale.h>
 
+#ifdef __MORPHOS__
+#undef FORMAT_INT /* System! (dos/datetime.h) */
+#endif
+
 /* Before including this, you must include either:
    stringlib/unicodedefs.h
    stringlib/stringdefs.h

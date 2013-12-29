@@ -23,6 +23,14 @@ extern "C" {
 #endif
 #endif
 
+#ifdef __MORPHOS__
+/* Note: ':' couldn't be used as an ALTSEP
+** as it just used to separate volume name and path names.
+*/
+#undef ALTSEP
+#define DELIM L';'
+#endif
+
 /* Filename separator */
 #ifndef SEP
 #define SEP L'/'

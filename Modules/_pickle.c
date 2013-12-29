@@ -1,6 +1,12 @@
 #include "Python.h"
 #include "structmember.h"
 
+#ifdef __MORPHOS__
+#undef GLOBAL
+#define FLOAT _FLOAT
+#define LONG _LONG
+#endif
+
 PyDoc_STRVAR(pickle_module_doc,
 "Optimized C implementation for the Python pickle module.");
 

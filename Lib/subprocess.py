@@ -374,6 +374,8 @@ if mswindows:
         wShowWindow = 0
     class pywintypes:
         error = IOError
+elif os.name == 'morphos':
+    print("WARNING: subprocess is not ported yet on this operating system.")
 else:
     import select
     _has_poll = hasattr(select, 'poll')
@@ -1074,6 +1076,14 @@ class Popen(object):
             _subprocess.TerminateProcess(self._handle, 1)
 
         kill = terminate
+
+    elif os.name == 'morphos':
+        #
+        # MorphOS methods
+        #
+        
+        # TODO
+        pass
 
     else:
         #

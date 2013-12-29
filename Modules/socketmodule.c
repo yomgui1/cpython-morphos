@@ -280,6 +280,14 @@ typedef size_t socklen_t;
 
 #endif
 
+#ifdef __MORPHOS__                                                                                            
+#include <proto/socket.h>
+#include <proto/usergroup.h>
+#include <clib/netlib_protos.h>
+#include <sys/filio.h>
+#include <net/socketbasetags.h>
+#endif                                                                                                        
+
 #include <stddef.h>
 
 #ifndef offsetof
@@ -373,6 +381,11 @@ dup_socket(SOCKET handle)
 #if defined(PYOS_OS2) && !defined(PYCC_GCC)
 #define SOCKETCLOSE soclose
 #define NO_DUP /* Sockets are Not Actual File Handles under OS/2 */
+#endif
+
+#ifdef __MORPHOS__
+#define SOCKETCLOSE CloseSocket
+//#define NO_DUP
 #endif
 
 #ifndef SOCKETCLOSE
@@ -535,6 +548,19 @@ set_error(void)
             }
             return NULL;
         }
+    }
+#endif
+
+#ifdef __MORPHOS__
+    if (Errno() != 0) {
+        PyObject *v;
+        errno = Errno();
+        v = Py_BuildValue("(is)", errno, strerror(errno));
+        if (v != NULL) {
+            PyErr_SetObject(socket_error, v);
+            Py_DECREF(v);
+        }
+        return NULL;
     }
 #endif
 
@@ -4357,6 +4383,21 @@ os_init(void)
 }
 
 #endif /* PYOS_OS2 */
+
+
+#ifdef __MORPHOS__
+#define OS_INIT_DEFINED
+
+/* Additional initialization for MorphOS */
+
+static int
+os_init(void)
+{
+    SocketBaseTags(SBTM_SETVAL(SBTC_ERRNOLONGPTR), &errno, TAG_DONE);
+    return 1; /* Success */
+}
+
+#endif /* __MORPHOS__ */
 
 
 #ifndef OS_INIT_DEFINED

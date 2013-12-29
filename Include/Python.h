@@ -165,4 +165,48 @@ PyAPI_FUNC(PyObject*) _Py_Mangle(PyObject *p, PyObject *name);
 #define PyDoc_STR(str) ""
 #endif
 
+#if defined(__MORPHOS__)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef Py_BUILD_CORE
+#include <frameobject.h>
+#include <libraries/python3_gvars.h>
+extern struct Library *PythonBase;
+
+/* From python_gvars.c */
+PyAPI_FUNC(void) PyMorphOS_InitGVars( struct PyMorphOS_GVar_STRUCT * );
+#endif
+
+/* From morphos.c */
+PyAPI_FUNC(int) PyMorphOS_SetConfigA(int, struct TagItem *);
+PyAPI_FUNC(void) PyMorphOS_Term( void );
+PyAPI_FUNC(int) PyMorphOS_HandleArgv(int *, char ***);
+PyAPI_FUNC(void *) PyMorphOS_GetGVars( void );
+PyAPI_FUNC(size_t) PyMorphOS_GetFullPath( const char *path, char *buffer, size_t size );
+PyAPI_FUNC(size_t) PyMorphOS_GetFullPathWide( const wchar_t *path, wchar_t *buffer, size_t size );
+PyAPI_FUNC(int) PyMorphOS_AddTermFunc( void (*func)(void), const char *name );
+PyAPI_FUNC(void *) PyMorphOS_InitThread(void);
+PyAPI_FUNC(void) PyMorphOS_TermThread(void);
+
+#include <utility/tagitem.h> /* For TAG_USER */
+#define PYMOSATTR_DUMMY         (TAG_USER|0xa68f0000)
+#define PYMOSATTR_GVARS_STORAGE (PYMOSATTR_DUMMY+0)
+// DEPRECATED #define PYMOSATTR_LIBNIXMEMPOOL (PYMOSATTR_DUMMY+1)
+#define PYMOSATTR_EXIT_FUNC     (PYMOSATTR_DUMMY+2)
+#define PYMOSATTR__EXIT_FUNC    (PYMOSATTR_DUMMY+3)
+#define PYMOSATTR_STDIN         (PYMOSATTR_DUMMY+4)
+#define PYMOSATTR_STDOUT        (PYMOSATTR_DUMMY+5)
+#define PYMOSATTR_STDERR        (PYMOSATTR_DUMMY+6)
+#define PYMOSATTR_MALLOC_FUNC   (PYMOSATTR_DUMMY+7)
+#define PYMOSATTR_FREE_FUNC     (PYMOSATTR_DUMMY+8)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __MORPHOS__ */
+
 #endif /* !Py_PYTHON_H */

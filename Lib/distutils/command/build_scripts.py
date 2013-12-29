@@ -97,7 +97,10 @@ class build_scripts(Command):
                 updated_files.append(outfile)
                 if not self.dry_run:
                     if not sysconfig.python_build:
-                        executable = self.executable
+                        if os.name == 'morphos':
+                            executable = os.path.basename(self.executable)
+                        else:
+                            executable = self.executable
                     else:
                         executable = os.path.join(
                             sysconfig.get_config_var("BINDIR"),

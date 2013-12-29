@@ -699,6 +699,13 @@ PyAPI_FUNC(void) _Py_AddToAllObjects(PyObject *, int force);
 
 #ifdef Py_LIMITED_API
 PyAPI_FUNC(void) _Py_Dealloc(PyObject *);
+#elif defined(__MORPHOS__) && !defined(Py_BUILD_CORE)
+#define _Py_Dealloc(op) (               \
+    _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA \
+    ({ PyObject *_o = (PyObject *)(op); \
+    __asm __volatile__ ("mr 14,13; mr 12,%0; lwz 13,36(12)": :"r"(PythonBase):"12", "13", "14"); \
+    (*Py_TYPE(_o)->tp_dealloc)(_o);    \
+    __asm __volatile__ ("mr 13,14": : :"13"); }))
 #else
 #define _Py_Dealloc(op) (                               \
     _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA          \

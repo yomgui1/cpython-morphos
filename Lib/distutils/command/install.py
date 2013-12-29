@@ -65,6 +65,14 @@ INSTALL_SCHEMES = {
         'scripts': '$base/Scripts',
         'data'   : '$base',
         },
+
+    'morphos': {
+        'purelib': '$base/Libs/python$py_version_short/site-packages',
+        'platlib': '$base/Libs/python$py_version_short/site-packages',
+        'headers': 'usr:local/include/$dist_name',
+        'scripts': '$base/C',
+        'data'   : 'usr:local',
+        }
     }
 
 # user site schemes

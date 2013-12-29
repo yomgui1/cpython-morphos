@@ -1827,6 +1827,25 @@ sys_update_path(int argc, wchar_t **argv)
                 n--; /* Drop trailing separator */
         }
     }
+#elif defined __MORPHOS__ /* special case for MORPHOS syntax */
+		if ((argc > 0) && (argv0 != NULL) && wcscmp(argv0, L"-c"))
+		{
+			wchar_t fullpath[MAXPATHLEN];
+
+			if (PyMorphOS_GetFullPathWide(argv0, fullpath, sizeof(fullpath)/sizeof(fullpath[0])))
+				argv0 = fullpath;
+
+			/* remove trailing '/' if it doesn't mean parent */
+			p = wcsrchr(argv0, L'/');
+			if (NULL == p)
+				p = wcschr(argv0, L':');
+			if (p != NULL) {
+				n = p + 1 - argv0;
+
+				if ((*p == L'/') && (p != argv0) && (*(p-1) != L'/'))
+					n--;
+			}
+		}
 #else /* All other filename syntaxes */
     if (_HAVE_SCRIPT_ARGUMENT(argc, argv)) {
 #if defined(HAVE_REALPATH)

@@ -339,6 +339,16 @@ PyStructSequence_InitType(PyTypeObject *type, PyStructSequence_Desc *desc)
     type->tp_base = &PyTuple_Type;
     type->tp_name = desc->name;
     type->tp_doc = desc->doc;
+	
+#ifdef __MORPHOS__
+    /* _struct_sequence_template is placed in .rodata section by compiler.
+     * But pointers located in this section are not relocated.
+     * Typicaly here PyType_Type pointer used in ob_type field is not correct
+     * (pointer value is the one from the master python.library, and not
+     * from the relocated copy). So we fixe the value here:
+     */
+    type->ob_base.ob_base.ob_type = &PyType_Type;
+#endif
 
     members = PyMem_NEW(PyMemberDef, n_members-n_unnamed_members+1);
     if (members == NULL)

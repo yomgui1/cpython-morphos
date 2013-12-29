@@ -21,6 +21,10 @@
 #include <crtdbg.h>
 #endif
 
+#ifdef __MORPHOS__
+#include "morphos.h"
+#endif
+
 #if (defined(PYOS_OS2) && !defined(PYCC_GCC)) || defined(MS_WINDOWS)
 #define PYTHONHOMEHELP "<prefix>\\lib"
 #else

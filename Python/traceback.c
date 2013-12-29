@@ -157,6 +157,10 @@ _Py_FindSourceFile(PyObject *filename, char* namebuf, size_t namelen, PyObject *
 
     /* Search tail of filename in sys.path before giving up */
     tail = strrchr(filepath, SEP);
+#ifdef __MORPHOS__
+    if (NULL == tail)
+		tail = strrchr(filepath, ':');
+#endif
     if (tail == NULL)
         tail = filepath;
     else
@@ -190,10 +194,17 @@ _Py_FindSourceFile(PyObject *filename, char* namebuf, size_t namelen, PyObject *
         Py_DECREF(path);
         if (strlen(namebuf) != len)
             continue; /* v contains '\0' */
+			
+#ifdef __MORPHOS__
+        if (!AddPart(namebuf, tail, sizeof(namebuf))) {
+            PyErr_SetString(PyExc_OverflowError, "namebuf too short");
+            goto error;
+        }
+#else
         if (len > 0 && namebuf[len-1] != SEP)
             namebuf[len++] = SEP;
         strcpy(namebuf+len, tail);
-
+#endif /* __MORPHOS__ */
         binary = PyObject_CallMethod(io, "open", "ss", namebuf, "rb");
         if (binary != NULL) {
             result = binary;

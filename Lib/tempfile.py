@@ -138,6 +138,8 @@ def _candidate_tempdir_list():
     # Failing that, try OS-specific locations.
     if _os.name == 'nt':
         dirlist.extend([ r'c:\temp', r'c:\tmp', r'\temp', r'\tmp' ])
+    elif _os.name == 'morphos':
+        dirlist.extend([ 'T:' ])
     else:
         dirlist.extend([ '/tmp', '/var/tmp', '/usr/tmp' ])
 

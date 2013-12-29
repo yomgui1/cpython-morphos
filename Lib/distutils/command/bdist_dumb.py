@@ -22,7 +22,7 @@ class bdist_dumb(Command):
                      "platform name to embed in generated filenames "
                      "(default: %s)" % get_platform()),
                     ('format=', 'f',
-                     "archive format to create (tar, ztar, gztar, zip)"),
+                     "archive format to create (tar, ztar, gztar, zip, lha)"),
                     ('keep-temp', 'k',
                      "keep the pseudo-installation tree around after " +
                      "creating the distribution archive"),
@@ -39,7 +39,8 @@ class bdist_dumb(Command):
 
     default_format = { 'posix': 'gztar',
                        'nt': 'zip',
-                       'os2': 'zip' }
+                       'os2': 'zip',
+                       'morphos': 'lha'}
 
     def initialize_options(self):
         self.bdist_dir = None

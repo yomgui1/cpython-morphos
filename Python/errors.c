@@ -14,6 +14,10 @@ extern char *strerror(int);
 #include <winbase.h>
 #endif
 
+#ifdef __MORPHOS__
+#include <proto/dos.h>
+#endif
+
 #include <ctype.h>
 
 #ifdef __cplusplus
@@ -355,11 +359,25 @@ PyErr_SetFromErrnoWithFilenameObject(PyObject *exc, PyObject *filenameObject)
 #endif
 
 #ifndef MS_WINDOWS
+#ifndef __MORPHOS__
     if (i == 0)
         s = "Error"; /* Sometimes errno didn't get set */
     else
         s = strerror(i);
     message = PyUnicode_DecodeUTF8(s, strlen(s), "ignore");
+#else
+    if (i <= 0) {
+        char errbuf[81+14];
+
+        i = IoErr();
+        if ((i > 0) && (Fault(i, "AmigaDOS Error", errbuf, sizeof(errbuf)) > 0))
+            s = errbuf;
+        else
+            s = "Error";
+    } else
+        s = strerror(i);
+    message = PyUnicode_DecodeLatin1(s, strlen(s), "ignore");
+#endif
 #else
     if (i == 0)
         message = PyUnicode_FromString("Error"); /* Sometimes errno didn't get set */
@@ -399,7 +417,7 @@ PyErr_SetFromErrnoWithFilenameObject(PyObject *exc, PyObject *filenameObject)
             }
         }
     }
-#endif /* Unix/Windows */
+#endif /* Unix/Windows/MorphOS */
 
     if (message == NULL)
     {

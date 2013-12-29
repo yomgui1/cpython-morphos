@@ -29,6 +29,10 @@
 #include <langinfo.h>
 #endif
 
+#ifdef HAVE_SETLOCALE
+#include <locale.h>
+#endif
+
 #ifdef MS_WINDOWS
 #undef BYTE
 #include "windows.h"
@@ -2322,6 +2326,10 @@ PyOS_CheckStack(void)
 PyOS_sighandler_t
 PyOS_getsig(int sig)
 {
+#ifdef __MORPHOS__
+    return (PyOS_sighandler_t) -1;
+#else
+
 #ifdef HAVE_SIGACTION
     struct sigaction context;
     if (sigaction(sig, NULL, &context) == -1)
@@ -2351,6 +2359,8 @@ PyOS_getsig(int sig)
         signal(sig, handler);
     return handler;
 #endif
+
+#endif /* __MORPHOS__ */
 }
 
 /*
@@ -2361,6 +2371,10 @@ PyOS_getsig(int sig)
 PyOS_sighandler_t
 PyOS_setsig(int sig, PyOS_sighandler_t handler)
 {
+#ifdef __MORPHOS__
+    return (PyOS_sighandler_t) -1;
+#else
+
 #ifdef HAVE_SIGACTION
     /* Some code in Modules/signalmodule.c depends on sigaction() being
      * used here if HAVE_SIGACTION is defined.  Fix that if this code
@@ -2381,6 +2395,8 @@ PyOS_setsig(int sig, PyOS_sighandler_t handler)
 #endif
     return oldhandler;
 #endif
+
+#endif /* __MORPHOS__ */
 }
 
 /* Deprecated C API functions still provided for binary compatiblity */

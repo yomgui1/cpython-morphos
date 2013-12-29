@@ -2,6 +2,8 @@
 #include <ffi.h>
 #ifdef MS_WIN32
 #include <windows.h>
+#elif defined(__MORPHOS__)
+#include <proto/exec.h>
 #else
 #include <sys/mman.h>
 #include <unistd.h>
@@ -42,6 +44,9 @@ static void more_core(void)
         GetSystemInfo(&systeminfo);
         _pagesize = systeminfo.dwPageSize;
     }
+#elif defined(__MORPHOS__)
+        if (!_pagesize)
+            _pagesize = 65536;
 #else
     if (!_pagesize) {
 #ifdef _SC_PAGESIZE
@@ -63,6 +68,10 @@ static void more_core(void)
                                            PAGE_EXECUTE_READWRITE);
     if (item == NULL)
         return;
+#elif defined(__MORPHOS__)
+        item = calloc(count, sizeof(ITEM));
+        if (NULL == item)
+            return;
 #else
     item = (ITEM *)mmap(NULL,
                         count * sizeof(ITEM),

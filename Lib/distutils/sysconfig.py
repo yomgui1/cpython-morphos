@@ -39,11 +39,17 @@ if os.name == "nt" and "\\pcbuild\\amd64" in project_base[-14:].lower():
 # different (hard-wired) directories.
 # Setup.local is available for Makefile builds including VPATH builds,
 # Setup.dist is available on Windows
-def _python_build():
-    for fn in ("Setup.dist", "Setup.local"):
-        if os.path.isfile(os.path.join(project_base, "Modules", fn)):
+if os.name == 'morphos':
+    def _python_build():
+        if os.path.isfile(os.path.join(project_base, "MorphOS", "morphosmodule.c")):
             return True
-    return False
+        return False
+else:
+    def _python_build():
+        for fn in ("Setup.dist", "Setup.local"):
+            if os.path.isfile(os.path.join(project_base, "Modules", fn)):
+                return True
+        return False
 python_build = _python_build()
 
 # Calculate the build qualifier flags if they are defined.  Adding the flags
@@ -98,6 +104,19 @@ def get_python_inc(plat_specific=0, prefix=None):
         return os.path.join(prefix, "include")
     elif os.name == "os2":
         return os.path.join(prefix, "Include")
+    elif os.name == "morphos":
+        if python_build:
+            base = os.getcwd()
+            if plat_specific:
+                return os.path.join(base, "MorphOS", "include")
+            else:
+                return os.path.join(base, "Include")
+        else:
+            if plat_specific:
+                return os.path.join("gg:", "os-include")
+            else:
+                return os.path.join("usr:", "local", "include",
+                                    "python" + get_python_version())
     else:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
@@ -141,6 +160,16 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             return os.path.join(prefix, "Lib")
         else:
             return os.path.join(prefix, "Lib", "site-packages")
+    elif os.name == "morphos":
+        libpython = os.path.join(prefix,
+                                 "Libs", "python" + get_python_version())
+        if standard_lib:
+            if plat_specific:
+                return os.path.join(libpython, "lib-dynload")
+            else:
+                return libpython
+        else:
+            return os.path.join(prefix, "site-packages")
     else:
         raise DistutilsPlatformError(
             "I don't know where Python installs its library "
@@ -469,6 +498,35 @@ def _init_os2():
 
     g['SO'] = '.pyd'
     g['EXE'] = ".exe"
+
+    global _config_vars
+    _config_vars = g
+
+
+def _init_morphos():
+    """Initialize the module as appropriate for MorphOS systems"""
+    g = {}
+
+    defines = """AROS_ALMOST_COMPATIBLE USE_INLINE_STDARG"""
+
+    # set basic install directories
+    g['LIBDEST'] = get_python_lib(plat_specific=0, standard_lib=1)
+    g['BINLIBDEST'] = get_python_lib(plat_specific=1, standard_lib=1)
+    if python_build:
+        g['PYMBASE'] = os.path.join(os.getcwd(), 'MorphOS', 'objs')
+    else:
+        g['PYMBASE'] = os.path.join(os.path.dirname(get_python_inc(plat_specific=1)), 'lib')
+    g['LDFLAGS'] = '-pipe -Wl,--traditional-format'
+    g['LDFLAGS_SHARED'] = ' '.join(('-nostartfiles', g['LDFLAGS']))
+    g['BASECFLAGS'] = '-pipe -fomit-frame-pointer ' + ' '.join(' -D'+x for x in defines.split())
+    g['OPT'] = '-O2 -mmultiple -fno-strict-aliasing'
+    g['CFLAGS'] = ' '.join((g['OPT'], g['BASECFLAGS']))
+    g['SO'] = '.pym'
+    g['srcdir'] = os.path.dirname(os.path.abspath(sys.executable))
+
+    g['BINDIR'] = ''
+    g['EXE'] = ''
+    g['VERSION'] = get_python_version()
 
     global _config_vars
     _config_vars = g

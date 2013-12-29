@@ -553,6 +553,11 @@ if sys.platform.startswith("win"):
         """Return the charset that the user is likely using."""
         import _locale
         return _locale._getdefaultlocale()[1]
+elif sys.platform.startswith('morphos'):
+    # On MorphOS, this always return 'latin-1'
+    def getpreferredencoding(do_setlocale = True):
+        """Return iso8859-1 (latin-1) charset"""
+        return 'iso8859-1'
 else:
     # On Unix, if CODESET is available, use that.
     try:
