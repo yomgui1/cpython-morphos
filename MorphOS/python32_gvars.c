@@ -1,5 +1,5 @@
 /* GENERATED FILE. DO NOT EDIT IT MANUALLY */
-#include "libraries/python3_gvars.h"
+#include "libraries/python32_gvars.h"
 #include "libheader.h"
 
 /* declared as weak symbols for final build (replaced if debug build) */

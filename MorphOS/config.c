@@ -32,7 +32,6 @@ extern PyObject* PyInit_time(void);
 extern PyObject* PyInit__io(void);
 extern PyObject* PyInit__thread(void);
 extern PyObject* PyInit_signal(void);
-extern PyObject* PyInit_pwd(void);
 extern PyObject* PyInit_errno(void);
 extern PyObject* PyInit__sre(void);
 extern PyObject* PyInit__codecs(void);
@@ -64,7 +63,6 @@ struct _inittab _PyImport_Inittab[] = {
     {"signal",      PyInit_signal},
     
     /* No shared modules */
-    {"pwd",         PyInit_pwd},
     {"errno",       PyInit_errno},
     {"_sre",        PyInit__sre},
     {"_codecs",     PyInit__codecs},

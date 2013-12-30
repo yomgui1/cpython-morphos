@@ -173,7 +173,7 @@ extern "C" {
 
 #ifndef Py_BUILD_CORE
 #include <frameobject.h>
-#include <libraries/python3_gvars.h>
+#include <libraries/python32_gvars.h>
 extern struct Library *PythonBase;
 
 /* From python_gvars.c */

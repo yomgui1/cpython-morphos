@@ -1,8 +1,6 @@
 ################################################################################
 ### File: morphospath.py
-### Author: Guillaume Roguez (aka Yomgui)
-### Date (YYYY/MM/DD): 20041213
-###
+### Author: Guillaume Roguez <yomgui1@gmail.com>
 ###
 ### Description:
 ###
@@ -11,25 +9,6 @@
 ### Note:
 ###
 ### Adapted from original posixpath.py
-###
-###
-### History:
-###
-### Date     | Author       | Desciption of modifications
-### ---------|--------------|-------------------------------------------------
-### 20041213 | Yomgui       | Initial Release.
-### 20041218 | Yomgui       | port of functions: normcase, isabs.
-### 20050114 | Yomgui       | AddPart is in _doslib now.
-### 20050217 | Yomgui       | FIX: split() was unported.
-### 20050221 | Yomgui       | FIX: normcase() does nothing now.
-### 20050223 | Yomgui       | FIX: splitdrive() is now right implemented.
-### 20050303 | Yomgui       | Move AddPart() from os to os.path
-### 20050316 | Yomgui       | FIX: normcase() is s.lower()
-### 20050316 | Yomgui       | FIX: ':' is not an alt-separator !
-### 20050420 | Yomgui       | defpath is computed from result of command 'Path'
-### 20050605 | Yomgui       | FIX: normpath wasn't ported
-### 20050717 | Yomgui       | PB: normpath is not correct yet!
-### 20061009 | Yomgui       | FIX: join didn't put a '/' at end in some cases.
 ###
 ################################################################################
  
@@ -58,8 +37,6 @@ __all__ = ["normcase","isabs","join","splitdrive","split","splitext",
            "samefile","sameopenfile","samestat",
            "curdir","pardir","sep","pathsep","defpath","altsep","extsep",
            "devnull","realpath","supports_unicode_filenames"]
-
-#AddPart = os.AddPart
 
 # strings representing various path-related bits and pieces
 curdir = ''
@@ -399,22 +376,8 @@ def expanduser(path):
     if i < 0:
         i = len(path)
     if i == 1:
-        if 'HOME' not in os.environ:
-            import pwd
-            try:
-                userhome = pwd.getpwuid(os.getuid()).pw_dir
-            except:
-                userhome = "ENVARC:" # Yomgui: not sure it's the best
-        else:
-            userhome = os.environ['HOME']
-    else:
-        import pwd
-        try:
-            pwent = pwd.getpwnam(path[1:i])
-        except KeyError:
-            return path
-        userhome = pwent.pw_dir
-    return join(userhome, path[i+1:])
+        return join(os.environ.get("HOME", "ENVARC:"), path[i:])
+    return path
 
 
 # Expand paths containing shell variable substitutions.
@@ -497,8 +460,8 @@ def abspath(path):
 # filesystem).
 
 def realpath(filename):
-    """Return the canonical path of the specified filename, eliminating any
-symbolic links encountered in the path."""
+    """Return the canonical path of the specified filename,
+    eliminating any symbolic links encountered in the path."""
     sep = _get_sep(filename)
     altsep = _get_sep(filename)
     if isabs(filename):

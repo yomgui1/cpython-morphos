@@ -11,7 +11,7 @@
 
 #include "morphos.h"
 #include "mosdebug.h"
-#include "libraries/python3_gvars.h"
+#include "libraries/python32_gvars.h"
 
 
 /*

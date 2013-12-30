@@ -26,7 +26,7 @@
 #include <proto/dos.h>
 #include <proto/intuition.h>
 
-#include "libraries/python3_gvars.h"
+#include "libraries/python32_gvars.h"
 #include "libheader.h"
 
 
@@ -88,7 +88,7 @@ static void openpythonerror(ULONG version, const char *name)
 /* Priority shall be up to the stdio constructor (currently libnix stdio prio is 118)! */
 CONSTRUCTOR_P(init_PythonBase, 150)
 {
-    PythonBase = (pPythonLibrary_t)OpenLibrary((STRPTR)libname, VERSION);
+    PythonBase = (pPythonLibrary_t)OpenLibrary((STRPTR)libname, MOSVERSION);
     if (PythonBase != NULL) {
 		/* Globals sharing.
          * These symbols are exported by client applications.
@@ -115,7 +115,7 @@ CONSTRUCTOR_P(init_PythonBase, 150)
         PythonBase = NULL;
     }
 
-    openpythonerror(VERSION, libname);
+    openpythonerror(MOSVERSION, libname);
     return TRUE;
 }
 //-
@@ -130,3 +130,8 @@ DESTRUCTOR_P(cleanup_PythonBase, 150)
 }
 //-
 
+/*
+** Public Functions
+*/
+
+#include "bincomp.c"

@@ -1,4 +1,4 @@
-## $Id: Makefile 173 2011-12-11 00:22:12Z roguez $
+## $Id:$
 ##
 ## Top makefile designed to build Python for MorphOS platform.
 ##
@@ -9,20 +9,33 @@
 
 ######### Environment
 
-OS       := $(shell uname)
+OS       := $(shell uname -s)
 BUILDDIR = .
 SRCDIR   = ..
 
 PLATFORM = morphos-ppc
 
+VERSION_MAJOR	 = 3
+VERSION_MINOR	 = 2
+VERSION_REVISION = 2
+
+VERSION			 = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
+MOSVERSION		 = $(VERSION_MAJOR)$(VERSION_MINOR)
+
 ifeq ("$(OS)", "MorphOS")
 TMPDIR = ram:t
 SDK_INSTALL_PREFIX ?= /usr/local
 SYS_INSTALL_DIR ?= /sys
+HG = python c:hg
+LOGFILE=RAM:error.log
 else
 TMPDIR = /tmp
 SDK_INSTALL_PREFIX ?= /opt/gg/usr/local
 SYS_INSTALL_DIR = $(SDK_INSTALL_PREFIX)
+HG = hg
+BIN_PREFIX = ppc-morphos-
+#GCC_BIN_VERSION = -4.4.3
+LOGFILE=/tmp/python_build.log
 endif
 
 ifneq ($(findstring debug, $(MAKECMDGOALS)), debug)
@@ -33,33 +46,19 @@ DEFINES += Py_DEBUG
 MODE    = debug
 endif
 
-BUILD_DATE    := $(shell /bin/date "+%Y.%m.%d")
-COMPILE_DATE  := $(shell /bin/date "+%d.%m.%Y")
-SVNVERSION	  := $(shell svnversion $(SRCDIR))
+BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
+COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
+HGVERSION		:= $(shell $(HG) id -i)
+HGTAG			:= $(shell $(HG) parent --template "{latesttag}")
+HGBRANCH		:= $(shell $(HG) id -b)
+HGTAGDISTANCE	:= $(shell $(HG) parent --template "{latesttagdistance}")
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
 LIBSDIR := $(BUILDDIR)/libs/$(MODE)
 INCDIR := $(BUILDDIR)/include
 
-INCLUDES = $(SRCDIR) $(SRCDIR)/MorphOS $(SRCDIR)/Include $(SRCDIR)/MorphOS/include $(OBJDIR) .
-
-DEFINES  += \
-	AROS_ALMOST_COMPATIBLE \
-	USE_INLINE_STDARG \
-	PLATFORM=\"$(PLATFORM)\" \
-	Py_DEFAULT_RECURSION_LIMIT=200
-
-
-VPATH := $(SRCDIR):$(OBJDIR)
-
-VERSION_MAJOR    = 3
-VERSION_MINOR	 = 2
-VERSION_REVISION = 2
-VERSION			 = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
-MOSVERSION		 = $(VERSION_MAJOR)$(VERSION_MINOR)
-
-LIBRARY_SHORTNAME = python$(VERSION_MAJOR).library
+LIBRARY_SHORTNAME = python$(MOSVERSION).library
 
 SUFFIX = $(VERSION_MAJOR).$(VERSION_MINOR)
 BINARY_NAME = python$(SUFFIX)
@@ -75,65 +74,60 @@ PURELIB_INSTALL_DIR = $(SYS_INSTALL_DIR)/Libs/$(PYLIB_INSTALL_DIR)
 
 CP        = cp -av
 ECHO      = echo -e
-#BIN_PREFIX = ppc-morphos-
-CC        = $(BIN_PREFIX)gcc
+CC        = $(BIN_PREFIX)gcc$(GCC_BIN_VERSION)
 LD        = $(BIN_PREFIX)ld
 AR        = $(BIN_PREFIX)ar
 NM        = $(BIN_PREFIX)nm
 STRIP     = $(BIN_PREFIX)strip
 CVINCLUDE = cvinclude.pl
 
+######### Tools Flags
+
 GCCVER = $(shell $(CC) -dumpversion | cut -f 1 -d .)
 GCCREV = $(shell $(CC) -dumpversion | cut -f 2 -d .)
 GCCMINOR = $(shell $(CC) -dumpversion | cut -f 3 -d .)
 
-######### Tools Flags
+INCLUDES = $(SRCDIR) $(SRCDIR)/MorphOS $(SRCDIR)/Include $(SRCDIR)/MorphOS/include $(OBJDIR) .
 
-ARFLAGS = rcsv
+DEFINES  += \
+	__MORPHOS_SHAREDLIBS=1 \
+	AROS_ALMOST_COMPATIBLE \
+	USE_INLINE_STDARG \
+	PLATFORM=\"$(PLATFORM)\" \
+	Py_DEFAULT_RECURSION_LIMIT=200 \
+	HGVERSION=\"$(HGVERSION)\" \
+	HGTAG=\"$(HGTAG)\" \
+	HGBRANCH=\"$(HGBRANCH)\"
 
-OPT = -O2 -mmultiple -mstring -mregnames -fstrict-aliasing
-OPT_BASEREL = $(OPT) -mbaserel32 -mresident32
+OPT = -O2 -mmultiple -mstring -mregnames -fstrict-aliasing -fno-unit-at-a-time
 CC_WARNS = \
 	-Wall \
 	-Wno-format \
 	-Wunused \
 	-Wuninitialized \
-	-Wstrict-prototypes
+	-Wstrict-prototypes \
+	-Wno-pointer-sign \
+	-Wframe-larger-than=16384
 
-ifeq ("$(GCCVER)", "4")
 CFLAGS = -noixemul -pipe -g
-OPT += -fno-unit-at-a-time
-CC_WARNS += \
-    -Wno-pointer-sign \
-    -Wframe-larger-than=16384
-else
-CFLAGS += -g
-endif
-
-CFLAGS_BASEREL = $(CFLAGS)
-
 CPPFLAGS = $(CFLAGS) $(CC_WARNS) $(OPT) $(DEFINES:%=-D%) $(INCLUDES:%=-I%)
+
+OPT_BASEREL = $(OPT) -mbaserel32 -mresident32
+CFLAGS_BASEREL = $(CFLAGS)
 CPPFLAGS_BASEREL = $(CFLAGS_BASEREL) $(CC_WARNS) $(OPT_BASEREL) $(DEFINES:%=-D%) $(INCLUDES:%=-I%)
 
-LDFLAGS_SHARED = --traditional-format \
-    --cref -Map=$(BUILDDIR)/mapfile.txt -m morphos \
-    -fl libnix --warn-common --warn-once
-
-#LDFLAGS_SHARED_BASEREL = --traditional-format \
-#	--cref -Map=$(BUILDDIR)/mapfile.txt -m morphos_baserel \
-#	-datadata-reloc -fl libb32 -fl libnix --warn-common --warn-once
+LDFLAGS_SHARED = \
+	--traditional-format \
+	--cref -Map=$(BUILDDIR)/mapfile.txt -m morphos \
+	-fl libnix --warn-common --warn-once
 
 LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfiles \
-    -Wl,--traditional-format -Wl,--cref -Wl,-Map=$(BUILDDIR)/mapfile.txt \
-    -Wl,--warn-common -Wl,--warn-once
+	-Wl,--traditional-format -Wl,--cref -Wl,-Map=$(BUILDDIR)/mapfile.txt \
+	-Wl,--warn-common -Wl,--warn-once
 
-#LIBS = -lc -ldl -laboxstubs -labox -lc -lm -lmath -lsyscall -lauto
-LIBS = -L/usr/local/lib -lsyscall
+LIBS = -L/usr/local/lib -lsyscall -ldebug -lm
 
-ifneq ("$(OS)", "MorphOS")
-LIBS += -lnix
-endif
-
+ARFLAGS = rcs
 STRIPFLAGS = -R.comment -o $@ $<
 
 ######### Shell output beautification
@@ -144,13 +138,15 @@ COLOR_HIGHLIGHT2 = "\033[32m"
 COLOR_BOLD       = "\033[0m\033[1m"
 COLOR_NORMAL     = "\033[0m"
 
-CREATING  = $(ECHO) $(COLOR_BOLD)">> Creating "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
-COMPILING = $(ECHO) $(COLOR_BOLD)">> CC "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
-LINKING	  = $(ECHO) $(COLOR_HIGHLIGHT1)">> Linking "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
-ARCHIVING = $(ECHO) $(COLOR_HIGHLIGHT1)">> Archiving "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
-MAKINGDIR = $(ECHO) $(COLOR_HIGHLIGHT1)">> Making directory "$(COLOR_BOLD)"$(@D)"$(COLOR_NORMAL)
+CREATING  = $(ECHO) $(COLOR_BOLD)"Creating "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
+COMPILING = $(ECHO) $(COLOR_BOLD)"CC "$(COLOR_HIGHLIGHT2)"$@"$(COLOR_NORMAL)
+LINKING	  = $(ECHO) $(COLOR_HIGHLIGHT1)"Linking "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
+ARCHIVING = $(ECHO) $(COLOR_HIGHLIGHT1)"Archiving "$(COLOR_BOLD)"$@"$(COLOR_NORMAL)
+MAKINGDIR = $(ECHO) $(COLOR_HIGHLIGHT1)"Making directory "$(COLOR_BOLD)"$(@D)"$(COLOR_NORMAL)
 
 ######### Automatic rules
+
+VPATH := $(SRCDIR):$(OBJDIR)
 
 .SUFFIXES:
 .SUFFIXES: .c .h .s .o .bro .a .X .fd .d .db .sym .library
@@ -202,7 +198,7 @@ $(OBJDIR)/%.bro : $(SRCDIR)/%.s
 $(DEPDIR)/%.d : %.c pyconfig.h
 	-@test ! -z "$(@D)" -a ! -d "$(@D)" && $(MAKINGDIR) && mkdir -p "$(@D)"
 	@$(CREATING)
-	$(SHELL) -ec '$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>ram:error.log \
+	$(SHELL) -ec '$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>$(LOGFILE) \
 		| sed '\''s%\($(notdir $*)\)\.o[ :]*%$(OBJDIR)/$(dir $*)\1.o $(OBJDIR)/$(dir $*)\1.bro : %g'\'' > $@; \
 		[ -s $@ ] || rm -fv $@'
 
@@ -213,38 +209,36 @@ MACHDEP	= morphos
 MACHDEP_DIR = MorphOS
 
 EMUL_SRCS = \
-		$(MACHDEP_DIR)/emul/utime.c \
-		$(MACHDEP_DIR)/emul/popen.c \
-		$(MACHDEP_DIR)/emul/popenSubTask.c
+	$(MACHDEP_DIR)/emul/utime.c \
+	$(MACHDEP_DIR)/emul/popen.c \
+	$(MACHDEP_DIR)/emul/popenSubTask.c
 
 MACHDEP_SRCS = \
-		$(MACHDEP_DIR)/morphos.c \
-		$(MACHDEP_DIR)/config.c \
-		$(MACHDEP_DIR)/getpath.c \
-		$(EMUL_SRCS)
+	$(MACHDEP_DIR)/morphos.c \
+	$(MACHDEP_DIR)/config.c \
+	$(MACHDEP_DIR)/getpath.c \
+	$(EMUL_SRCS)
 
 MACHDEP_MODULES_SRCS = \
-		Modules/errnomodule.c \
-		Modules/pwdmodule.c \
-		Modules/_sre.c \
-		Modules/_codecsmodule.c \
-		Modules/_weakref.c \
-		Modules/_functoolsmodule.c \
-		Modules/zipimport.c \
-		Modules/symtablemodule.c \
-		Modules/_time.c \
-		$(MACHDEP_DIR)/morphosmodule.c \
-		$(MACHDEP_DIR)/timemodule.c \
-		$(IO_SRCS) \
-#		$(OPTIONAL_MODS)
+	Modules/errnomodule.c \
+	Modules/_sre.c \
+	Modules/_codecsmodule.c \
+	Modules/_weakref.c \
+	Modules/_functoolsmodule.c \
+	Modules/zipimport.c \
+	Modules/symtablemodule.c \
+	Modules/_time.c \
+	$(MACHDEP_DIR)/morphosmodule.c \
+	$(MACHDEP_DIR)/timemodule.c \
+	$(IO_SRCS)
 
 OPTIONAL_MODS = \
-		Modules/_collectionsmodule.c \
-		Modules/itertoolsmodule.c \
-		Modules/operator.c \
-		Modules/_struct.c \
-		Modules/_localemodule.c \
-		Modules/parsermodule.c
+	Modules/_collectionsmodule.c \
+	Modules/itertoolsmodule.c \
+	Modules/operator.c \
+	Modules/_struct.c \
+	Modules/_localemodule.c \
+	Modules/parsermodule.c
 
 EMUL_OBJS = $(EMUL_SRCS:.c=.o)
 MACHDEP_OBJS = $(MACHDEP_SRCS:.c=.o) $(OPTIONAL_MODS:.c=.o)
@@ -263,21 +257,22 @@ ALL_SOURCES += $(MACHDEP_SRCS) $(OPTIONAL_MODS) $(SIGNAL_SRCS)
 # Modules
 
 MODULE_SRCS = \
-		Modules/main.c \
-		Modules/gcmodule.c \
-		$(MACHDEP_MODULES_SRCS)
+	Modules/main.c \
+	Modules/gcmodule.c \
+	Modules/getbuildinfo.c \
+	$(MACHDEP_MODULES_SRCS)
 MODULE_OBJS = $(MODULE_SRCS:.c=.o)
 
 IO_H = Modules/_io/_iomodule.h
 
 IO_SRCS =	\
-		Modules/_io/_iomodule.c \
-		Modules/_io/iobase.c \
-		Modules/_io/fileio.c \
-		Modules/_io/bufferedio.c \
-		Modules/_io/textio.c \
-		Modules/_io/bytesio.c \
-		Modules/_io/stringio.c
+	Modules/_io/_iomodule.c \
+	Modules/_io/iobase.c \
+	Modules/_io/fileio.c \
+	Modules/_io/bufferedio.c \
+	Modules/_io/textio.c \
+	Modules/_io/bytesio.c \
+	Modules/_io/stringio.c
 IO_OBJS = $(IO_SRCS:.c=.o)
 
 ALL_SOURCES += $(MODULE_SRCS) $(IO_SRCS)
@@ -298,34 +293,34 @@ ALL_SOURCES += $(GRAMMAR_C)
 PGEN = Parser/pgen$(EXE)
 
 PSRCS = \
-		Parser/acceler.c \
-		Parser/grammar1.c \
-		Parser/listnode.c \
-		Parser/node.c \
-		Parser/parser.c \
-		Parser/parsetok.c \
-		Parser/bitset.c \
-		Parser/metagrammar.c \
-		Parser/firstsets.c \
-		Parser/grammar.c \
-		Parser/pgen.c
+	Parser/acceler.c \
+	Parser/grammar1.c \
+	Parser/listnode.c \
+	Parser/node.c \
+	Parser/parser.c \
+	Parser/parsetok.c \
+	Parser/bitset.c \
+	Parser/metagrammar.c \
+	Parser/firstsets.c \
+	Parser/grammar.c \
+	Parser/pgen.c
 
 PARSER_SRCS = $(PSRCS) Parser/myreadline.c Parser/tokenizer.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 PGSRCS = \
-		Objects/obmalloc.c \
-		Python/mysnprintf.c \
-		Parser/tokenizer_pgen.c	\
-		Parser/printgrammar.c \
-		Parser/pgenmain.c
+	Objects/obmalloc.c \
+	Python/mysnprintf.c \
+	Parser/tokenizer_pgen.c	\
+	Parser/printgrammar.c \
+	Parser/pgenmain.c
 
 PGENSRCS = $(PSRCS) $(PGSRCS)
 PGENOBJS = $(PGENOBJS:.c=.o)
 
 PARSER_HEADERS= \
-		Parser/parser.h \
-		Parser/tokenizer.h
+	Parser/parser.h \
+	Parser/tokenizer.h
 
 ALL_SOURCES += $(PARSER_SRCS) $(PGENSRCS)
 
@@ -349,62 +344,62 @@ ASDLGEN=	$(SRCDIR)/Parser/asdl_c.py
 # Python
 
 OPCODETARGETS_H= \
-		$(SRCDIR)/Python/opcode_targets.h
+	$(SRCDIR)/Python/opcode_targets.h
 
 OPCODETARGETGEN= \
-		$(SRCDIR)/Python/makeopcodetargets.py
+	$(SRCDIR)/Python/makeopcodetargets.py
 
 OPCODETARGETGEN_FILES= \
-		$(OPCODETARGETGEN) $(SRCDIR)/Lib/opcode.py
+	$(OPCODETARGETGEN) $(SRCDIR)/Lib/opcode.py
 
 DYNLOADFILE = dynload_morphos.c
 
 PYTHON_SRCS = \
-		Python/_warnings.c \
-		Python/Python-ast.c \
-		Python/asdl.c \
-		Python/ast.c \
-		Python/bltinmodule.c \
-		Python/ceval.c \
-		Python/compile.c \
-		Python/codecs.c \
-		Python/errors.c \
-		Python/frozen.c \
-		Python/frozenmain.c \
-		Python/future.c \
-		Python/getargs.c \
-		Python/getcompiler.c \
-		Python/getcopyright.c \
-		Python/getplatform.c \
-		Python/getversion.c \
-		Python/graminit.c \
-		Python/import.c \
-		Python/importdl.c \
-		Python/marshal.c \
-		Python/modsupport.c \
-		Python/mystrtoul.c \
-		Python/mysnprintf.c \
-		Python/peephole.c \
-		Python/pyarena.c \
-		Python/pyctype.c \
-		Python/pyfpe.c \
-		Python/pymath.c \
-		Python/pystate.c \
-		Python/pytime.c \
-		Python/pythonrun.c \
-		Python/structmember.c \
-		Python/symtable.c \
-		Python/sysmodule.c \
-		Python/traceback.c \
-		Python/getopt.c \
-		Python/pystrcmp.c \
-		Python/pystrtod.c \
-		Python/dtoa.c \
-		Python/formatter_unicode.c \
-		Python/fileutils.c \
-		Python/$(DYNLOADFILE) \
-		$(LIBOBJS) \
-		$(THREADSRC)
+	Python/_warnings.c \
+	Python/Python-ast.c \
+	Python/asdl.c \
+	Python/ast.c \
+	Python/bltinmodule.c \
+	Python/ceval.c \
+	Python/compile.c \
+	Python/codecs.c \
+	Python/errors.c \
+	Python/frozen.c \
+	Python/frozenmain.c \
+	Python/future.c \
+	Python/getargs.c \
+	Python/getcompiler.c \
+	Python/getcopyright.c \
+	Python/getplatform.c \
+	Python/getversion.c \
+	Python/graminit.c \
+	Python/import.c \
+	Python/importdl.c \
+	Python/marshal.c \
+	Python/modsupport.c \
+	Python/mystrtoul.c \
+	Python/mysnprintf.c \
+	Python/peephole.c \
+	Python/pyarena.c \
+	Python/pyctype.c \
+	Python/pyfpe.c \
+	Python/pymath.c \
+	Python/pystate.c \
+	Python/pytime.c \
+	Python/pythonrun.c \
+	Python/structmember.c \
+	Python/symtable.c \
+	Python/sysmodule.c \
+	Python/traceback.c \
+	Python/getopt.c \
+	Python/pystrcmp.c \
+	Python/pystrtod.c \
+	Python/dtoa.c \
+	Python/formatter_unicode.c \
+	Python/fileutils.c \
+	Python/$(DYNLOADFILE) \
+	$(LIBOBJS) \
+	$(THREADSRC)
 PYTHON_OBJS = $(PYTHON_SRCS:.c=.o)
 
 ALL_SOURCES += $(PYTHON_SRCS)
@@ -413,42 +408,42 @@ ALL_SOURCES += $(PYTHON_SRCS)
 # Objects
 
 OBJECT_SRCS = \
-		Objects/abstract.c \
-		Objects/boolobject.c \
-		Objects/bytes_methods.c \
-		Objects/bytearrayobject.c \
-		Objects/bytesobject.c \
-		Objects/capsule.c \
-		Objects/cellobject.c \
-		Objects/classobject.c \
-		Objects/codeobject.c \
-		Objects/complexobject.c \
-		Objects/descrobject.c \
-		Objects/enumobject.c \
-		Objects/exceptions.c \
-		Objects/genobject.c \
-		Objects/fileobject.c \
-		Objects/floatobject.c \
-		Objects/frameobject.c \
-		Objects/funcobject.c \
-		Objects/iterobject.c \
-		Objects/listobject.c \
-		Objects/longobject.c \
-		Objects/dictobject.c \
-		Objects/memoryobject.c \
-		Objects/methodobject.c \
-		Objects/moduleobject.c \
-		Objects/object.c \
-		Objects/obmalloc.c \
-		Objects/rangeobject.c \
-		Objects/setobject.c \
-		Objects/sliceobject.c \
-		Objects/structseq.c \
-		Objects/tupleobject.c \
-		Objects/typeobject.c \
-		Objects/unicodeobject.c \
-		Objects/unicodectype.c \
-		Objects/weakrefobject.c
+	Objects/abstract.c \
+	Objects/boolobject.c \
+	Objects/bytes_methods.c \
+	Objects/bytearrayobject.c \
+	Objects/bytesobject.c \
+	Objects/capsule.c \
+	Objects/cellobject.c \
+	Objects/classobject.c \
+	Objects/codeobject.c \
+	Objects/complexobject.c \
+	Objects/descrobject.c \
+	Objects/enumobject.c \
+	Objects/exceptions.c \
+	Objects/genobject.c \
+	Objects/fileobject.c \
+	Objects/floatobject.c \
+	Objects/frameobject.c \
+	Objects/funcobject.c \
+	Objects/iterobject.c \
+	Objects/listobject.c \
+	Objects/longobject.c \
+	Objects/dictobject.c \
+	Objects/memoryobject.c \
+	Objects/methodobject.c \
+	Objects/moduleobject.c \
+	Objects/object.c \
+	Objects/obmalloc.c \
+	Objects/rangeobject.c \
+	Objects/setobject.c \
+	Objects/sliceobject.c \
+	Objects/structseq.c \
+	Objects/tupleobject.c \
+	Objects/typeobject.c \
+	Objects/unicodeobject.c \
+	Objects/unicodectype.c \
+	Objects/weakrefobject.c
 OBJECT_OBJS = $(OBJECT_SRCS:.c=.o)
 
 ALL_SOURCES += $(OBJECT_SRCS)
@@ -459,7 +454,6 @@ ALL_SOURCES += $(OBJECT_SRCS)
 PYTHON_CORELIB = libcore.a
 
 _PYTHON_COREOBJS = \
-	Modules/getbuildinfo.o \
 	$(PARSER_OBJS) \
 	$(OBJECT_OBJS) \
 	$(PYTHON_OBJS) \
@@ -469,7 +463,7 @@ _PYTHON_COREOBJS = \
 	$(MODOBJS)
 PYTHON_COREOBJS = $(_PYTHON_COREOBJS:.o=.bro)
 
-$(PYTHON_COREOBJS:%=$(OBJDIR)/%) : DEFINES+=Py_BUILD_CORE SVNVERSION=\"$(SVNVERSION)\" DONT_WRAP_VARS
+$(PYTHON_COREOBJS:%=$(OBJDIR)/%) : DEFINES+=Py_BUILD_CORE DONT_WRAP_VARS
 
 $(OBJDIR)/$(PYTHON_CORELIB) : OBJS=$(PYTHON_COREOBJS:%=$(OBJDIR)/%)
 $(OBJDIR)/$(PYTHON_CORELIB) : $(PYTHON_COREOBJS:%=$(OBJDIR)/%)
@@ -480,7 +474,7 @@ $(OBJDIR)/$(PYTHON_CORELIB) : $(PYTHON_COREOBJS:%=$(OBJDIR)/%)
 syms : $(OBJDIR)/$(PYTHON_CORELIB)
 	$(NM) -fposix -ACg --defined-only $(OBJDIR)/$(PYTHON_CORELIB) | sed -n "s/.*: \(_*Py\w*\) \(\w\).*/\2:\1/p" > $@
 
-syms.func : $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd
+syms.func : $(INCDIR)/fd/python$(MOSVERSION)_lib.fd
 	sed -ne "/)$$/ s/(.*)(.*)//p" $< > $@
 
 $(BUILDDIR)/libprotos.h : syms.func
@@ -491,23 +485,23 @@ $(BUILDDIR)/libprotos.h : syms.func
 	sed 's/\(.*\)/  LIBDECL(\1) \\/g' $< >> $@
 	echo -e "  (APTR) -1\n\n#endif /* PYTHON_LIBPROTOS_H */" >> $@
 
-$(OBJDIR)/libpython_glue.a : $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h
+$(OBJDIR)/libpython_glue.a : $(INCDIR)/fd/python$(MOSVERSION)_lib.fd $(INCDIR)/clib/python$(MOSVERSION)_protos.h
 	-@test ! -d "$(@D)" && $(MAKINGDIR) && mkdir -p "$(@D)"
 	@$(CREATING)
-	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd --clib $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h --gluelib $@
+	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(MOSVERSION)_lib.fd --clib $(INCDIR)/clib/python$(MOSVERSION)_protos.h --gluelib $@
 
-%/trampolines.s: $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h
+%/trampolines.s: $(INCDIR)/fd/python$(MOSVERSION)_lib.fd $(INCDIR)/clib/python$(MOSVERSION)_protos.h
 	@$(CREATING)
-	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd --clib $(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h --breltrampolines $@
+	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(MOSVERSION)_lib.fd --clib $(INCDIR)/clib/python$(MOSVERSION)_protos.h --breltrampolines $@
 
-ALL_SOURCES += $(MACHDEP_DIR)/libpython-shared.c $(MACHDEP_DIR)/bincomp.c
+ALL_SOURCES += $(MACHDEP_DIR)/libpython-shared.c
 
 $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o: \
-	DEFINES+=LIBRARY_SHORTNAME='"$(LIBRARY_SHORTNAME)"' VERSION=$(MOSVERSION) Py_BUILD_CORE
+	DEFINES+=LIBRARY_SHORTNAME='"$(LIBRARY_SHORTNAME)"' MOSVERSION=$(MOSVERSION) Py_BUILD_CORE
 
-$(OBJDIR)/$(PYLIB_NAME): $(OBJDIR)/libpython_glue.a $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o $(OBJDIR)/$(MACHDEP_DIR)/bincomp.o
+$(OBJDIR)/$(PYLIB_NAME): $(OBJDIR)/libpython_glue.a $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o
 	$(CP) $< $@
-	$(AR) $(ARFLAGS) $@ $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o $(OBJDIR)/$(MACHDEP_DIR)/bincomp.o
+	$(AR) $(ARFLAGS) $@ $(OBJDIR)/$(MACHDEP_DIR)/libpython-shared.o
 
 _PYM_OBJS = pym.o pym_exported.o
 PYM_OBJS = $(_PYM_OBJS:%=$(OBJDIR)/$(MACHDEP_DIR)/%)
@@ -517,12 +511,14 @@ $(OBJDIR)/$(PYMLIB_NAME): $(OBJDIR)/libpython_glue.a $(EMUL_OBJS:%=$(OBJDIR)/%) 
 	$(CP) $< $@
 	$(AR) $(ARFLAGS) $@ $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
 
-core : $(OBJDIR)/$(PYTHON_CORELIB)
+core : deps $(OBJDIR)/$(PYTHON_CORELIB)
+.PHONY: core
 
 SDK_DEPS = \
-	$(INCDIR)/fd/python$(VERSION_MAJOR)_lib.fd \
-	$(INCDIR)/clib/python$(VERSION_MAJOR)_protos.h \
-	$(INCDIR)/libraries/python$(VERSION_MAJOR)_gvars.h \
+	$(SRCDIR)/pyconfig.h \
+	$(INCDIR)/fd/python$(MOSVERSION)_lib.fd \
+	$(INCDIR)/clib/python$(MOSVERSION)_protos.h \
+	$(INCDIR)/libraries/python$(MOSVERSION)_gvars.h \
 	$(OBJDIR)/$(PYLIB_NAME) \
 	$(OBJDIR)/$(PYMLIB_NAME)
 
@@ -564,15 +560,14 @@ $(OBJDIR)/$(MACHDEP_DIR)/libheader.o : \
 	MORPHOS_VERSION_STR='"$(MOSVERSION)"'
 
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: DEFINES+=DONT_WRAP_VARS Py_BUILD_CORE
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(VERSION_MAJOR)_gvars.bro $(OBJDIR)/$(PYTHON_CORELIB)
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(PYTHON_CORELIB) $(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(VERSION_MAJOR)_gvars.bro
-
-ifneq ("$(OS)", "MorphOS")
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(OBJDIR)/$(MACHDEP_DIR)/stubs.bro
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS+=$(OBJDIR)/$(MACHDEP_DIR)/stubs.bro
-endif
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro $(OBJDIR)/$(PYTHON_CORELIB)
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: \
+	core \
+	$(PYTHON_SHAREDLIB_HEADOBJS) \
+	$(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
 
 library:  $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
+.PHONY: library
 
 ##########################################################################
 # Python shell interpreter
@@ -597,19 +592,25 @@ $(SRCDIR)/$(BINARY_NAME) : $(BUILDDIR)/$(BINARY_NAME).db
 	chmod +x $@
 
 binary: $(SRCDIR)/$(BINARY_NAME)
+.PHONY: binary
 
 ##########################################################################
 # General Rules
 
 .DEFAULT: all
-.PHONY: all clean distclean debug final force sdk deps core library binary
-.PHONY: install install-bin install-sdk install-dynlib install-purelib release mkdyn
 
-all: core library sdk binary
+all: core library sdk binary mkdyn
+.PHONY: all
 
 force:;
+.PHONY: force
 
 debug final:
+.PHONY: debug final
+
+printvar:
+	-@echo $(VAR)
+.PHONY: printvar
 
 clean:
 	rm -f $(BUILDDIR)/mapfile.txt $(SRCDIR)/pyconfig.h $(SRCDIR)/$(MACHDEP_DIR)/libprotos.h $(BUILDDIR)/trampolines.s
@@ -618,10 +619,12 @@ clean:
 	-[ -d $(OBJDIR) ] && find $(OBJDIR) -name "*.[aoX]" -o -name "*.bro" -exec rm -v {} ";"
 	-[ -d $(LIBSDIR) ] && find $(LIBSDIR) -name "*.library*" -exec rm -v {} ";"
 	find $(SRCDIR) -name "*.py[oc]" -exec rm -v {} ";"
+.PHONY: clean
 
 distclean: clean
 	rm -f syms* dump* *~
 	rm -rf $(BUILDDIR)/deps $(BUILDDIR)/objs $(BUILDDIR)/libs
+.PHONY: distclean
 
 $(SRCDIR)/pyconfig.h: pyconfig.h.mos
 	$(CP) $< $@
@@ -629,70 +632,109 @@ $(SRCDIR)/pyconfig.h: pyconfig.h.mos
 ALL_SOURCES_SAFE = $(filter-out %/libheader.c,$(ALL_SOURCES))
 
 sdk: $(SDK_DEPS)
+.PHONY: sdk
 
-mkdyn: $(SRCDIR)/$(BINARY_NAME) install-bin install-sdk
-	(cd $(SRCDIR); $(BINARY_NAME) -SE setup.py build_ext -D__MORPHOS_SHAREDLIBS,NDEBUG build_scripts)
+mkdyn: $(SRCDIR)/$(BINARY_NAME)
+	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
+	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS build_scripts)
+.PHONY: mkdyn
 
-install-bin: $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)/$(BINARY_NAME)
+install-bin: library binary
 	-[ "$(OS)" = "MorphOS" ] && ( \
-		$(ECHO) $(COLOR_BOLD)">> Installing binaries in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Installing binaries in "$(COLOR_HIGHLIGHT1)$(SYS_INSTALL_DIR)$(COLOR_NORMAL); \
 		[ -d $(SYS_INSTALL_DIR)/Libs ] || mkdir -p $(SYS_INSTALL_DIR)/Libs; \
 		[ -d $(SYS_INSTALL_DIR)/C ] || mkdir -p $(SYS_INSTALL_DIR)/C; \
 		cp -a $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SYS_INSTALL_DIR)/Libs; \
 		cp -a $(SRCDIR)/$(BINARY_NAME) $(SYS_INSTALL_DIR)/C; \
+		rm -f $(SYS_INSTALL_DIR)/C/python; \
 		ln -fs $(SYS_INSTALL_DIR)/C/$(BINARY_NAME) $(SYS_INSTALL_DIR)/C/python3; )
+.PHONY: install-bin
 
 install-sdk: sdk
-	$(ECHO) $(COLOR_BOLD)">> Installing SDK in "$(COLOR_HIGHLIGHT1)$(SDK_INSTALL_PREFIX)$(COLOR_NORMAL)
+	$(ECHO) $(COLOR_BOLD)"Installing SDK in "$(COLOR_HIGHLIGHT1)$(SDK_INSTALL_PREFIX)$(COLOR_NORMAL)
 	[ -d $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR) ] || mkdir -p $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	[ -d $(SDK_INSTALL_PREFIX)/lib ] || mkdir -p $(SDK_INSTALL_PREFIX)/lib
-	svn export --force $(SRCDIR)/MorphOS/include $(SDK_INSTALL_PREFIX)/include
+	cp -a $(SRCDIR)/MorphOS/include $(SDK_INSTALL_PREFIX)
 	cp -dR $(SRCDIR)/Include/*.h $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	cp -dR $(SRCDIR)/pyconfig.h $(SDK_INSTALL_PREFIX)/include/$(PYINC_INSTALL_DIR)
 	cp -dR $(OBJDIR)/$(PYLIB_NAME) $(OBJDIR)/$(PYMLIB_NAME) $(SDK_INSTALL_PREFIX)/lib
+.PHONY: install-sdk
 
 install-dynlib: mkdyn
 	-[ "$(OS)" = "MorphOS" ] && ( \
-		$(ECHO) $(COLOR_BOLD)">> Installing .pym modules in "$(COLOR_HIGHLIGHT1)$(DYNLIB_INSTALL_DIR)$(COLOR_NORMAL); \
+		$(ECHO) $(COLOR_BOLD)"Installing .pym modules in "$(COLOR_HIGHLIGHT1)$(DYNLIB_INSTALL_DIR)$(COLOR_NORMAL); \
 		[ -d $(DYNLIB_INSTALL_DIR) ] || mkdir -p $(DYNLIB_INSTALL_DIR); \
 		cp -a $(SRCDIR)/build/lib.$(PLATFORM)-$(SUFFIX)/*.pym $(DYNLIB_INSTALL_DIR); )
+.PHONY: install-dynlib
 
 install-purelib:
-	$(ECHO) $(COLOR_BOLD)">> Installing Python lib files in "$(COLOR_HIGHLIGHT1)$(PURELIB_INSTALL_DIR)$(COLOR_NORMAL);
-	svn export --force $(SRCDIR)/Lib $(PURELIB_INSTALL_DIR)
+	$(ECHO) $(COLOR_BOLD)"Installing Python lib files in "$(COLOR_HIGHLIGHT1)$(PURELIB_INSTALL_DIR)$(COLOR_NORMAL);
+	cp -a $(SRCDIR)/Lib/* $(PURELIB_INSTALL_DIR)
+.PHONY: install-purelib
 
 install: install-bin install-sdk install-dynlib install-purelib
+.PHONY: install
 
 ifneq ("$(RELEASE_DIR)","")
+REMOVE_FROM_ARCHIVE := C/idle C/smtpd.py
 release:
-	dir=$(RELEASE_DIR)/Python-$(VERSION)-$(SVNVERSION); \
-		$(ECHO) $(COLOR_BOLD)">> Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
+	arcname=Python$(MOSVERSION)-v$(MOSVERSION).$(VERSION_REVISION)-$(HGTAGDISTANCE); \
+		dir=$(RELEASE_DIR)/Python$(MOSVERSION); \
+		$(ECHO) $(COLOR_BOLD)"Creating "$(COLOR_HIGHLIGHT2)"$$dir"$(COLOR_NORMAL); \
 		rm -rf $$dir; \
 		mkdir -p $$dir; \
 		$(MAKE) $(MODE) install SYS_INSTALL_DIR=$$dir SDK_INSTALL_PREFIX=$$dir/DevEnv; \
-		mkdir -p $$dir/Libs/$(PYLIB_INSTALL_DIR) && (svn export --force $(SRCDIR)/Lib $$dir/Libs/$(PYLIB_INSTALL_DIR); \
-	  			(find $$dir/Libs/$(PYLIB_INSTALL_DIR) -name ".svn" -type d -exec rm -rf {} 2>/dev/null ";" || true)) && \
+		mkdir -p $$dir/Libs/$(PYLIB_INSTALL_DIR) && (cp -a $(SRCDIR)/Lib/* $$dir/Libs/$(PYLIB_INSTALL_DIR);) && \
 			mkdir -p $$dir/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload && \
 			cp -a $(SRCDIR)/build/lib.$(PLATFORM)-$(SUFFIX)/*.pym $$dir/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload; \
 			find $$dir/Libs/$(PYLIB_INSTALL_DIR)/lib-dynload -name "*.pym" -exec \
 				$(STRIP) -R .comment --strip-debug --discard-locals {} ";" ; \
 		cp -a $(SRCDIR)/build/scripts-$(SUFFIX)/* $$dir/C/; \
 		cp -a $(SRCDIR)/LICENSE $$dir; \
-		$(ECHO) $(COLOR_BOLD)">> Archiving "$(COLOR_HIGHLIGHT2)"$$dir.tar.bz2"$(COLOR_NORMAL);
-	(cd $(RELEASE_DIR); tar cp -O Python-$(VERSION)-$(SVNVERSION) | bzip2 > Python-$(VERSION)-$(SVNVERSION).tar.bz2)
+		rm -f $(REMOVE_FROM_ARCHIVE:%=$$dir/%); \
+		$(ECHO) $(COLOR_BOLD)"Archiving "$(COLOR_HIGHLIGHT2)"$$arcname.tar.bz2"$(COLOR_NORMAL); \
+		(cd $(RELEASE_DIR); tar cp -O Python$(MOSVERSION) | bzip2 > $$arcname.tar.bz2)
 else
 release:
 	$(ECHO) "RELEASE_DIR shall be defined to use 'release' target"
 	exit
 endif
+.PHONY: release
 
 test: $(BUILDDIR)/$(BINARY_NAME)
-	(cd /tmp; $(BINARY_NAME) -u -m test.regrtest -x test_capi -x test_random \
-		-x test_logging -x test_mailbox -x test_queue -x test_asynchat -x test_socket)
+	(cd /tmp; $(BINARY_NAME) -E -tt -Wd -3 -u -m test.regrtest -udecimal \
+		-x test_posixpath \
+		-x test_ntpath \
+		-x test_hotshot \
+		-x test_doctest \
+		-x test_ascii_formatd \
+		-x test_ctypes \
+		-x test_httpservers \
+		-x test_ftplib \
+		-x test_logging \
+		-x test_mailbox \
+		-x test_marshal \
+		-x test_poplib \
+		-x test_smtplib \
+		-x test_socket \
+		-x test_threading \
+		-x test_urllib2_localnet \
+		-x test_xmlrpc \
+		-x test_imaplib \
+		-x test_ssl \
+		-x test_socketserver \
+		-x test_docxmlrpc \
+		-x test_capi \
+		-x test_random \
+		-x test_queue \
+		-x test_asynchat \
+		)
+.PHONY: test
 
 deps: $(ALL_SOURCES_SAFE:%.c=$(DEPDIR)/%.d)
+.PHONY: deps
 
 ifeq ("$(filter clean distclean,$(MAKECMDGOALS))","")
 $(info Including dependencies...)
-include $(ALL_SOURCES_SAFE:%.c=$(DEPDIR)/%.d)
+include $(wildcard $(DEPDIR)/*.d)
 endif

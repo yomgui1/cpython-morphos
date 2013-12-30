@@ -94,7 +94,7 @@ if oldfd_filename:
 else:
     oldfds = newfunc
 
-fd_filename = 'include/fd/python3_lib.fd'
+fd_filename = 'include/fd/python32_lib.fd'
 print "** Creating '%s'" % fd_filename
 with open(fd_filename, 'w') as f:
     f.write("##base _PythonBase\n##bias 30\n##public\n")
@@ -144,7 +144,7 @@ specials = {
         PyArena *)""",
     }
     
-clib_filename = 'include/clib/python3_protos.h'
+clib_filename = 'include/clib/python32_protos.h'
 print "** Creating '%s'" % clib_filename
 with open(clib_filename, 'w') as f:
     data = []

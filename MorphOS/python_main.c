@@ -1,7 +1,7 @@
 #include "Python.h"
 #include <locale.h>
 
-unsigned long __stack = 100 * 1024;
+unsigned long __stack = 200 * 1024;
 const unsigned char *version = "$VER: python-" VERSION " " LIBVERSION "." LIBREVISION " (" BUILDDATE ") Python Interpreter";
 
 static wchar_t*
