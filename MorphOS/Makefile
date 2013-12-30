@@ -676,7 +676,7 @@ install: install-bin install-sdk install-dynlib install-purelib
 .PHONY: install
 
 ifneq ("$(RELEASE_DIR)","")
-REMOVE_FROM_ARCHIVE := C/idle C/smtpd.py
+REMOVE_FROM_ARCHIVE := C/idle3 C/smtpd.py
 release:
 	arcname=Python$(MOSVERSION)-v$(MOSVERSION).$(VERSION_REVISION)-$(HGTAGDISTANCE); \
 		dir=$(RELEASE_DIR)/Python$(MOSVERSION); \
