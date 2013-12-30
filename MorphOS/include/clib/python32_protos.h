@@ -320,6 +320,7 @@ extern int PyMethod_Self (void);
 extern int PyModule_AddIntConstant (void);
 extern int PyModule_AddObject (void);
 extern int PyModule_AddStringConstant (void);
+extern int PyModule_Create2 (void);
 extern int PyModule_GetDef (void);
 extern int PyModule_GetDict (void);
 extern int PyModule_GetFilename (void);
@@ -883,7 +884,6 @@ extern int _Py_wchar2char (void);
 extern int _Py_wfopen (void);
 extern int _Py_wgetcwd (void);
 extern int _Py_wstat (void);
-extern int PyModule_Create2 (void);
 #endif
 
 #if defined(USE_INLINE_STDARG) && !defined(__STRICT_ANSI__)

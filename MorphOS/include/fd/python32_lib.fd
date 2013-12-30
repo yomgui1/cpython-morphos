@@ -312,9 +312,7 @@ PyMethod_Self()(sysv, r12base)
 PyModule_AddIntConstant()(sysv, r12base)
 PyModule_AddObject()(sysv, r12base)
 PyModule_AddStringConstant()(sysv, r12base)
-##private
-private()()
-##public
+PyModule_Create2()(sysv, r12base)
 PyModule_GetDef()(sysv, r12base)
 PyModule_GetDict()(sysv, r12base)
 PyModule_GetFilename()(sysv, r12base)
@@ -868,70 +866,3 @@ _Py_wchar2char()(sysv, r12base)
 _Py_wfopen()(sysv, r12base)
 _Py_wgetcwd()(sysv, r12base)
 _Py_wstat()(sysv, r12base)
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-##private
-private()()
-##public
-PyModule_Create2()(sysv, r12base)
