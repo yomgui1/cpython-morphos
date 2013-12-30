@@ -49,9 +49,9 @@ endif
 BUILD_DATE		:= $(shell /bin/date "+%Y.%m.%d")
 COMPILE_DATE	:= $(shell /bin/date "+%d.%m.%Y")
 HGVERSION		:= $(shell $(HG) id -i)
-HGTAG			:= $(shell $(HG) parent --template "{latesttag}")
+HGTAG			:= $(shell $(HG) parent --template \{latesttag\})
 HGBRANCH		:= $(shell $(HG) id -b)
-HGTAGDISTANCE	:= $(shell $(HG) parent --template "{latesttagdistance}")
+HGTAGDISTANCE	:= $(shell $(HG) parent --template \{latesttagdistance\})
 
 DEPDIR := $(BUILDDIR)/deps/$(MODE)
 OBJDIR := $(BUILDDIR)/objs/$(MODE)
