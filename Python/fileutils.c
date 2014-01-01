@@ -43,6 +43,10 @@ static int force_ascii = -1;
 static int
 check_force_ascii(void)
 {
+#ifdef __MORPHOS__
+    /* Always use {encode/decode}_ascii_surrogateescape on MorphOS */
+    return 1;
+#else
     char *loc;
 #if defined(HAVE_LANGINFO_H) && defined(CODESET)
     char *codeset, **alias;
@@ -120,6 +124,7 @@ check_force_ascii(void)
 error:
     /* if an error occured, force the ASCII encoding */
     return 1;
+#endif /* defined(__MORPHOS__) */
 }
 
 static char*
