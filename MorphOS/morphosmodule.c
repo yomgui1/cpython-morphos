@@ -874,21 +874,7 @@ morphos_lchflags(PyObject *self, PyObject *args)
 //-
 #endif /* HAVE_LCHFLAGS */
 
-#ifdef HAVE_CHROOT
-//+ morphos_chroot()
-PyDoc_STRVAR(morphos_chroot__doc__,
-"chroot(path)\n\n\
-Change root directory to path.");
-
-static PyObject *
-morphos_chroot(PyObject *self, PyObject *args)
-{
-    return morphos_1str(args, "O&:chroot", chroot);
-}
-//-
-#endif
-
-#ifdef _HAVE_FSYNC
+#ifdef HAVE_FSYNC
 //+ morphos_fsync()
 PyDoc_STRVAR(morphos_fsync__doc__,
 "fsync(fildes)\n\n\
