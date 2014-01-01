@@ -67,9 +67,12 @@
 ** Private Types and Structures
 */
 
+#ifdef WITH_THREAD
+#include "pythread.h"
 #define IsMainThread() (gMainThread == FindTask(NULL))
-#define HANDLERS_SIZE (sizeof(Handlers)/sizeof(Handlers_t))
+#endif
 
+#define HANDLERS_SIZE (sizeof(Handlers)/sizeof(Handlers_t))
 #define HANDLED_SIGNALS_MASK (SIGBREAKF_CTRL_C|SIGBREAKF_CTRL_D)
 
 
@@ -79,7 +82,6 @@
 
 typedef struct Handlers
 {
-    int         tripped;
     const int   sig;
     const ULONG sysSig;
     PyObject    *func;
@@ -119,14 +121,11 @@ static PyObject     *IntHandler;
 
 
 /* !! couples (SIG, SYSSIG) must be unique !! */
-static Handlers_t   Handlers[] =
+static Handlers_t Handlers[] =
 {
-    {0, SIGINT, SIGBREAKF_CTRL_C, NULL},
-    {0, SIGTERM, SIGBREAKF_CTRL_D, NULL}
+    {SIGINT, SIGBREAKF_CTRL_C, NULL},
+    {SIGTERM, SIGBREAKF_CTRL_D, NULL}
 };
-
-/* Speed up sigcheck() when none tripped */
-static PyOS_sighandler_t old_siginthandler = SIG_DFL;
 
 /*
 ** Python Module DocString
@@ -163,31 +162,25 @@ static void
 signal_handler(int sig_num)
 {
 #ifdef WITH_THREAD
-#ifdef WITH_PTH
-	if (!IsMainThread()) {
+    if (!IsMainThread()) {
         Signal(gMainThread, Handlers[sig_num].sysSig);
-	}
+    }
+    /* See NOTES section above */
+    if (IsMainThread()) {
 #endif
-	/* See NOTES section above */
-	if (IsMainThread()) {
-#endif
-		Handlers[sig_num].tripped = 1;
-                /* Set is_tripped after setting .tripped, as it gets
-                   cleared in PyErr_CheckSignals() before .tripped. */
-		Py_AddPendingCall(checksignals_witharg, NULL);
+    Py_AddPendingCall(checksignals_witharg, NULL);
 #ifdef WITH_THREAD
-	}
+    }
 #endif
 #ifdef SIGCHLD
-	if (sig_num == SIGCHLD) {
-		/* To avoid infinite recursion, this signal remains
-		   reset until explicit re-instated.
-		   Don't clear the 'func' field as it is our pointer
-		   to the Python handler... */
-		return;
-	}
+    if (sig_num == SIGCHLD) {
+        /* To avoid infinite recursion, this signal remains
+           reset until explicit re-instated.
+           Don't clear the 'func' field as it is our pointer
+           to the Python handler... */
+        return;
+    }
 #endif
-	PyOS_setsig(sig_num, signal_handler);
 }
 
 //+ signal_signal()
@@ -226,9 +219,9 @@ signal_signal(PyObject *self, PyObject *args)
 		return NULL;
 	}
 	if (obj == IgnoreHandler)
-		func = SIG_IGN;
+		func = (void*)SIG_IGN;
 	else if (obj == DefaultHandler)
-		func = SIG_DFL;
+		func = (void*)SIG_DFL;
 	else if (!PyCallable_Check(obj)) {
 		PyErr_SetString(PyExc_TypeError,
 "signal handler must be signal.SIG_IGN, signal.SIG_DFL, or a callable object");
@@ -236,19 +229,12 @@ signal_signal(PyObject *self, PyObject *args)
 	}
 	else
 		func = signal_handler;
-	if (PyOS_setsig(sig_num, func) == SIG_ERR) {
-		PyErr_SetFromErrno(PyExc_RuntimeError);
-		return NULL;
-	}
 	old_handler = Handlers[sig_num].func;
-	Handlers[sig_num].tripped = 0;
 	Py_INCREF(obj);
 	Handlers[sig_num].func = obj;
 	return old_handler;
 }
-//-
 
-//+ signal_getsignal()
 PyDoc_STRVAR(getsignal_doc,
 "getsignal(sig) -> action\n\
 \n\
@@ -257,7 +243,6 @@ SIG_IGN -- if the signal is being ignored\n\
 SIG_DFL -- if the default action for the signal is in effect\n\
 None -- if an unknown handler is in effect\n\
 anything else -- the callable Python object used as a handler");
-
 
 static PyObject *
 signal_getsignal(PyObject *self, PyObject *args)
@@ -275,10 +260,7 @@ signal_getsignal(PyObject *self, PyObject *args)
 	Py_INCREF(old_handler);
 	return old_handler;
 }
-//-
 
-/*! default_int_handler()
-*/
 PyDoc_STRVAR(default_int_handler_doc,
 "default_int_handler(...)\n\
 \n\
@@ -290,8 +272,7 @@ signal_default_int_handler(PyObject *self, PyObject *args)
 {
     PyErr_SetNone(PyExc_KeyboardInterrupt);
     return NULL;
-}///
-
+}
 
 /*
 ** List of functions defined in the module
@@ -305,55 +286,29 @@ static PyMethodDef signal_methods[] =
     {NULL, NULL} /* sentinel */
 };
 
-
 /*
 ** Private Functions
 */
 
-/*! checksignals_witharg()
-*/
 static int
 checksignals_witharg(void * unused)
 {
     return PyErr_CheckSignals();
-}///
+}
 
-/*! finisignal()
-*/
 static void
 finisignal(void)
 {
     int i;
 
-    PyOS_setsig(SIGINT, old_siginthandler);
-    old_siginthandler = SIG_DFL;
-
     for (i = 0; i < HANDLERS_SIZE; i++)
-    {
-        PyObject *func;
+        Py_CLEAR(Handlers[i].func);
 
-        func = Handlers[i].func;
-        Handlers[i].func = NULL;
-        if ((Handlers[i].sig != SIGINT)
-            && (func != NULL)
-            && (func != Py_None)
-            && (func != DefaultHandler)
-            && (func != IgnoreHandler))
-        { PyOS_setsig(Handlers[i].sig, (APTR)SIG_DFL); }
+    Py_CLEAR(IntHandler);
+    Py_CLEAR(DefaultHandler);
+    Py_CLEAR(IgnoreHandler);
+}
 
-        Py_XDECREF(func);
-    }
-
-    Py_XDECREF(IntHandler);
-    IntHandler = NULL;
-    Py_XDECREF(DefaultHandler);
-    DefaultHandler = NULL;
-    Py_XDECREF(IgnoreHandler);
-    IgnoreHandler = NULL;
-}///
-
-/*! setLong()
-*/
 static void
 setLong(PyObject *d, ULONG l, STRPTR s)
 {
@@ -362,7 +317,7 @@ setLong(PyObject *d, ULONG l, STRPTR s)
     x = PyLong_FromLong(l);
     PyDict_SetItemString(d, s, x);
     Py_XDECREF(x);
-}///
+}
 
 
 /*
@@ -381,17 +336,15 @@ static struct PyModuleDef signalmodule = {
 	NULL
 };
 
-//+ PyInit_signal
 PyMODINIT_FUNC
 PyInit_signal(void)
 {
     PyObject *m, *d, *x;
-    int i;
 
     /* Create the module and add the functions */
     m = PyModule_Create(&signalmodule);
     if (m == NULL)
-		return NULL;
+        return NULL;
 
     /* Add some symbolic constants to the module */
     d = PyModule_GetDict(m);
@@ -416,34 +369,10 @@ PyInit_signal(void)
         goto finally;
     Py_INCREF(IntHandler);
 
-#if 0
-    /* setup handlers */
-    for (i = 0; i < HANDLERS_SIZE; i++) {
-        void (*t)(int);
-        t = PyOS_getsig(i);
-        if (t == SIG_DFL)
-            Handlers[i].func = DefaultHandler;
-        else if (t == SIG_IGN)
-            Handlers[i].func = IgnoreHandler;
-        else
-            Handlers[i].func = Py_None; /* None of our business */
-        Py_INCREF(Handlers[i].func);
-    }
-    
-    //if (Handlers[SIGINT].func == DefaultHandler)
-    {
-        /* Install default int handler */
-        Py_INCREF(IntHandler);
-        Py_DECREF(Handlers[SIGINT].func);
-        Handlers[SIGINT].func = IntHandler;
-        old_siginthandler = PyOS_setsig(SIGINT, signal_handler);
-    }
-#else
-    Handlers[0].func = IntHandler;
+    Handlers[0].func = IntHandler;  /* SIGINT */
     Py_INCREF(Handlers[0].func);
-    Handlers[1].func = Py_None;
+    Handlers[1].func = Py_None;     /* SIGTERM */
     Py_INCREF(Handlers[1].func);
-#endif
 
     /* list here all supported signals */
     setLong(d, SIGINT, "SIGINT");
@@ -451,85 +380,73 @@ PyInit_signal(void)
 
     /* Check for errors */
     if (PyErr_Occurred()) {
-	    Py_DECREF(m);
-	    m = NULL;
+        Py_DECREF(m);
+        m = NULL;
     }
     
   finally:
         return m;
 }
-//-
 
-/*! __PyMorphOS_CheckSignals
-*/
-ULONG __PyMorphOS_CheckSignals(void)
+ULONG
+__PyMorphOS_CheckSignals(void)
 {
-    return ((SetSignal(0, 0) & HANDLED_SIGNALS_MASK) && IsMainThread());
-}///
+    /* only the root task can checks for signals */
+    if (!IsMainThread())
+        return 0;
+    return SetSignal(0, 0) & HANDLED_SIGNALS_MASK;
+}
 
-//+ PyErr_CheckSignals()
-/* Declared in pyerrors.h
-*/
+/* Declared in pyerrors.h */
 int
 PyErr_CheckSignals(void)
 {
-    ULONG sigs = SetSignal(0, 0);
+    int i;
+    PyObject *f;
+    ULONG sigs = __PyMorphOS_CheckSignals();
 
-    // only the root task can checks for signals
-    if ((sigs & HANDLED_SIGNALS_MASK) && IsMainThread())
+    if (!sigs)
+        return 0;
+        
+    if (!(f = (PyObject *)PyEval_GetFrame()))
+        f = Py_None;
+
+    for (i = 0; i < HANDLERS_SIZE; i++)
     {
-        int i;
+        if (!(Handlers[i].sysSig & sigs) || Handlers[i].func == Py_None)
+            continue;
 
-        for (i = 0; i < HANDLERS_SIZE; i++)
+        PyObject *result = NULL;
+        PyObject *arglist = Py_BuildValue("(iO)", i, f);
+        
+        /* remove this signal */
+        SetSignal(0, Handlers[i].sysSig);
+        
+        if (arglist)
         {
-            if (Handlers[i].sysSig & sigs)
-            {
-                PyObject *f;
-
-                // remove this signal
-                SetSignal(0, Handlers[i].sysSig);
-
-                f = (PyObject *)PyEval_GetFrame();
-                if (!f)
-                    f = Py_None;
-
-                if (Handlers[i].func != Py_None)
-                {
-                    PyObject *result = NULL;
-                    PyObject *arglist = Py_BuildValue("(iO)", i, f);
-                    
-                    if (arglist)
-                    {
-                        result = PyEval_CallObject(Handlers[i].func, arglist);
-                        Py_DECREF(arglist);
-                    }
-                    
-                    if (!result)
-                        return -1;
-                        
-                    Py_DECREF(result);
-                }
-            }
+            result = PyEval_CallObject(Handlers[i].func, arglist);
+            Py_DECREF(arglist);
         }
+        
+        if (!result)
+            return -1;
+            
+        Py_DECREF(result);
     }
 
     return 0;
 }
-//-
 
-/*! PyErr_SetInterrupt()
- * Replacements for intrcheck.c functionality
+/* Replacements for intrcheck.c functionality
  * Declared in pyerrors.h
  */
 void
 PyErr_SetInterrupt(void)
 {
     Signal(gMainThread, SIGBREAKF_CTRL_C);
-    Py_AddPendingCall((int (*)(void *))PyErr_CheckSignals, NULL);
-}///
+    Py_AddPendingCall(checksignals_witharg, NULL);
+}
 
-/*! PyOS_InitInterrupts()
-*/
 void
 PyOS_InitInterrupts(void)
 {
@@ -538,18 +455,14 @@ PyOS_InitInterrupts(void)
 		_PyImport_FixupBuiltin(m, "signal");
 		Py_DECREF(m);
 	}
-}///
+}
 
-/*! PyOS_FiniInterrupts()
-*/
 void
 PyOS_FiniInterrupts(void)
 {
     finisignal();
-}///
+}
 
-/*! PyOS_InterruptOccurred()
-*/
 int
 PyOS_InterruptOccurred(void)
 {
@@ -559,16 +472,22 @@ PyOS_InterruptOccurred(void)
     }
 
     return 0;
-}///
+}
 
 void
 PyOS_AfterFork(void)
 {
+    /* Clear the signal flags after forking so that they aren't handled
+     * in both processes if they came in just before the fork() but before
+     * the interpreter had an opportunity to call the handlers.  issue9535. */
+    SetSignal(0, HANDLED_SIGNALS_MASK);
 #ifdef WITH_THREAD
+    /* PyThread_ReInitTLS() must be called early, to make sure that the TLS API
+     * can be called safely. */
+    PyThread_ReInitTLS();
     _PyGILState_Reinit();
     PyEval_ReInitThreads();
     _PyImport_ReInitLock();
-    PyThread_ReInitTLS();
 #endif
 }
 
