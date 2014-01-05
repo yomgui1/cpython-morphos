@@ -1,5 +1,10 @@
 #include "Python.h"
 
+#ifdef __MORPHOS__
+/* const variable goes in .rodata section... not exportable with baserel binaries */
+#define const
+#endif
+
 /* Our own locale-independent ctype.h-like macros */
 
 const unsigned int _Py_ctype_table[256] = {
@@ -212,3 +217,6 @@ const unsigned char _Py_ctype_toupper[256] = {
     0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
 };
 
+#ifdef __MORPHOS__
+#undef const
+#endif
