@@ -73,7 +73,7 @@ wait_for_stm(struct StartupMsg *stm, ULONG mask)
     
     Py_END_ALLOW_THREADS
     
-    if (!proc)
+    if (proc)
         return 1;
         
     return 0;
