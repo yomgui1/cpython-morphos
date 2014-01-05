@@ -9,8 +9,8 @@ gvars_match = re.compile('[ \t]*PyAPI_DATA\(([^)]+)\)[ \t]+([^;]+);.*').match
 # From 2.x
 remove_gvars = 'PyExc_WindowsError PyExc_VMSError PyCmpWrapper_Type'.split()
 remove_gvars += '_PySys_CheckInterval _PySys_ProfileFunc _PySys_TraceFunc _Py_RefTotal'.split()
-# From 3.2.1
-remove_gvars += [ 'PySortWrapper_Type' ]
+# From 3.x
+remove_gvars += [ 'PySortWrapper_Type', '_Py_HashSecret_Initialized' ]
 
 if not os.path.isdir(newincludedir):
     raise ValueError("'%s' is not a directory" % newincludedir)
