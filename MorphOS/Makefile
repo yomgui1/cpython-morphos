@@ -363,13 +363,17 @@ PYTHON_SRCS = \
 	Python/ceval.c \
 	Python/compile.c \
 	Python/codecs.c \
+	Python/dtoa.c \
 	Python/errors.c \
+	Python/fileutils.c \
+	Python/formatter_unicode.c \
 	Python/frozen.c \
 	Python/frozenmain.c \
 	Python/future.c \
 	Python/getargs.c \
 	Python/getcompiler.c \
 	Python/getcopyright.c \
+	Python/getopt.c \
 	Python/getplatform.c \
 	Python/getversion.c \
 	Python/graminit.c \
@@ -385,18 +389,15 @@ PYTHON_SRCS = \
 	Python/pyfpe.c \
 	Python/pymath.c \
 	Python/pystate.c \
+	Python/pystrcmp.c \
+	Python/pystrtod.c \
 	Python/pytime.c \
 	Python/pythonrun.c \
+	PYthon/random.c \
 	Python/structmember.c \
 	Python/symtable.c \
 	Python/sysmodule.c \
 	Python/traceback.c \
-	Python/getopt.c \
-	Python/pystrcmp.c \
-	Python/pystrtod.c \
-	Python/dtoa.c \
-	Python/formatter_unicode.c \
-	Python/fileutils.c \
 	Python/$(DYNLOADFILE) \
 	$(LIBOBJS) \
 	$(THREADSRC)
@@ -409,6 +410,7 @@ ALL_SOURCES += $(PYTHON_SRCS)
 
 OBJECT_SRCS = \
 	Objects/abstract.c \
+	Objects/accu.c \
 	Objects/boolobject.c \
 	Objects/bytes_methods.c \
 	Objects/bytearrayobject.c \
