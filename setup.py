@@ -411,12 +411,15 @@ class PyBuildExt(build_ext):
             os.unlink(tmpfile)
 
     def detect_modules(self):
+        platform = self.get_platform()
+        
         # Ensure that /usr/local is always used, but the local build
         # directories (i.e. '.' and 'Include') must be first.  See issue
         # 10520.
         add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
         add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
-        self.add_multiarch_paths()
+        if platform != 'morphos-ppc':
+            self.add_multiarch_paths()
 
         # Add paths specified in the environment variables LDFLAGS and
         # CPPFLAGS for header and library files.
@@ -478,7 +481,6 @@ class PyBuildExt(build_ext):
         with open(config_h) as file:
             config_h_vars = sysconfig.parse_config_h(file)
 
-        platform = self.get_platform()
         srcdir = sysconfig.get_config_var('srcdir')
 
         # OSF/1 and Unixware have some stuff in /usr/ccs/lib (like -ldb)
