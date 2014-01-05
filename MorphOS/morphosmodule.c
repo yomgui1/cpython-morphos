@@ -530,7 +530,8 @@ _pystat_fromstructstat(STRUCT_STAT st)
 #else
         PyStructSequence_SET_ITEM(v, 2, PyInt_FromLong((long)st.st_dev));
 #endif
-        PyStructSequence_SET_ITEM(v, 3, PyInt_FromLong((long)st.st_nlink));
+    long nlink = st.st_nlink < 1 ? 1 : st.st_nlink; /* Workaround on a bad st_nlink value */
+    PyStructSequence_SET_ITEM(v, 3, PyInt_FromLong(nlink));
         PyStructSequence_SET_ITEM(v, 4, PyInt_FromLong((long)st.st_uid));
         PyStructSequence_SET_ITEM(v, 5, PyInt_FromLong((long)st.st_gid));
 #ifdef HAVE_LARGEFILE_SUPPORT
