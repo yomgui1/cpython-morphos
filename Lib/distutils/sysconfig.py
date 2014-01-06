@@ -538,9 +538,9 @@ def _init_morphos():
     g['LDFLAGS'] = '-pipe -Wl,--traditional-format'
     g['LDFLAGS_SHARED'] = ' '.join(('-nostartfiles', g['LDFLAGS']))
     g['BASECFLAGS'] = '-pipe -fomit-frame-pointer ' + ' '.join(' -D'+x for x in defines.split())
-    g['OPT'] = '-O2 -mmultiple -fno-strict-aliasing'
+    g['OPT'] = '-O2 -mmultiple -fstrict-aliasing'
     g['CFLAGS'] = ' '.join((g['OPT'], g['BASECFLAGS']))
-    g['SO'] = '.pym'
+    g['SO'] = g['EXT_SUFFIX'] ='.pym'
     g['srcdir'] = os.path.dirname(os.path.abspath(sys.executable))
 
     g['BINDIR'] = ''
