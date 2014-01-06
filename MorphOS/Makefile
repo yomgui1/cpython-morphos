@@ -638,7 +638,7 @@ sdk: $(SDK_DEPS)
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME)
 	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
-	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS build_scripts)
+	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS -lsyscall,m build_scripts)
 .PHONY: mkdyn
 
 install-bin: library binary
