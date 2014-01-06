@@ -568,10 +568,10 @@ class PyBuildExt(build_ext):
                 # May be necessary on AIX for flock function
                 libs = ['bsd']
             exts.append( Extension('fcntl', ['fcntlmodule.c'], libraries=libs) )
-        # pwd(3)
-        exts.append( Extension('pwd', ['pwdmodule.c']) )
-        # grp(3)
-        exts.append( Extension('grp', ['grpmodule.c']) )
+            # pwd(3)
+            exts.append( Extension('pwd', ['pwdmodule.c']) )
+            # grp(3)
+            exts.append( Extension('grp', ['grpmodule.c']) )
         # spwd, shadow passwords
         if (config_h_vars.get('HAVE_GETSPNAM', False) or
                 config_h_vars.get('HAVE_GETSPENT', False)):
