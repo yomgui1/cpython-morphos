@@ -128,6 +128,7 @@ extern int Py_DontWriteBytecodeFlag;
 extern int Py_FileSystemDefaultEncoding;
 extern int Py_FrozenFlag;
 extern int Py_HasFileSystemDefaultEncoding;
+extern int Py_HashRandomizationFlag;
 extern int Py_IgnoreEnvironmentFlag;
 extern int Py_InspectFlag;
 extern int Py_InteractiveFlag;
@@ -140,6 +141,7 @@ extern int Py_UseClassExceptionsFlag;
 extern int Py_VerboseFlag;
 extern int _PyByteArray_empty_string;
 extern int _PyLong_DigitValue;
+extern int _PyMethodWrapper_Type;
 extern int _PyOS_ReadlineTState;
 extern int _PyOS_optarg;
 extern int _PyOS_opterr;
@@ -157,12 +159,16 @@ extern int _Py_CheckRecursionLimit;
 extern int _Py_EllipsisObject;
 extern int _Py_FalseStruct;
 extern int _Py_Finalizing;
+extern int _Py_HashSecret;
 extern int _Py_NoneStruct;
 extern int _Py_NotImplementedStruct;
 extern int _Py_PackageContext;
 extern int _Py_SwappedOp;
 extern int _Py_TrueStruct;
 extern int _Py_ascii_whitespace;
+extern int _Py_ctype_table;
+extern int _Py_ctype_tolower;
+extern int _Py_ctype_toupper;
 
 void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
 {
@@ -292,6 +298,7 @@ void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
     storage->p_Py_FileSystemDefaultEncoding        = &Py_FileSystemDefaultEncoding;
     storage->p_Py_FrozenFlag                       = &Py_FrozenFlag;
     storage->p_Py_HasFileSystemDefaultEncoding     = &Py_HasFileSystemDefaultEncoding;
+    storage->p_Py_HashRandomizationFlag            = &Py_HashRandomizationFlag;
     storage->p_Py_IgnoreEnvironmentFlag            = &Py_IgnoreEnvironmentFlag;
     storage->p_Py_InspectFlag                      = &Py_InspectFlag;
     storage->p_Py_InteractiveFlag                  = &Py_InteractiveFlag;
@@ -304,6 +311,7 @@ void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
     storage->p_Py_VerboseFlag                      = &Py_VerboseFlag;
     storage->p__PyByteArray_empty_string           = &_PyByteArray_empty_string;
     storage->p__PyLong_DigitValue                  = &_PyLong_DigitValue;
+    storage->p__PyMethodWrapper_Type               = &_PyMethodWrapper_Type;
     storage->p__PyOS_ReadlineTState                = &_PyOS_ReadlineTState;
     storage->p__PyOS_optarg                        = &_PyOS_optarg;
     storage->p__PyOS_opterr                        = &_PyOS_opterr;
@@ -321,10 +329,14 @@ void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
     storage->p__Py_EllipsisObject                  = &_Py_EllipsisObject;
     storage->p__Py_FalseStruct                     = &_Py_FalseStruct;
     storage->p__Py_Finalizing                      = &_Py_Finalizing;
+    storage->p__Py_HashSecret                      = &_Py_HashSecret;
     storage->p__Py_NoneStruct                      = &_Py_NoneStruct;
     storage->p__Py_NotImplementedStruct            = &_Py_NotImplementedStruct;
     storage->p__Py_PackageContext                  = &_Py_PackageContext;
     storage->p__Py_SwappedOp                       = &_Py_SwappedOp;
     storage->p__Py_TrueStruct                      = &_Py_TrueStruct;
     storage->p__Py_ascii_whitespace                = &_Py_ascii_whitespace;
+    storage->p__Py_ctype_table                     = &_Py_ctype_table;
+    storage->p__Py_ctype_tolower                   = &_Py_ctype_tolower;
+    storage->p__Py_ctype_toupper                   = &_Py_ctype_toupper;
 }
