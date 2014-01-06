@@ -173,6 +173,7 @@ extern "C" {
 #ifndef Py_BUILD_CORE
 #include <frameobject.h>
 #include <libraries/python32_gvars.h>
+
 extern struct Library *PythonBase;
 
 /* From python_gvars.c */
@@ -193,7 +194,6 @@ PyAPI_FUNC(void) PyMorphOS_TermThread(void);
 #include <utility/tagitem.h> /* For TAG_USER */
 #define PYMOSATTR_DUMMY         (TAG_USER|0xa68f0000)
 #define PYMOSATTR_GVARS_STORAGE (PYMOSATTR_DUMMY+0)
-// DEPRECATED #define PYMOSATTR_LIBNIXMEMPOOL (PYMOSATTR_DUMMY+1)
 #define PYMOSATTR_EXIT_FUNC     (PYMOSATTR_DUMMY+2)
 #define PYMOSATTR__EXIT_FUNC    (PYMOSATTR_DUMMY+3)
 #define PYMOSATTR_STDIN         (PYMOSATTR_DUMMY+4)

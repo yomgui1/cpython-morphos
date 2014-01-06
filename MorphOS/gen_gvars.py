@@ -10,7 +10,7 @@ gvars_match = re.compile('[ \t]*PyAPI_DATA\(([^)]+)\)[ \t]+([^;]+);.*').match
 remove_gvars = 'PyExc_WindowsError PyExc_VMSError PyCmpWrapper_Type'.split()
 remove_gvars += '_PySys_CheckInterval _PySys_ProfileFunc _PySys_TraceFunc _Py_RefTotal'.split()
 # From 3.x
-remove_gvars += [ 'PySortWrapper_Type', '_Py_HashSecret_Initialized' ]
+remove_gvars += ['PySortWrapper_Type', '_Py_HashSecret_Initialized']
 
 if not os.path.isdir(newincludedir):
     raise ValueError("'%s' is not a directory" % newincludedir)
@@ -166,4 +166,4 @@ if not os.path.exists(dirname):
 print "** Creating '%s' ..." % gvars_h_filename
 with open(gvars_h_filename, 'w') as f:
     f.write(gvars_h_template % ('\n'.join("    void* p_%s;" % x.split(';')[0] for x in gvars),
-                                '\n'.join("#define %-35s (*(%s *)__pym_GVars.p_%s)" % tuple(x.split(';') + [ x.split(';')[0] ]) for x in gvars)))
+                                '\n'.join("#define %-35s (*(%s*)__pym_GVars.p_%s)" % tuple(x.split(';') + [ x.split(';')[0] ]) for x in gvars)))
