@@ -7,13 +7,10 @@
 #ifndef MOSDEBUG_H
 #define MOSDEBUG_H 1
 
-<<<<<<< local
 /*
 ** System Includes
 */
 
-=======
->>>>>>> other
 #include <exec/types.h>
 #include <clib/debug_protos.h>
 
@@ -22,11 +19,6 @@
 ** Public Macros and Defines
 */
 
-<<<<<<< local
-#define DB kprintf
-
-=======
->>>>>>> other
 #define FILE_SIZE       "30"
 #define FUNCTION_SIZE   "32"
 

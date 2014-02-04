@@ -549,10 +549,7 @@ binary: $(SRCDIR)/$(BINARY_NAME)
 ##########################################################################
 # General Rules
 
-<<<<<<< local
 .DEFAULT_GOAL := all
-=======
->>>>>>> other
 all: core library sdk binary mkdyn
 .PHONY: all
 
