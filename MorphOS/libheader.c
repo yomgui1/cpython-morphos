@@ -90,4 +90,4 @@ static const UBYTE VersionString[] = "\0$VER: " LIBRARY_SHORTNAME " " LIBRARY_VE
                                      " - Ported by Guillaume Roguez";
 static const UBYTE LibName[] = LIBRARY_SHORTNAME;
 
-void _t_private(void){ kprintf("PYTHON BAD CALL! [%s]\n"); }
+void _t_private(void){ DB("PYTHON BAD CALL! [%s]\n"); }
