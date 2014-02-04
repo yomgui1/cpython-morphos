@@ -600,6 +600,7 @@ binary: $(SRCDIR)/$(BINARY_NAME)
 ##########################################################################
 # General Rules
 
+.DEFAULT_GOAL := all
 all: core library sdk binary mkdyn
 .PHONY: all
 
