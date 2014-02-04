@@ -7,10 +7,13 @@
 #ifndef MOSDEBUG_H
 #define MOSDEBUG_H 1
 
+<<<<<<< local
 /*
 ** System Includes
 */
 
+=======
+>>>>>>> other
 #include <exec/types.h>
 #include <clib/debug_protos.h>
 
@@ -19,10 +22,16 @@
 ** Public Macros and Defines
 */
 
+<<<<<<< local
 #define DB kprintf
 
+=======
+>>>>>>> other
 #define FILE_SIZE       "30"
 #define FUNCTION_SIZE   "32"
+
+extern VOID kprintf( CONST_STRPTR string, ... );
+#define DB kprintf // forced debug (NDEBUG doesn't matter)
 
 #ifndef NDEBUG
     // don't use following functions in functions without stack
