@@ -394,7 +394,7 @@ PYTHON_SRCS = \
 	Python/pystrtod.c \
 	Python/pytime.c \
 	Python/pythonrun.c \
-	PYthon/random.c \
+	Python/random.c \
 	Python/structmember.c \
 	Python/symtable.c \
 	Python/sysmodule.c \
