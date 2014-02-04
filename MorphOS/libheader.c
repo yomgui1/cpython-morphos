@@ -13,6 +13,7 @@
 #define PYTHON_LIBTABLE
 #include "libheader.h"
 #include "libprotos.h"
+#include "mosdebug.h"
 
 
 /*

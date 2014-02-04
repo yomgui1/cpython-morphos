@@ -125,12 +125,8 @@ LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfil
 	-Wl,--traditional-format -Wl,--cref -Wl,-Map=$(BUILDDIR)/mapfile.txt \
 	-Wl,--warn-common -Wl,--warn-once
 
-LIBS_EXTRA := debug
-ifneq ($(findstring NDEBUG, $(DEFINES)), NDEBUG)
-	LIBS_EXTRA += syscall
-endif
-
-LIBS = -L/usr/local/lib $(LIBS_EXTRA:%=-l%) -lm
+LIBS_EXTRA += debug
+LIBS = -L/usr/local/lib -lm $(LIBS_EXTRA:%=-l%)
 
 ARFLAGS = rcs
 STRIPFLAGS = -R.comment -o $@ $<
@@ -603,8 +599,6 @@ binary: $(SRCDIR)/$(BINARY_NAME)
 
 ##########################################################################
 # General Rules
-
-.DEFAULT: all
 
 all: core library sdk binary mkdyn
 .PHONY: all
