@@ -124,7 +124,7 @@ The important points to remember are:
 The object returned by ``super()`` also has a custom :meth:`__getattribute__`
 method for invoking descriptors.  The call ``super(B, obj).m()`` searches
 ``obj.__class__.__mro__`` for the base class ``A`` immediately following ``B``
-and then returns ``A.__dict__['m'].__get__(obj, A)``.  If not a descriptor,
+and then returns ``A.__dict__['m'].__get__(obj, B)``.  If not a descriptor,
 ``m`` is returned unchanged.  If not in the dictionary, ``m`` reverts to a
 search using :meth:`object.__getattribute__`.
 
@@ -218,24 +218,35 @@ here is a pure Python equivalent::
             self.fget = fget
             self.fset = fset
             self.fdel = fdel
+            if doc is None and fget is not None:
+                doc = fget.__doc__
             self.__doc__ = doc
 
         def __get__(self, obj, objtype=None):
             if obj is None:
                 return self
             if self.fget is None:
-                raise AttributeError, "unreadable attribute"
+                raise AttributeError("unreadable attribute")
             return self.fget(obj)
 
         def __set__(self, obj, value):
             if self.fset is None:
-                raise AttributeError, "can't set attribute"
+                raise AttributeError("can't set attribute")
             self.fset(obj, value)
 
         def __delete__(self, obj):
             if self.fdel is None:
-                raise AttributeError, "can't delete attribute"
+                raise AttributeError("can't delete attribute")
             self.fdel(obj)
+
+        def getter(self, fget):
+            return type(self)(fget, self.fset, self.fdel, self.__doc__)
+
+        def setter(self, fset):
+            return type(self)(self.fget, fset, self.fdel, self.__doc__)
+
+        def deleter(self, fdel):
+            return type(self)(self.fget, self.fset, fdel, self.__doc__)
 
 The :func:`property` builtin helps whenever a user interface has granted
 attribute access and then subsequent changes require the intervention of a
@@ -398,7 +409,7 @@ is to create alternate class constructors.  In Python 2.3, the classmethod
 :func:`dict.fromkeys` creates a new dictionary from a list of keys.  The pure
 Python equivalent is::
 
-    class Dict:
+    class Dict(object):
         . . .
         def fromkeys(klass, iterable, value=None):
             "Emulate dict_fromkeys() in Objects/dictobject.c"

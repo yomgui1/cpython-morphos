@@ -268,6 +268,7 @@ Py_Main(int argc, char **argv)
 
     /* Hash randomization needed early for all string operations
        (including -W and -X options). */
+    _PyOS_opterr = 0;  /* prevent printing the error in 1st pass */
     while ((c = _PyOS_GetOpt(argc, argv, PROGRAM_OPTS)) != EOF) {
         if (c == 'm' || c == 'c') {
             /* -c / -m is the last option: following arguments are
@@ -587,7 +588,7 @@ Py_Main(int argc, char **argv)
         sts = PyRun_SimpleStringFlags(command, &cf) != 0;
         free(command);
     } else if (module) {
-        sts = RunModule(module, 1);
+        sts = (RunModule(module, 1) != 0);
         free(module);
     }
     else {

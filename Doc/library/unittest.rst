@@ -91,7 +91,7 @@ need to derive from a specific class.
       Third-party unittest frameworks with a lighter-weight syntax for writing
       tests.  For example, ``assert func(10) == 42``.
 
-   `The Python Testing Tools Taxonomy <http://pycheesecake.org/wiki/PythonTestingToolsTaxonomy>`_
+   `The Python Testing Tools Taxonomy <http://wiki.python.org/moin/PythonTestingToolsTaxonomy>`_
       An extensive list of Python testing tools including functional testing
       frameworks and mock object libraries.
 
@@ -279,15 +279,15 @@ The ``discover`` sub-command has the following options:
 
    Verbose output
 
-.. cmdoption:: -s directory
+.. cmdoption:: -s, --start-directory directory
 
-   Directory to start discovery ('.' default)
+   Directory to start discovery (``.`` default)
 
-.. cmdoption:: -p pattern
+.. cmdoption:: -p, --pattern pattern
 
-   Pattern to match test files ('test*.py' default)
+   Pattern to match test files (``test*.py`` default)
 
-.. cmdoption:: -t directory
+.. cmdoption:: -t, --top-level-directory directory
 
    Top level directory of project (defaults to start directory)
 
@@ -584,7 +584,7 @@ that is broken and will fail, but shouldn't be counted as a failure on a
 Skipping a test is simply a matter of using the :func:`skip` :term:`decorator`
 or one of its conditional variants.
 
-Basic skipping looks like this: ::
+Basic skipping looks like this::
 
    class MyTestCase(unittest.TestCase):
 
@@ -603,7 +603,7 @@ Basic skipping looks like this: ::
            # windows specific testing code
            pass
 
-This is the output of running the example above in verbose mode: ::
+This is the output of running the example above in verbose mode::
 
    test_format (__main__.MyTestCase) ... skipped 'not supported in this library version'
    test_nothing (__main__.MyTestCase) ... skipped 'demonstrating skipping'
@@ -614,9 +614,9 @@ This is the output of running the example above in verbose mode: ::
 
    OK (skipped=3)
 
-Classes can be skipped just like methods: ::
+Classes can be skipped just like methods::
 
-   @skip("showing class skipping")
+   @unittest.skip("showing class skipping")
    class MySkippedTestCase(unittest.TestCase):
        def test_not_run(self):
            pass
@@ -633,12 +633,12 @@ Expected failures use the :func:`expectedFailure` decorator. ::
 
 It's easy to roll your own skipping decorators by making a decorator that calls
 :func:`skip` on the test when it wants it to be skipped.  This decorator skips
-the test unless the passed object has a certain attribute: ::
+the test unless the passed object has a certain attribute::
 
    def skipUnlessHasattr(obj, attr):
        if hasattr(obj, attr):
            return lambda func: func
-       return unittest.skip("{0!r} doesn't have {1!r}".format(obj, attr))
+       return unittest.skip("{!r} doesn't have {!r}".format(obj, attr))
 
 The following decorators implement test skipping and expected failures:
 
@@ -659,6 +659,13 @@ The following decorators implement test skipping and expected failures:
 
    Mark the test as an expected failure.  If the test fails when run, the test
    is not counted as a failure.
+
+.. exception:: SkipTest(reason)
+
+   This exception is raised to skip a test.
+
+   Usually you can use :meth:`TestCase.skipTest` or one of the skipping
+   decorators instead of raising this directly.
 
 Skipped tests will not have :meth:`setUp` or :meth:`tearDown` run around them.
 Skipped classes will not have :meth:`setUpClass` or :meth:`tearDownClass` run.
@@ -909,8 +916,8 @@ Test cases
    | :meth:`assertRaises(exc, fun, *args, **kwds)            | ``fun(*args, **kwds)`` raises *exc*  |            |
    | <TestCase.assertRaises>`                                |                                      |            |
    +---------------------------------------------------------+--------------------------------------+------------+
-   | :meth:`assertRaisesRegexp(exc, re, fun, *args, **kwds)  | ``fun(*args, **kwds)`` raises *exc*  | 2.7        |
-   | <TestCase.assertRaisesRegexp>`                          | and the message matches *re*         |            |
+   | :meth:`assertRaisesRegexp(exc, r, fun, *args, **kwds)   | ``fun(*args, **kwds)`` raises *exc*  | 2.7        |
+   | <TestCase.assertRaisesRegexp>`                          | and the message matches regex *r*    |            |
    +---------------------------------------------------------+--------------------------------------+------------+
 
    .. method:: assertRaises(exception, callable, *args, **kwds)
@@ -951,7 +958,7 @@ Test cases
       a regular expression object or a string containing a regular expression
       suitable for use by :func:`re.search`.  Examples::
 
-         self.assertRaisesRegexp(ValueError, 'invalid literal for.*XYZ$',
+         self.assertRaisesRegexp(ValueError, "invalid literal for.*XYZ'$",
                                  int, 'XYZ')
 
       or::
@@ -986,10 +993,10 @@ Test cases
    | :meth:`assertLessEqual(a, b)          | ``a <= b``                     | 2.7          |
    | <TestCase.assertLessEqual>`           |                                |              |
    +---------------------------------------+--------------------------------+--------------+
-   | :meth:`assertRegexpMatches(s, re)     | ``regex.search(s)``            | 2.7          |
+   | :meth:`assertRegexpMatches(s, r)      | ``r.search(s)``                | 2.7          |
    | <TestCase.assertRegexpMatches>`       |                                |              |
    +---------------------------------------+--------------------------------+--------------+
-   | :meth:`assertNotRegexpMatches(s, re)  | ``not regex.search(s)``        | 2.7          |
+   | :meth:`assertNotRegexpMatches(s, r)   | ``not r.search(s)``            | 2.7          |
    | <TestCase.assertNotRegexpMatches>`    |                                |              |
    +---------------------------------------+--------------------------------+--------------+
    | :meth:`assertItemsEqual(a, b)         | sorted(a) == sorted(b) and     | 2.7          |
@@ -1010,7 +1017,7 @@ Test cases
       like the :func:`round` function) and not *significant digits*.
 
       If *delta* is supplied instead of *places* then the difference
-      between *first* and *second* must be less (or more) than *delta*.
+      between *first* and *second* must be less or equal to (or greater than) *delta*.
 
       Supplying both *delta* and *places* raises a ``TypeError``.
 
@@ -1067,6 +1074,8 @@ Test cases
       sequences. It is the equivalent of ``assertEqual(sorted(expected),
       sorted(actual))`` but it works with sequences of unhashable objects as
       well.
+
+      In Python 3, this method is named ``assertCountEqual``.
 
       .. versionadded:: 2.7
 
@@ -1157,7 +1166,7 @@ Test cases
    .. method:: assertListEqual(list1, list2, msg=None)
                assertTupleEqual(tuple1, tuple2, msg=None)
 
-      Tests that two lists or tuples are equal.  If not an error message is
+      Tests that two lists or tuples are equal.  If not, an error message is
       constructed that shows only the differences between the two.  An error
       is also raised if either of the parameters are of the wrong type.
       These methods are used by default when comparing lists or tuples with
@@ -1426,8 +1435,8 @@ Loading and running tests
    The :class:`TestLoader` class is used to create test suites from classes and
    modules.  Normally, there is no need to create an instance of this class; the
    :mod:`unittest` module provides an instance that can be shared as
-   ``unittest.defaultTestLoader``. Using a subclass or instance, however, allows
-   customization of some configurable properties.
+   :data:`unittest.defaultTestLoader`.  Using a subclass or instance, however,
+   allows customization of some configurable properties.
 
    :class:`TestLoader` objects have the following methods:
 
@@ -1594,8 +1603,7 @@ Loading and running tests
 
       A list containing 2-tuples of :class:`TestCase` instances and strings
       holding formatted tracebacks. Each tuple represents a test where a failure
-      was explicitly signalled using the :meth:`TestCase.fail\*` or
-      :meth:`TestCase.assert\*` methods.
+      was explicitly signalled using the :meth:`TestCase.assert\*` methods.
 
       .. versionchanged:: 2.2
          Contains formatted tracebacks instead of :func:`sys.exc_info` results.
@@ -1695,7 +1703,7 @@ Loading and running tests
 
    .. method:: addError(test, err)
 
-      Called when the test case *test* raises an unexpected exception *err* is a
+      Called when the test case *test* raises an unexpected exception. *err* is a
       tuple of the form returned by :func:`sys.exc_info`: ``(type, value,
       traceback)``.
 
@@ -1784,11 +1792,12 @@ Loading and running tests
             stream, descriptions, verbosity
 
 
-.. function:: main([module[, defaultTest[, argv[, testRunner[, testLoader[, exit[, verbosity[, failfast[, catchbreak[,buffer]]]]]]]]]])
+.. function:: main([module[, defaultTest[, argv[, testRunner[, testLoader[, exit[, verbosity[, failfast[, catchbreak[, buffer]]]]]]]]]])
 
-   A command-line program that runs a set of tests; this is primarily for making
-   test modules conveniently executable.  The simplest use for this function is to
-   include the following line at the end of a test script::
+   A command-line program that loads a set of tests from *module* and runs them;
+   this is primarily for making test modules conveniently executable.
+   The simplest use for this function is to include the following line at the
+   end of a test script::
 
       if __name__ == '__main__':
           unittest.main()
@@ -1799,9 +1808,16 @@ Loading and running tests
       if __name__ == '__main__':
           unittest.main(verbosity=2)
 
+   The *argv* argument can be a list of options passed to the program, with the
+   first element being the program name.  If not specified or ``None``,
+   the values of :data:`sys.argv` are used.
+
    The *testRunner* argument can either be a test runner class or an already
    created instance of it. By default ``main`` calls :func:`sys.exit` with
    an exit code indicating success or failure of the tests run.
+
+   The *testLoader* argument has to be a :class:`TestLoader` instance,
+   and defaults to :data:`defaultTestLoader`.
 
    ``main`` supports being used from the interactive interpreter by passing in the
    argument ``exit=False``. This displays the result on standard output without
@@ -1810,14 +1826,14 @@ Loading and running tests
       >>> from unittest import main
       >>> main(module='test_module', exit=False)
 
-   The ``failfast``, ``catchbreak`` and ``buffer`` parameters have the same
+   The *failfast*, *catchbreak* and *buffer* parameters have the same
    effect as the same-name `command-line options`_.
 
    Calling ``main`` actually returns an instance of the ``TestProgram`` class.
    This stores the result of the tests run as the ``result`` attribute.
 
    .. versionchanged:: 2.7
-      The ``exit``, ``verbosity``, ``failfast``, ``catchbreak`` and ``buffer``
+      The *exit*, *verbosity*, *failfast*, *catchbreak* and *buffer*
       parameters were added.
 
 
@@ -1860,10 +1876,10 @@ name then the package :file:`__init__.py` will be checked for ``load_tests``.
 
 .. note::
 
-   The default pattern is 'test*.py'. This matches all Python files
-   that start with 'test' but *won't* match any test directories.
+   The default pattern is ``'test*.py'``. This matches all Python files
+   that start with ``'test'`` but *won't* match any test directories.
 
-   A pattern like 'test*' will match test packages as well as
+   A pattern like ``'test*'`` will match test packages as well as
    modules.
 
 If the package :file:`__init__.py` defines ``load_tests`` then it will be
@@ -1948,7 +1964,7 @@ then you must call up to them yourself. The implementations in
 If an exception is raised during a ``setUpClass`` then the tests in the class
 are not run and the ``tearDownClass`` is not run. Skipped classes will not
 have ``setUpClass`` or ``tearDownClass`` run. If the exception is a
-``SkipTest`` exception then the class will be reported as having been skipped
+:exc:`SkipTest` exception then the class will be reported as having been skipped
 instead of as an error.
 
 
@@ -1965,7 +1981,7 @@ These should be implemented as functions::
 
 If an exception is raised in a ``setUpModule`` then none of the tests in the
 module will be run and the ``tearDownModule`` will not be run. If the exception is a
-``SkipTest`` exception then the module will be reported as having been skipped
+:exc:`SkipTest` exception then the module will be reported as having been skipped
 instead of as an error.
 
 

@@ -53,10 +53,10 @@ any that have been added to the map during asynchronous service) is closed.
    channels have been closed.  All arguments are optional.  The *count*
    parameter defaults to None, resulting in the loop terminating only when all
    channels have been closed.  The *timeout* argument sets the timeout
-   parameter for the appropriate :func:`select` or :func:`poll` call, measured
-   in seconds; the default is 30 seconds.  The *use_poll* parameter, if true,
-   indicates that :func:`poll` should be used in preference to :func:`select`
-   (the default is ``False``).
+   parameter for the appropriate :func:`~select.select` or :func:`~select.poll`
+   call, measured in seconds; the default is 30 seconds.  The *use_poll*
+   parameter, if true, indicates that :func:`~select.poll` should be used in
+   preference to :func:`~select.select` (the default is ``False``).
 
    The *map* parameter is a dictionary whose items are the channels to watch.
    As channels are closed they are deleted from their map.  If *map* is
@@ -318,13 +318,10 @@ connections and dispatches the incoming connections to a handler::
 
         def handle_accept(self):
             pair = self.accept()
-            if pair is None:
-                pass
-            else:
+            if pair is not None:
                 sock, addr = pair
                 print 'Incoming connection from %s' % repr(addr)
                 handler = EchoHandler(sock)
 
     server = EchoServer('localhost', 8080)
     asyncore.loop()
-

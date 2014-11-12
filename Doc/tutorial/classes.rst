@@ -534,8 +534,8 @@ http://www.python.org/download/releases/2.3/mro/.
 
 .. _tut-private:
 
-Private Variables
-=================
+Private Variables and Class-local References
+============================================
 
 "Private" instance variables that cannot be accessed except from inside an
 object don't exist in Python.  However, there is a convention that is followed
@@ -609,7 +609,7 @@ will do nicely::
 A piece of Python code that expects a particular abstract data type can often be
 passed a class that emulates the methods of that data type instead.  For
 instance, if you have a function that formats some data from a file object, you
-can define a class with methods :meth:`read` and :meth:`readline` that get the
+can define a class with methods :meth:`read` and :meth:`!readline` that get the
 data from a string buffer instead, and pass it as an argument.
 
 .. (Unfortunately, this technique has its limitations: a class can't define
@@ -688,14 +688,15 @@ using a :keyword:`for` statement::
    for char in "123":
        print char
    for line in open("myfile.txt"):
-       print line
+       print line,
 
 This style of access is clear, concise, and convenient.  The use of iterators
 pervades and unifies Python.  Behind the scenes, the :keyword:`for` statement
 calls :func:`iter` on the container object.  The function returns an iterator
-object that defines the method :meth:`next` which accesses elements in the
-container one at a time.  When there are no more elements, :meth:`next` raises a
-:exc:`StopIteration` exception which tells the :keyword:`for` loop to terminate.
+object that defines the method :meth:`~iterator.next` which accesses elements
+in the container one at a time.  When there are no more elements,
+:meth:`~iterator.next` raises a :exc:`StopIteration` exception which tells the
+:keyword:`for` loop to terminate.
 This example shows how it all works::
 
    >>> s = 'abc'

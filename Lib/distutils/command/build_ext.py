@@ -255,11 +255,10 @@ class build_ext (Command):
                 self.build_temp = os.path.join(self.build_temp, "release")
                 
         # for extensions under Linux or Solaris with a shared Python library,
+        # For building extensions with a shared Python library,
         # Python's library directory must be appended to library_dirs
-        sysconfig.get_config_var('Py_ENABLE_SHARED')
-        if ((sys.platform.startswith('linux') or sys.platform.startswith('gnu')
-             or sys.platform.startswith('sunos'))
-            and sysconfig.get_config_var('Py_ENABLE_SHARED')):
+        # See Issues: #1600860, #4366
+        if (sysconfig.get_config_var('Py_ENABLE_SHARED')):
             if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
                 # building third party extensions
                 self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))

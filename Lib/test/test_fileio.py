@@ -9,6 +9,8 @@ import unittest
 from array import array
 from weakref import proxy
 from functools import wraps
+from UserList import UserList
+import _testcapi
 
 from test.test_support import TESTFN, check_warnings, run_unittest, make_bad_fd
 from test.test_support import py3k_bytes as bytes
@@ -71,6 +73,26 @@ class AutoFileTests(unittest.TestCase):
         n = self.f.readinto(a)
         self.assertEqual(array(b'b', [1, 2]), a[:n])
 
+    def testWritelinesList(self):
+        l = [b'123', b'456']
+        self.f.writelines(l)
+        self.f.close()
+        self.f = _FileIO(TESTFN, 'rb')
+        buf = self.f.read()
+        self.assertEqual(buf, b'123456')
+
+    def testWritelinesUserList(self):
+        l = UserList([b'123', b'456'])
+        self.f.writelines(l)
+        self.f.close()
+        self.f = _FileIO(TESTFN, 'rb')
+        buf = self.f.read()
+        self.assertEqual(buf, b'123456')
+
+    def testWritelinesError(self):
+        self.assertRaises(TypeError, self.f.writelines, [1, 2, 3])
+        self.assertRaises(TypeError, self.f.writelines, None)
+
     def test_none_args(self):
         self.f.write(b"hi\nbye\nabc")
         self.f.close()
@@ -129,6 +151,14 @@ class AutoFileTests(unittest.TestCase):
             self.assertEqual(e.filename, ".")
         else:
             self.fail("Should have raised IOError")
+
+    @unittest.skipIf(os.name == 'nt', "test only works on a POSIX-like system")
+    def testOpenDirFD(self):
+        fd = os.open('.', os.O_RDONLY)
+        with self.assertRaises(IOError) as cm:
+            _FileIO(fd, 'r')
+        os.close(fd)
+        self.assertEqual(cm.exception.errno, errno.EISDIR)
 
     #A set of functions testing that we get expected behaviour if someone has
     #manually closed the internal file descriptor.  First, a decorator:
@@ -275,7 +305,7 @@ class OtherFileTests(unittest.TestCase):
         finally:
             os.unlink(TESTFN)
 
-    def testModeStrings(self):
+    def testInvalidModeStrings(self):
         # check invalid mode strings
         for mode in ("", "aU", "wU+", "rw", "rt"):
             try:
@@ -285,6 +315,21 @@ class OtherFileTests(unittest.TestCase):
             else:
                 f.close()
                 self.fail('%r is an invalid file mode' % mode)
+
+    def testModeStrings(self):
+        # test that the mode attribute is correct for various mode strings
+        # given as init args
+        try:
+            for modes in [('w', 'wb'), ('wb', 'wb'), ('wb+', 'rb+'),
+                          ('w+b', 'rb+'), ('a', 'ab'), ('ab', 'ab'),
+                          ('ab+', 'ab+'), ('a+b', 'ab+'), ('r', 'rb'),
+                          ('rb', 'rb'), ('rb+', 'rb+'), ('r+b', 'rb+')]:
+                # read modes are last so that TESTFN will exist first
+                with _FileIO(TESTFN, modes[0]) as f:
+                    self.assertEqual(f.mode, modes[1])
+        finally:
+            if os.path.exists(TESTFN):
+                os.unlink(TESTFN)
 
     def testUnicodeOpen(self):
         # verify repr works for unicode too
@@ -314,6 +359,9 @@ class OtherFileTests(unittest.TestCase):
         if sys.platform == 'win32':
             import msvcrt
             self.assertRaises(IOError, msvcrt.get_osfhandle, make_bad_fd())
+        # Issue 15989
+        self.assertRaises(TypeError, _FileIO, _testcapi.INT_MAX + 1)
+        self.assertRaises(TypeError, _FileIO, _testcapi.INT_MIN - 1)
 
     def testBadModeArgument(self):
         # verify that we get a sensible error message for bad mode argument
@@ -417,9 +465,21 @@ class OtherFileTests(unittest.TestCase):
         env = dict(os.environ)
         env[b'LC_CTYPE'] = b'C'
         _, out = run_python('-c', 'import _io; _io.FileIO(%r)' % filename, env=env)
-        if ('UnicodeEncodeError' not in out and
-            'IOError: [Errno 2] No such file or directory' not in out):
+        if ('UnicodeEncodeError' not in out and not
+                ( ('IOError: [Errno 2] No such file or directory' in out) or
+                  ('IOError: [Errno 22] Invalid argument' in out) ) ):
             self.fail('Bad output: %r' % out)
+
+    def testUnclosedFDOnException(self):
+        class MyException(Exception): pass
+        class MyFileIO(_FileIO):
+            def __setattr__(self, name, value):
+                if name == "name":
+                    raise MyException("blocked setting name")
+                return super(MyFileIO, self).__setattr__(name, value)
+        fd = os.open(__file__, os.O_RDONLY)
+        self.assertRaises(MyException, MyFileIO, fd)
+        os.close(fd)  # should not raise OSError(EBADF)
 
 def test_main():
     # Historically, these tests have been sloppy about removing TESTFN.

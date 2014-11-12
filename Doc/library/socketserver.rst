@@ -7,8 +7,8 @@
 .. note::
 
    The :mod:`SocketServer` module has been renamed to :mod:`socketserver` in
-   Python 3.0.  The :term:`2to3` tool will automatically adapt imports when
-   converting your sources to 3.0.
+   Python 3.  The :term:`2to3` tool will automatically adapt imports when
+   converting your sources to Python 3.
 
 **Source code:** :source:`Lib/SocketServer.py`
 
@@ -116,13 +116,13 @@ can be implemented by using a synchronous server and doing an explicit fork in
 the request handler class :meth:`handle` method.
 
 Another approach to handling multiple simultaneous requests in an environment
-that supports neither threads nor :func:`fork` (or where these are too expensive
-or inappropriate for the service) is to maintain an explicit table of partially
-finished requests and to use :func:`select` to decide which request to work on
-next (or whether to handle a new incoming request).  This is particularly
-important for stream services where each client can potentially be connected for
-a long time (if threads or subprocesses cannot be used). See :mod:`asyncore` for
-another way to manage this.
+that supports neither threads nor :func:`~os.fork` (or where these are too
+expensive or inappropriate for the service) is to maintain an explicit table of
+partially finished requests and to use :func:`~select.select` to decide which
+request to work on next (or whether to handle a new incoming request).  This is
+particularly important for stream services where each client can potentially be
+connected for a long time (if threads or subprocesses cannot be used). See
+:mod:`asyncore` for another way to manage this.
 
 .. XXX should data and methods be intermingled, or separate?
    how should the distinction between class and instance variables be drawn?
@@ -306,8 +306,8 @@ request.
 .. method:: RequestHandler.finish()
 
    Called after the :meth:`handle` method to perform any clean-up actions
-   required.  The default implementation does nothing.  If :meth:`setup` or
-   :meth:`handle` raise an exception, this function will not be called.
+   required.  The default implementation does nothing.  If :meth:`setup`
+   raises an exception, this function will not be called.
 
 
 .. method:: RequestHandler.handle()

@@ -644,6 +644,18 @@ class UnicodeTest(
                 return u'\u1234'
         self.assertEqual('%s' % Wrapper(), u'\u1234')
 
+    @test_support.cpython_only
+    def test_formatting_huge_precision(self):
+        from _testcapi import INT_MAX
+        format_string = u"%.{}f".format(INT_MAX + 1)
+        with self.assertRaises(ValueError):
+            result = format_string % 2.34
+
+    def test_formatting_huge_width(self):
+        format_string = u"%{}f".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format_string % 2.34
+
     def test_startswith_endswith_errors(self):
         for meth in (u'foo'.startswith, u'foo'.endswith):
             with self.assertRaises(UnicodeDecodeError):
@@ -1556,6 +1568,21 @@ class UnicodeTest(
         #  will fail
         self.assertRaises(UnicodeEncodeError, "foo{0}".format, u'\u1000bar')
 
+    def test_format_huge_precision(self):
+        format_string = u".{}f".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format(2.34, format_string)
+
+    def test_format_huge_width(self):
+        format_string = u"{}f".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format(2.34, format_string)
+
+    def test_format_huge_item_number(self):
+        format_string = u"{{{}:.6f}}".format(sys.maxsize + 1)
+        with self.assertRaises(ValueError):
+            result = format_string.format(2.34)
+
     def test_format_auto_numbering(self):
         class C:
             def __init__(self, x=100):
@@ -1631,6 +1658,18 @@ class UnicodeTest(
         self.assertEqual(unicode_encodedecimal(u"123\u20ac\u0660", "replace"),
                          b'123?0')
 
+    def test_encode_decimal_with_surrogates(self):
+        from _testcapi import unicode_encodedecimal
+        tests = [(u'\U0001f49d', '&#128157;'),
+                 (u'\ud83d', '&#55357;'),
+                 (u'\udc9d', '&#56477;'),
+                ]
+        if u'\ud83d\udc9d' != u'\U0001f49d':
+            tests += [(u'\ud83d\udc9d', '&#55357;&#56477;')]
+        for s, exp in tests:
+            self.assertEqual(
+                    unicode_encodedecimal(u"123" + s, "xmlcharrefreplace"),
+                    '123' + exp)
 
 def test_main():
     test_support.run_unittest(__name__)

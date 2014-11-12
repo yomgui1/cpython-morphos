@@ -73,7 +73,7 @@ static int
 get_integer(STRINGLIB_CHAR **ptr, STRINGLIB_CHAR *end,
                   Py_ssize_t *result)
 {
-    Py_ssize_t accumulator, digitval, oldaccumulator;
+    Py_ssize_t accumulator, digitval;
     int numdigits;
     accumulator = numdigits = 0;
     for (;;(*ptr)++, numdigits++) {
@@ -83,19 +83,17 @@ get_integer(STRINGLIB_CHAR **ptr, STRINGLIB_CHAR *end,
         if (digitval < 0)
             break;
         /*
-           This trick was copied from old Unicode format code.  It's cute,
-           but would really suck on an old machine with a slow divide
-           implementation.  Fortunately, in the normal case we do not
-           expect too many digits.
+           Detect possible overflow before it happens:
+
+              accumulator * 10 + digitval > PY_SSIZE_T_MAX if and only if
+              accumulator > (PY_SSIZE_T_MAX - digitval) / 10.
         */
-        oldaccumulator = accumulator;
-        accumulator *= 10;
-        if ((accumulator+10)/10 != oldaccumulator+1) {
+        if (accumulator > (PY_SSIZE_T_MAX - digitval) / 10) {
             PyErr_Format(PyExc_ValueError,
                          "Too many decimal digits in format string");
             return -1;
         }
-        accumulator += digitval;
+        accumulator = accumulator * 10 + digitval;
     }
     *result = accumulator;
     return numdigits;
@@ -930,7 +928,7 @@ format_float_internal(PyObject *value,
     Py_ssize_t n_total;
     int has_decimal;
     double val;
-    Py_ssize_t precision = format->precision;
+    Py_ssize_t precision;
     Py_ssize_t default_precision = 6;
     STRINGLIB_CHAR type = format->type;
     int add_pct = 0;
@@ -948,6 +946,12 @@ format_float_internal(PyObject *value,
     /* Locale settings, either from the actual locale or
        from a hard-code pseudo-locale */
     LocaleInfo locale;
+
+    if (format->precision > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "precision too big");
+        goto done;
+    }
+    precision = (int)format->precision;
 
     /* Alternate is not allowed on floats. */
     if (format->alternate) {
@@ -1080,7 +1084,7 @@ format_complex_internal(PyObject *value,
     Py_ssize_t n_im_total;
     int re_has_decimal;
     int im_has_decimal;
-    Py_ssize_t precision = format->precision;
+    Py_ssize_t precision;
     Py_ssize_t default_precision = 6;
     STRINGLIB_CHAR type = format->type;
     STRINGLIB_CHAR *p_re;
@@ -1108,6 +1112,12 @@ format_complex_internal(PyObject *value,
     /* Locale settings, either from the actual locale or
        from a hard-code pseudo-locale */
     LocaleInfo locale;
+
+    if (format->precision > INT_MAX) {
+        PyErr_SetString(PyExc_ValueError, "precision too big");
+        goto done;
+    }
+    precision = (int)format->precision;
 
     /* Alternate is not allowed on complex. */
     if (format->alternate) {
