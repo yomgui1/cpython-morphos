@@ -588,7 +588,7 @@ sdk: $(SDK_DEPS)
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME)
 	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
-	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS build_scripts)
+	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG -D__MORPHOS_SHAREDLIBS -ldebug build_scripts)
 
 install-bin: library $(SRCDIR)/$(BINARY_NAME)
 	-[ "$(OS)" = "MorphOS" ] && ( \

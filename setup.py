@@ -1639,6 +1639,7 @@ class PyBuildExt(build_ext):
         if platform == 'morphos':
             #exts.append( Extension('doslib', ['MorphOS/doslibmodule.c']) )
             exts.append( Extension('arexx', ['MorphOS/arexxmodule.c']) )
+            exts.append( Extension('_subprocess', ['MorphOS/_subprocess.c']) )
 
         self.extensions.extend(exts)
 

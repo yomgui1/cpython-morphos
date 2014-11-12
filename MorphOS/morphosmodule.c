@@ -1791,7 +1791,6 @@ morphos_close(PyObject *self, PyObject *args)
     return Py_None;
 }//-
 
-#ifdef PORTED
 //+ morphos_dup()
 PyDoc_STRVAR(morphos_dup__doc__,
 "dup(fd) -> fd2\n\n\
@@ -1830,7 +1829,6 @@ morphos_dup2(PyObject *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }//-
-#endif /* PORTED */
 
 //+ morphos_lseek()
 PyDoc_STRVAR(morphos_lseek__doc__,
@@ -2604,10 +2602,8 @@ static PyMethodDef morphos_methods[] = {
     {"setsid",  morphos_setsid, METH_NOARGS, morphos_setsid__doc__},
     {"open",    morphos_open, METH_VARARGS, morphos_open__doc__},
     {"close",   morphos_close, METH_VARARGS, morphos_close__doc__},
-#ifdef PORTED
     {"dup",     morphos_dup, METH_VARARGS, morphos_dup__doc__},
     {"dup2",    morphos_dup2, METH_VARARGS, morphos_dup2__doc__},
-#endif /* PORTED */
     {"lseek",   morphos_lseek, METH_VARARGS, morphos_lseek__doc__},
     {"read",    morphos_read, METH_VARARGS, morphos_read__doc__},
     {"write",   morphos_write, METH_VARARGS, morphos_write__doc__},
