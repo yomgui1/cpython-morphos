@@ -21,7 +21,7 @@ const static struct _frozen _PyImport_FrozenModules[] = {
     {0, 0, 0} /* sentinel */
 };
 
-#ifndef MS_WINDOWS
+#if !(defined(MS_WINDOWS) || defined(__MORPHOS__))
 /* On Windows, this links with the regular pythonXY.dll, so this variable comes
    from frozen.obj. In the Makefile, frozen.o is not linked into this executable,
    so we define the variable here. */

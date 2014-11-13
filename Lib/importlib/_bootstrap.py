@@ -2403,7 +2403,7 @@ def _setup(sys_module, _imp_module):
         setattr(self_module, builtin_name, builtin_module)
 
     # Directly load the os module (needed during bootstrap).
-    os_details = ('posix', ['/']), ('nt', ['\\', '/'])
+    os_details = ('posix', ['/']), ('nt', ['\\', '/'],), ('morphos', ['/'])
     for builtin_os, path_separators in os_details:
         # Assumption made in _path_join()
         assert all(len(sep) == 1 for sep in path_separators)

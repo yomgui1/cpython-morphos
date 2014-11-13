@@ -109,7 +109,7 @@ CC_WARNS = \
 	-Wno-pointer-sign \
 	-Wframe-larger-than=16384
 
-CFLAGS = -noixemul -pipe -g
+CFLAGS = -noixemul -g
 CPPFLAGS = $(CFLAGS) $(CC_WARNS) $(OPT) $(DEFINES:%=-D%) $(INCLUDES:%=-I%)
 
 OPT_BASEREL = $(OPT) -mbaserel32 -mresident32
@@ -152,7 +152,7 @@ VPATH := $(SRCDIR):$(OBJDIR)
 .SUFFIXES:
 .SUFFIXES: .c .h .s .o .bro .a .X .fd .d .db .sym .library
 
-$(OBJDIR)/%.o $(OBJDIR)/normal/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%.o : $(SRCDIR)/%.c
 	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(COMPILING)
 	$(CC) -c $(CPPFLAGS) $< -o $@
@@ -199,9 +199,9 @@ $(OBJDIR)/%.bro : $(SRCDIR)/%.s
 $(DEPDIR)/%.d : %.c pyconfig.h
 	@[ ! -z $(@D) -a ! -d "$(@D)" ] && $(MAKINGDIR) && mkdir -p "$(@D)" || true
 	@$(CREATING)
-	$(SHELL) -ec '$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>$(LOGFILE) \
-		| sed '\''s%\($(notdir $*)\)\.o[ :]*%$(OBJDIR)/$(dir $*)\1.o $(OBJDIR)/$(dir $*)\1.bro : %g'\'' > $@; \
-		[ -s $@ ] || rm -fv $@'
+	$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>$(LOGFILE) \
+		| sed -e 's%\($(notdir $<)\)\.o[ :]*%$(OBJDIR)/$(dir $<)\1.o $(OBJDIR)/$(dir $<)\1.bro : %g' > $@; \
+		[ -s $@ ] || rm -fv $@
 
 ##########################################################################
 # Machine dependent
@@ -280,7 +280,11 @@ IO_SRCS =	\
 	Modules/_io/stringio.c
 IO_OBJS = $(IO_SRCS:.c=.o)
 
-ALL_SOURCES += $(MODULE_SRCS) $(IO_SRCS) Modules/_freeze_importlib.c
+FREEZE_IMPORTLIB_SRCS = \
+	Modules/_freeze_importlib.c
+FREEZE_IMPORTLIB_OBJS = $(FREEZE_IMPORTLIB_SRCS:.c=.o)
+
+ALL_SOURCES += $(MODULE_SRCS) $(IO_SRCS) $(FREEZE_IMPORTLIB_SRCS)
 
 ##########################################################################
 # Grammar
@@ -478,7 +482,7 @@ _PYTHON_COREOBJS = $(_PYTHON_COREOBJS_OMIT_FROZEN) Python/frozen.o
 PYTHON_COREOBJS_OMIT_FROZEN = $(_PYTHON_COREOBJS_OMIT_FROZEN)
 PYTHON_COREOBJS = $(_PYTHON_COREOBJS:.o=.bro)
 
-$(PYTHON_COREOBJS:%=$(OBJDIR)/%) $(PYTHON_COREOBJS_OMIT_FROZEN:%=$(OBJDIR)/normal/%) $(OBJDIR)/normal/Modules/_freeze_importlib.o : DEFINES+=Py_BUILD_CORE DONT_WRAP_VARS
+$(PYTHON_COREOBJS:%=$(OBJDIR)/%) : DEFINES+=Py_BUILD_CORE DONT_WRAP_VARS
 
 $(OBJDIR)/$(PYTHON_CORELIB) : OBJS=$(PYTHON_COREOBJS:%=$(OBJDIR)/%)
 $(OBJDIR)/$(PYTHON_CORELIB) : $(PYTHON_COREOBJS:%=$(OBJDIR)/%)
@@ -538,8 +542,8 @@ SDK_DEPS = \
 	$(OBJDIR)/$(PYMLIB_NAME)
 
 ALL_SOURCES += \
-    $(MACHDEP_DIR)/pym.c \
-    $(MACHDEP_DIR)/pym_exported.c
+	$(MACHDEP_DIR)/pym.c \
+	$(MACHDEP_DIR)/pym_exported.c
 
 ##########################################################################
 # Python Shared Library
@@ -576,8 +580,7 @@ $(OBJDIR)/$(MACHDEP_DIR)/libheader.o : \
 
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: DEFINES+=DONT_WRAP_VARS Py_BUILD_CORE
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(PYTHON_CORELIB)
-
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(PYTHON_SHAREDLIB_HEADOBJS)
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(PYTHON_CORELIB)
 
 library:  $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
 .PHONY: library
@@ -610,17 +613,16 @@ binary: $(SRCDIR)/$(BINARY_NAME)
 ############################################################################
 # Importlib
 
-$(BUILDDIR)/_freeze_importlib: $(OBJDIR)/normal/Modules/_freeze_importlib.o \
-		$(PYTHON_COREOBJS_OMIT_FROZEN:%=$(OBJDIR)/normal/%)
+Python/frozen.c: Python/importlib.h
+
+$(BUILDDIR)/_freeze_importlib: $(FREEZE_IMPORTLIB_OBJS:%=$(OBJDIR)/%) $(OBJDIR)/$(PYLIB_NAME)
 	@$(CREATING)
-	$(CC) $(CFLAGS) -Wl,--traditional-format -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) -Wl,--traditional-format -o $@ $^ -L$(OBJDIR) -l$(PYLIB_NAME:lib%.a=%) $(LIBS)
 
 Python/importlib.h: $(SRCDIR)/Lib/importlib/_bootstrap.py
 	$(MAKE) $(BUILDDIR)/_freeze_importlib
 	@$(CREATING)
-	Modules/_freeze_importlib $< $@
-
-Python/frozen.o: Python/importlib.h
+	$(BUILDDIR)/_freeze_importlib $< $@
 
 ##########################################################################
 # General Rules
