@@ -16,8 +16,8 @@ SRCDIR   = ..
 PLATFORM = morphos-ppc
 
 VERSION_MAJOR	 = 3
-VERSION_MINOR	 = 2
-VERSION_REVISION = 5
+VERSION_MINOR	 = 4
+VERSION_REVISION = 2
 
 VERSION			 = $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION)
 MOSVERSION		 = $(VERSION_MAJOR)$(VERSION_MINOR)
@@ -152,23 +152,23 @@ VPATH := $(SRCDIR):$(OBJDIR)
 .SUFFIXES:
 .SUFFIXES: .c .h .s .o .bro .a .X .fd .d .db .sym .library
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c
-	-@test ! -d $(@D) && $(MAKINGDIR) && mkdir -p $(@D)
+$(OBJDIR)/%.o $(OBJDIR)/normal/%.o: $(SRCDIR)/%.c
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(COMPILING)
 	$(CC) -c $(CPPFLAGS) $< -o $@
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.s
-	-@test ! -d $(@D) && $(MAKINGDIR) && mkdir -p $(@D)
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(COMPILING)
 	$(CC) -c $(CPPFLAGS) $< -o $@
 
 $(OBJDIR)/%.bro : $(SRCDIR)/%.c
-	-@test ! -d $(@D) && $(MAKINGDIR) && mkdir -p $(@D)
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(COMPILING)
 	$(CC) -c $(CPPFLAGS_BASEREL) $< -o $@
 
 $(OBJDIR)/%.bro : $(SRCDIR)/%.s
-	-@test ! -d $(@D) && $(MAKINGDIR) && mkdir -p $(@D)
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(COMPILING)
 	$(CC) -c $(CPPFLAGS_BASEREL) $< -o $@
 
@@ -176,7 +176,7 @@ $(OBJDIR)/%.bro : $(SRCDIR)/%.s
 	$(NM) -n $^ > $@
 
 %.library.db: $(OBJS)
-	-@test ! -d $(@D) && $(MAKINGDIR) && mkdir -p $(@D)
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(LINKING)
 #   $(LD) -o $@ $(LDFLAGS_SHARED_BASEREL) $(OBJS) $(LIBS)
 	$(CC) -o $@ $(LDFLAGS_SHARED_BASEREL) $(OBJS) $(LIBS)
@@ -186,7 +186,7 @@ $(OBJDIR)/%.bro : $(SRCDIR)/%.s
 	$(STRIP) $(STRIPFLAGS)
 
 %.a: $(OBJS)
-	-@test ! -d $(@D) && $(MAKINGDIR) && mkdir -p $(@D)
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p $(@D) || true
 	@$(ARCHIVING)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
@@ -197,7 +197,7 @@ $(OBJDIR)/%.bro : $(SRCDIR)/%.s
 # Automatic dependencies generation
 
 $(DEPDIR)/%.d : %.c pyconfig.h
-	-@test ! -z "$(@D)" -a ! -d "$(@D)" && $(MAKINGDIR) && mkdir -p "$(@D)"
+	@[ ! -z $(@D) -a ! -d "$(@D)" ] && $(MAKINGDIR) && mkdir -p "$(@D)" || true
 	@$(CREATING)
 	$(SHELL) -ec '$(CC) -MM $(CPPFLAGS) -DPy_BUILD_CORE -DBUILD_DEPS $< 2>>$(LOGFILE) \
 		| sed '\''s%\($(notdir $*)\)\.o[ :]*%$(OBJDIR)/$(dir $*)\1.o $(OBJDIR)/$(dir $*)\1.bro : %g'\'' > $@; \
@@ -228,7 +228,9 @@ MACHDEP_MODULES_SRCS = \
 	Modules/_functoolsmodule.c \
 	Modules/zipimport.c \
 	Modules/symtablemodule.c \
-	Modules/_time.c \
+	Modules/faulthandler.c \
+	Modules/atexitmodule.c \
+	Modules/_stat.c \
 	$(MACHDEP_DIR)/morphosmodule.c \
 	$(MACHDEP_DIR)/timemodule.c \
 	$(IO_SRCS)
@@ -236,10 +238,11 @@ MACHDEP_MODULES_SRCS = \
 OPTIONAL_MODS = \
 	Modules/_collectionsmodule.c \
 	Modules/itertoolsmodule.c \
-	Modules/operator.c \
+	Modules/_operator.c \
 	Modules/_struct.c \
 	Modules/_localemodule.c \
-	Modules/parsermodule.c
+	Modules/parsermodule.c \
+	Modules/_tracemalloc.c Modules/hashtable.c
 
 EMUL_OBJS = $(EMUL_SRCS:.c=.o)
 MACHDEP_OBJS = $(MACHDEP_SRCS:.c=.o) $(OPTIONAL_MODS:.c=.o)
@@ -247,8 +250,9 @@ MACHDEP_OBJS = $(MACHDEP_SRCS:.c=.o) $(OPTIONAL_MODS:.c=.o)
 THREADSRC = Python/thread.c Modules/_threadmodule.c
 SIGNAL_SRCS = $(MACHDEP_DIR)/signalmodule.c
 SIGNAL_OBJS = $(SIGNAL_SRCS:.c=.o)
+DYNLOADFILE = dynload_morphos.c
 
-ALL_SOURCES += $(MACHDEP_SRCS) $(OPTIONAL_MODS) $(SIGNAL_SRCS)
+ALL_SOURCES += $(MACHDEP_SRCS) $(OPTIONAL_MODS) $(SIGNAL_SRCS) $(MACHDEP_DIR)/python$(MOSVERSION)_gvars.c
 
 %/getpath.o %/getpath.bro : \
 	DEFINES+=VERSION='"$(VERSION_MAJOR).$(VERSION_MINOR)"' \
@@ -276,7 +280,7 @@ IO_SRCS =	\
 	Modules/_io/stringio.c
 IO_OBJS = $(IO_SRCS:.c=.o)
 
-ALL_SOURCES += $(MODULE_SRCS) $(IO_SRCS)
+ALL_SOURCES += $(MODULE_SRCS) $(IO_SRCS) Modules/_freeze_importlib.c
 
 ##########################################################################
 # Grammar
@@ -299,21 +303,22 @@ PSRCS = \
 	Parser/listnode.c \
 	Parser/node.c \
 	Parser/parser.c \
-	Parser/parsetok.c \
 	Parser/bitset.c \
 	Parser/metagrammar.c \
 	Parser/firstsets.c \
 	Parser/grammar.c \
 	Parser/pgen.c
 
-PARSER_SRCS = $(PSRCS) Parser/myreadline.c Parser/tokenizer.c
+PARSER_SRCS = $(PSRCS) Parser/myreadline.c Parser/parsetok.c Parser/tokenizer.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 PGSRCS = \
 	Objects/obmalloc.c \
+	Python/dynamic_annotations.c \
 	Python/mysnprintf.c \
 	Parser/tokenizer_pgen.c	\
 	Parser/printgrammar.c \
+	Parser/parsetok_pgen.c \
 	Parser/pgenmain.c
 
 PGENSRCS = $(PSRCS) $(PGSRCS)
@@ -321,6 +326,7 @@ PGENOBJS = $(PGENOBJS:.c=.o)
 
 PARSER_HEADERS= \
 	Parser/parser.h \
+	Include/parsetok.h \
 	Parser/tokenizer.h
 
 ALL_SOURCES += $(PARSER_SRCS) $(PGENSRCS)
@@ -353,8 +359,6 @@ OPCODETARGETGEN= \
 OPCODETARGETGEN_FILES= \
 	$(OPCODETARGETGEN) $(SRCDIR)/Lib/opcode.py
 
-DYNLOADFILE = dynload_morphos.c
-
 PYTHON_SRCS = \
 	Python/_warnings.c \
 	Python/Python-ast.c \
@@ -364,11 +368,8 @@ PYTHON_SRCS = \
 	Python/ceval.c \
 	Python/compile.c \
 	Python/codecs.c \
-	Python/dtoa.c \
+	Python/dynamic_annotations.c \
 	Python/errors.c \
-	Python/fileutils.c \
-	Python/formatter_unicode.c \
-	Python/frozen.c \
 	Python/frozenmain.c \
 	Python/future.c \
 	Python/getargs.c \
@@ -388,23 +389,28 @@ PYTHON_SRCS = \
 	Python/pyarena.c \
 	Python/pyctype.c \
 	Python/pyfpe.c \
+	Python/pyhash.c \
 	Python/pymath.c \
 	Python/pystate.c \
-	Python/pystrcmp.c \
-	Python/pystrtod.c \
-	Python/pytime.c \
 	Python/pythonrun.c \
+	Python/pytime.c \
 	Python/random.c \
 	Python/structmember.c \
 	Python/symtable.c \
 	Python/sysmodule.c \
 	Python/traceback.c \
+	Python/getopt.c \
+	Python/pystrcmp.c \
+	Python/pystrtod.c \
+	Python/dtoa.c \
+	Python/formatter_unicode.c \
+	Python/fileutils.c \
 	Python/$(DYNLOADFILE) \
 	$(LIBOBJS) \
 	$(THREADSRC)
 PYTHON_OBJS = $(PYTHON_SRCS:.c=.o)
 
-ALL_SOURCES += $(PYTHON_SRCS)
+ALL_SOURCES += $(PYTHON_SRCS) Python/frozen.c
 
 ##########################################################################
 # Objects
@@ -416,7 +422,6 @@ OBJECT_SRCS = \
 	Objects/bytes_methods.c \
 	Objects/bytearrayobject.c \
 	Objects/bytesobject.c \
-	Objects/capsule.c \
 	Objects/cellobject.c \
 	Objects/classobject.c \
 	Objects/codeobject.c \
@@ -436,8 +441,10 @@ OBJECT_SRCS = \
 	Objects/memoryobject.c \
 	Objects/methodobject.c \
 	Objects/moduleobject.c \
+	Objects/namespaceobject.c \
 	Objects/object.c \
 	Objects/obmalloc.c \
+	Objects/capsule.c \
 	Objects/rangeobject.c \
 	Objects/setobject.c \
 	Objects/sliceobject.c \
@@ -456,7 +463,8 @@ ALL_SOURCES += $(OBJECT_SRCS)
 
 PYTHON_CORELIB = libcore.a
 
-_PYTHON_COREOBJS = \
+_PYTHON_COREOBJS_OMIT_FROZEN = \
+	$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.o \
 	$(PARSER_OBJS) \
 	$(OBJECT_OBJS) \
 	$(PYTHON_OBJS) \
@@ -464,9 +472,13 @@ _PYTHON_COREOBJS = \
 	$(MODULE_OBJS) \
 	$(SIGNAL_OBJS) \
 	$(MODOBJS)
+
+_PYTHON_COREOBJS = $(_PYTHON_COREOBJS_OMIT_FROZEN) Python/frozen.o
+
+PYTHON_COREOBJS_OMIT_FROZEN = $(_PYTHON_COREOBJS_OMIT_FROZEN)
 PYTHON_COREOBJS = $(_PYTHON_COREOBJS:.o=.bro)
 
-$(PYTHON_COREOBJS:%=$(OBJDIR)/%) : DEFINES+=Py_BUILD_CORE DONT_WRAP_VARS
+$(PYTHON_COREOBJS:%=$(OBJDIR)/%) $(PYTHON_COREOBJS_OMIT_FROZEN:%=$(OBJDIR)/normal/%) $(OBJDIR)/normal/Modules/_freeze_importlib.o : DEFINES+=Py_BUILD_CORE DONT_WRAP_VARS
 
 $(OBJDIR)/$(PYTHON_CORELIB) : OBJS=$(PYTHON_COREOBJS:%=$(OBJDIR)/%)
 $(OBJDIR)/$(PYTHON_CORELIB) : $(PYTHON_COREOBJS:%=$(OBJDIR)/%)
@@ -489,7 +501,7 @@ $(BUILDDIR)/libprotos.h : syms.func
 	echo -e "  (APTR) -1\n\n#endif /* PYTHON_LIBPROTOS_H */" >> $@
 
 $(OBJDIR)/libpython_glue.a : $(INCDIR)/fd/python$(MOSVERSION)_lib.fd $(INCDIR)/clib/python$(MOSVERSION)_protos.h
-	-@test ! -d "$(@D)" && $(MAKINGDIR) && mkdir -p "$(@D)"
+	@[ ! -d $(@D) ] && $(MAKINGDIR) && mkdir -p "$(@D)" || true
 	@$(CREATING)
 	$(CVINCLUDE) --fd $(INCDIR)/fd/python$(MOSVERSION)_lib.fd --clib $(INCDIR)/clib/python$(MOSVERSION)_protos.h --gluelib $@
 
@@ -514,7 +526,7 @@ $(OBJDIR)/$(PYMLIB_NAME): $(OBJDIR)/libpython_glue.a $(EMUL_OBJS:%=$(OBJDIR)/%) 
 	$(CP) $< $@
 	$(AR) $(ARFLAGS) $@ $(EMUL_OBJS:%=$(OBJDIR)/%) $(PYM_OBJS)
 
-core : deps $(OBJDIR)/$(PYTHON_CORELIB)
+core : $(OBJDIR)/$(PYTHON_CORELIB)
 .PHONY: core
 
 SDK_DEPS = \
@@ -563,11 +575,9 @@ $(OBJDIR)/$(MACHDEP_DIR)/libheader.o : \
 	MORPHOS_VERSION_STR='"$(MOSVERSION)"'
 
 $(LIBSDIR)/$(LIBRARY_SHORTNAME).db: DEFINES+=DONT_WRAP_VARS Py_BUILD_CORE
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro $(OBJDIR)/$(PYTHON_CORELIB)
-$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: \
-	core \
-	$(PYTHON_SHAREDLIB_HEADOBJS) \
-	$(OBJDIR)/$(MACHDEP_DIR)/python$(MOSVERSION)_gvars.bro
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: OBJS=$(PYTHON_SHAREDLIB_HEADOBJS) $(OBJDIR)/$(PYTHON_CORELIB)
+
+$(LIBSDIR)/$(LIBRARY_SHORTNAME).db: $(PYTHON_SHAREDLIB_HEADOBJS)
 
 library:  $(LIBSDIR)/$(LIBRARY_SHORTNAME).sym $(LIBSDIR)/$(LIBRARY_SHORTNAME)
 .PHONY: library
@@ -596,6 +606,21 @@ $(SRCDIR)/$(BINARY_NAME) : $(BUILDDIR)/$(BINARY_NAME).db
 
 binary: $(SRCDIR)/$(BINARY_NAME)
 .PHONY: binary
+
+############################################################################
+# Importlib
+
+$(BUILDDIR)/_freeze_importlib: $(OBJDIR)/normal/Modules/_freeze_importlib.o \
+		$(PYTHON_COREOBJS_OMIT_FROZEN:%=$(OBJDIR)/normal/%)
+	@$(CREATING)
+	$(CC) $(CFLAGS) -Wl,--traditional-format -o $@ $^ $(LIBS)
+
+Python/importlib.h: $(SRCDIR)/Lib/importlib/_bootstrap.py
+	$(MAKE) $(BUILDDIR)/_freeze_importlib
+	@$(CREATING)
+	Modules/_freeze_importlib $< $@
+
+Python/frozen.o: Python/importlib.h
 
 ##########################################################################
 # General Rules

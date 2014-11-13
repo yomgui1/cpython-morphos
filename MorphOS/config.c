@@ -42,8 +42,11 @@ extern PyObject* PyInit__symtable(void);
 extern PyObject* PyInit__locale(void);
 extern PyObject* PyInit__collections(void);
 extern PyObject* PyInit_itertools(void);
-extern PyObject* PyInit_operator(void);
+extern PyObject* PyInit__operator(void);
 extern PyObject* PyInit_parser(void);
+extern PyObject* PyInit_atexit(void);
+extern PyObject* PyInit__stat(void);
+extern PyObject* PyInit__tracemalloc(void);
 
 /* -- ADDMODULE MARKER 1 -- */
 
@@ -57,25 +60,28 @@ extern PyObject* PyInit__string(void);
 struct _inittab _PyImport_Inittab[] = {
 
     /* Host modules */
-    {"morphos",     PyInit_morphos},
-    {"time",        PyInit_time},
-    {"_thread",     PyInit__thread},
-    {"signal",      PyInit_signal},
-    
+    {"morphos",      PyInit_morphos},
+    {"time",         PyInit_time},
+    {"_thread",      PyInit__thread},
+    {"signal",       PyInit_signal},
+
     /* No shared modules */
-    {"errno",       PyInit_errno},
-    {"_sre",        PyInit__sre},
-    {"_codecs",     PyInit__codecs},
-    {"_weakref",    PyInit__weakref},
-    {"_functools",  PyInit__functools},
-    {"operator",    PyInit_operator},
-    {"_collections",PyInit__collections},
-    {"itertools",   PyInit_itertools},
-    {"_locale",     PyInit__locale},
-    {"_io",         PyInit__io},
-    {"zipimport",   PyInit_zipimport},
-    {"_symtable",   PyInit__symtable},
-    {"parser",      PyInit_parser},
+    {"errno",        PyInit_errno},
+    {"_sre",         PyInit__sre},
+    {"_codecs",      PyInit__codecs},
+    {"_weakref",     PyInit__weakref},
+    {"_functools",   PyInit__functools},
+    {"operator",     PyInit__operator},
+    {"_collections", PyInit__collections},
+    {"itertools",    PyInit_itertools},
+    {"_locale",      PyInit__locale},
+    {"_io",          PyInit__io},
+    {"zipimport",    PyInit_zipimport},
+    {"_symtable",    PyInit__symtable},
+    {"parser",       PyInit_parser},
+	{"atexit",		 PyInit_atexit},
+	{"_stat",		 PyInit__stat},
+	{"_tracemalloc", PyInit__tracemalloc},
 
 /* -- ADDMODULE MARKER 2 -- */
 
@@ -98,7 +104,7 @@ struct _inittab _PyImport_Inittab[] = {
 
     /* This lives in _warnings.c */
     {"_warnings", _PyWarnings_Init},
-    
+
     /* This lives in Objects/unicodeobject.c */
     {"_string", PyInit__string},
 

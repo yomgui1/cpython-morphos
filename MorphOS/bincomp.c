@@ -380,7 +380,7 @@ objargs_mktuple(va_list va)
 //-
 //+ PyObject_CallFunction
 PyObject *
-PyObject_CallFunction(PyObject *callable, char *format, ...)
+PyObject_CallFunction(PyObject *callable, const char *format, ...)
 {
 	va_list va;
 	PyObject *args;
@@ -401,7 +401,7 @@ PyObject_CallFunction(PyObject *callable, char *format, ...)
 //-
 //+ _PyObject_CallFunction_SizeT
 PyObject *
-_PyObject_CallFunction_SizeT(PyObject *callable, char *format, ...)
+_PyObject_CallFunction_SizeT(PyObject *callable, const char *format, ...)
 {
 	va_list va;
 	PyObject *args;
@@ -422,7 +422,7 @@ _PyObject_CallFunction_SizeT(PyObject *callable, char *format, ...)
 //-
 //+ PyObject_CallMethod
 PyObject *
-PyObject_CallMethod(PyObject *o, char *name, char *format, ...)
+PyObject_CallMethod(PyObject *o, const char *name, const char *format, ...)
 {
 	va_list va;
 	PyObject *args;
@@ -462,7 +462,7 @@ PyObject_CallMethod(PyObject *o, char *name, char *format, ...)
 //-
 //+ _PyObject_CallMethod_SizeT
 PyObject *
-_PyObject_CallMethod_SizeT(PyObject *o, char *name, char *format, ...)
+_PyObject_CallMethod_SizeT(PyObject *o, const char *name, const char *format, ...)
 {
 	va_list va;
 	PyObject *args;

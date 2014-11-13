@@ -12,9 +12,9 @@
 
 extern unsigned long __get_handle(int fd);
 
-const struct filedescr _PyImport_DynLoadFiletab[] = {
-	{".pym", "rb", C_EXTENSION},
-	{0, 0}
+const char *_PyImport_DynLoadFiletab[] = {
+	".pym",
+	NULL,
 };
 
 static struct {
@@ -41,7 +41,7 @@ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
 	void *handle;
 	char funcname[258];
 	int dlopenflags=RTLD_GLOBAL;
-	
+
 	BOOL (*__PyMorphOS_InitModule)(APTR);
 	void (*__PyMorphOS_TermModule)(void);
 
@@ -50,7 +50,7 @@ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
 
 	PyOS_snprintf(funcname, sizeof(funcname),
 				LEAD_UNDERSCORE "PyInit_%.200s", shortname);
-	
+
 	if (fp != NULL) {
 		/* Since RAM filesystem on MorphOS returns alwas the same values for st_dev and st_ino for any files.
 		 * usage of fstat() is not possible in any cases on MorphOS.
@@ -58,16 +58,16 @@ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
 		 */
 		int i;
 		BPTR amiga_lock = DupLockFromFH(__get_handle(fileno(fp)));
-		
+
 		if (Py_VerboseFlag)
 			PySys_WriteStderr("%s: lock=%p\n", shortname, amiga_lock);
-		
+
 		if (!amiga_lock)
 		{
 			PyErr_SetString(PyExc_ImportError, "unable to obtain Lock on module");
 			return NULL;
 		}
-		
+
 		for (i = 0; i < nhandles; i++) {
 			if (SameLock(amiga_lock, handles[i].amiga_lock) == LOCK_SAME) {
 				if (Py_VerboseFlag)
@@ -117,7 +117,7 @@ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
 	{
 		handles[nhandles++].handle = handle;
 	}
-	
+
 	p = (dl_funcptr) dlsym(handle, funcname);
 	if (Py_VerboseFlag)
 		PySys_WriteStderr("%s: symbol %s @ %p\n", shortname, funcname, p);

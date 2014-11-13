@@ -76,7 +76,7 @@ extern "C" {
 
 
 #if !defined(__MORPHOS__) || !defined(LIB_PYTHON_GVARS_H)
-PyAPI_DATA(char *) _PyParser_TokenNames[]; /* Token names */
+PyAPI_DATA(const char *) _PyParser_TokenNames[]; /* Token names */
 #endif
 PyAPI_FUNC(int) PyToken_OneChar(int);
 PyAPI_FUNC(int) PyToken_TwoChars(int, int);

@@ -10,7 +10,7 @@ gvars_match = re.compile('[ \t]*PyAPI_DATA\(([^)]+)\)[ \t]+([^;]+);.*').match
 remove_gvars = 'PyExc_WindowsError PyExc_VMSError PyCmpWrapper_Type'.split()
 remove_gvars += '_PySys_CheckInterval _PySys_ProfileFunc _PySys_TraceFunc _Py_RefTotal'.split()
 # From 3.x
-remove_gvars += ['PySortWrapper_Type', '_Py_HashSecret_Initialized']
+remove_gvars += ['PySortWrapper_Type', '_Py_HashSecret_Initialized', 'PyNullImporter_Type']
 
 if not os.path.isdir(newincludedir):
     raise ValueError("'%s' is not a directory" % newincludedir)
@@ -69,7 +69,7 @@ gvars_src = sum(d.itervalues(), [])
 print "** %lu global variables found in sources" % len(gvars_src)
 
 gvars += gvars_src
-                    
+
 
 print "** Cleanup gvars ..."
 l = set()
@@ -82,7 +82,7 @@ for i,x in enumerate(gvars):
         gvars[i] = '%s;%s' % (n, t)
         print "Array    : %-65s (was '%s')" % (gvars[i], x)
         x = gvars[i]
-        
+
     if n.startswith('*'):
         cnt = 0
         for c in n:
@@ -116,12 +116,12 @@ for i,x in enumerate(gvars):
         raise ValueError("not handled case: %s" % x)
 
     l.add(n)
-    
+
 gvars = sorted(x for x in gvars if x)
 print "** %lu global variables found after cleanup" % len(gvars)
 
 gvars_c_template = """/* GENERATED FILE. DO NOT EDIT IT MANUALLY */
-#include \"libraries/python32_gvars.h\"
+#include \"libraries/python34_gvars.h\"
 #include \"libheader.h\"
 
 /* declared as weak symbols for final build (replaced if debug build) */
@@ -153,16 +153,16 @@ extern struct PyMorphOS_GVar_STRUCT __pym_GVars;
 #endif /* LIB_PYTHON_GVARS_H */
 """
 
-print "** Creating python32_gvars.c ..."
-with open('python32_gvars.c', 'w') as f:
+print "** Creating python34_gvars.c ..."
+with open('python34_gvars.c', 'w') as f:
     f.write(gvars_c_template % ('\n'.join("extern int %s;" % x.split(';')[0] for x in gvars),
                                 '\n'.join("    storage->p_%-35s = &%s;" % ((x.split(';')[0],)*2) for x in gvars)))
 
-gvars_h_filename = "include/libraries/python32_gvars.h"
+gvars_h_filename = "include/libraries/python34_gvars.h"
 dirname = os.path.dirname(gvars_h_filename)
 if not os.path.exists(dirname):
     os.mkdir(dirname)
-    
+
 print "** Creating '%s' ..." % gvars_h_filename
 with open(gvars_h_filename, 'w') as f:
     f.write(gvars_h_template % ('\n'.join("    void* p_%s;" % x.split(';')[0] for x in gvars),

@@ -13,7 +13,7 @@
 #include "Python.h"
 #include "morphos.h"
 #include "mosdebug.h"
-#include "libraries/python32_gvars.h"
+#include "libraries/python34_gvars.h"
 
 
 /*
@@ -550,7 +550,7 @@ int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
                     default:;
                 }
 			}
-		
+
 			DPRINT("program exit/_exit func: [%p, %p]\n", Wrapper_exit, Wrapper__exit);
 			DPRINT("program malloc/free func: [%p, %p]\n", Wrapper_malloc, Wrapper_free);
 			DPRINT("program gvars storage: %p\n", gvars_storage);
@@ -567,7 +567,7 @@ int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
 
 				NEWLIST(&gTermFuncList);
 				NEWLIST(&gThreadDataList);
-				
+
 				PythonBase->Exported.ex_stdin = prog_stdin;
                 PythonBase->Exported.ex_stdout = prog_stdout;
                 PythonBase->Exported.ex_stderr = prog_stderr;
@@ -589,7 +589,7 @@ int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
 						old_stdio[2] = stderr;
 
 						stdin = prog_stdin; stdout = prog_stdout; stderr = prog_stderr;
-						
+
 						PythonBase->Exported.ex_LocaleBase = libnix_LocaleBase;
 
 						PyMorphOS_InitGVars(gvars_storage);
@@ -605,7 +605,7 @@ int PyMorphOS_SetConfigA(int dummy, struct TagItem *tags)
 					DPRINT_ERROR("can't initialize main thread data\n");
 			} else
 				DPRINT_ERROR("invalid required init values\n");
-			
+
 			CloseLibrary(UserGroupBase);
 		} else
 			DPRINT_ERROR("OpenLibrary(\"usergroup.library\", 50) failed\n");
@@ -638,7 +638,7 @@ void PyMorphOS_Term( void )
         node->tfn_Func();
         free(node);
     }
-    
+
     if (gOldProgDirLock)
     {
         BPTR oldlock = SetProgramDir(gOldProgDirLock);
@@ -669,7 +669,7 @@ void PyMorphOS_Term( void )
 	if (NULL != DynLoadBase) { CloseLibrary(DynLoadBase); DynLoadBase = NULL; }
 
 	UnInitLibnix();
-	
+
     DPRINTRAW("\n-********************** MORPHOS PYTHON TERM ****************************\n\n");
 }
 //-
@@ -723,7 +723,7 @@ size_t PyMorphOS_GetFullPath( const char *path, char *buffer, size_t size )
 size_t PyMorphOS_GetFullPathWide( const wchar_t *path, wchar_t *buffer, size_t size )
 {
     size_t result = FALSE;
-    
+
     if (size > 0) {
         char *tmp;
 
@@ -749,7 +749,7 @@ size_t PyMorphOS_GetFullPathWide( const wchar_t *path, wchar_t *buffer, size_t s
 
                     UnLock(lock);
                 }
-                
+
                 PyMem_Free(path2);
             }
         }
@@ -855,10 +855,10 @@ void PyMorphOS_TermThread(void)
 {
     pPyMorphOS_ThreadData_t td;
     struct MsgPort *port;
-    struct timerequest *tr;       
+    struct timerequest *tr;
     struct Message *msg;
 
-    td = GET_THREAD_DATA_PTR();        
+    td = GET_THREAD_DATA_PTR();
     if (NULL != td) {
         ObtainSemaphore(&gGlobalSem);
         REMOVE(td);
@@ -870,11 +870,11 @@ void PyMorphOS_TermThread(void)
 
             if (NULL != base) {
                 CloseDevice((struct IORequest *)tr);
-                SET_THREAD_DATA(td, TimerBase, NULL);          
+                SET_THREAD_DATA(td, TimerBase, NULL);
             }
 
             DeleteIORequest(tr);
-            SET_THREAD_DATA(td, TimeRequest, NULL);        
+            SET_THREAD_DATA(td, TimeRequest, NULL);
         }
 
         port = GET_THREAD_DATA(td, TimerPort);
@@ -909,6 +909,11 @@ void _PyMorphOS_SetProgDir(BPTR lock)
 //-
 
 /* Wrapped routines on application's ones */
+void exit( int e ) __attribute__ (( weak ));
+void _exit( int e ) __attribute__ (( weak ));
+void *malloc(size_t s) __attribute__ (( weak ));
+void free(void *p) __attribute__ (( weak ));
+
 void exit( int e ) { Wrapper_exit(e); }
 void _exit( int e ) { Wrapper__exit(e); }
 void *malloc(size_t s) { return Wrapper_malloc(s); }

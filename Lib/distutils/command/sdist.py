@@ -74,6 +74,10 @@ class sdist(Command):
         ('metadata-check', None,
          "Ensure that all required elements of meta-data "
          "are supplied. Warn if any missing. [default]"),
+        ('owner=', 'u',
+         "Owner name used when creating a tar file [default: current user]"),
+        ('group=', 'g',
+         "Group name used when creating a tar file [default: current group]"),
         ]
 
     boolean_options = ['use-defaults', 'prune',
@@ -114,6 +118,8 @@ class sdist(Command):
 
         self.archive_files = None
         self.metadata_check = 1
+        self.owner = None
+        self.group = None
 
     def finalize_options(self):
         if self.manifest is None:
@@ -176,7 +182,7 @@ class sdist(Command):
         depends on the user's options.
         """
         # new behavior when using a template:
-        # the file list is recalculated everytime because
+        # the file list is recalculated every time because
         # even if MANIFEST.in or setup.py are not changed
         # the user might have added some files in the tree that
         # need to be included.
@@ -445,7 +451,8 @@ class sdist(Command):
             self.formats.append(self.formats.pop(self.formats.index('tar')))
 
         for fmt in self.formats:
-            file = self.make_archive(base_name, fmt, base_dir=base_dir)
+            file = self.make_archive(base_name, fmt, base_dir=base_dir,
+                                     owner=self.owner, group=self.group)
             archive_files.append(file)
             self.distribution.dist_files.append(('sdist', '', file))
 

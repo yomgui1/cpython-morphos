@@ -11,14 +11,14 @@
 
 #include "morphos.h"
 #include "mosdebug.h"
-#include "libraries/python32_gvars.h"
+#include "libraries/python34_gvars.h"
 
 
 /*
 ** System Includes
 */
 
-#include <dos/dosextens.h>       
+#include <dos/dosextens.h>
 
 #include <proto/exec.h>
 #include <proto/dos.h>
@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <setjmp.h>
- 
+
 
 
 /*
@@ -55,7 +55,7 @@ struct FuncSeg
 ** Prototypes
 */
 
-static struct CTDT *sort_ctdt(struct CTDT **last);    
+static struct CTDT *sort_ctdt(struct CTDT **last);
 static void* null_malloc(size_t s);
 static void null_free(void *p);
 
@@ -136,7 +136,7 @@ static struct CTDT *sort_ctdt(struct CTDT **last)
 static BOOL InitLibnix(void)
 {
     libnix_call = TRUE;
-    
+
     /* Sort SAS/C de/constructor list */
     ctdt = sort_ctdt(&last_ctdt);
 
@@ -298,7 +298,7 @@ __dead void _exit( int err ) __attribute__((noreturn));
 void _exit( int err )
 {
     __dead void (*main__exit)(int) __attribute__((noreturn)) = PythonBase->Exported.ex__exit;
-    
+
     DPRINT("_exit code @ %p, libnix_call = %s\n",
            main__exit, libnix_call?"TRUE":"FALSE");
     if (libnix_call) longjmp(libnix_jmpbuf, 1);
