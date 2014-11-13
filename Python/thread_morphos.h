@@ -142,7 +142,7 @@ typedef struct
     struct SignalSemaphore Sem;
     struct SignalSemaphore WaitListLock;
     struct MinList WaitList;
-    struct Task *Owner;
+    BOOL Owned;
 } Lock_t, *pLock_t;
 
 typedef struct
@@ -168,6 +168,7 @@ PyThread_allocate_lock(void)
     InitSemaphore(&lock->Sem);
     InitSemaphore(&lock->WaitListLock);
     NEWLIST(&lock->WaitList);
+    lock->Owned = FALSE;
 
     DPRINT("PyThread_allocate_lock(): new lock -> %p\n", lock);
     return (PyThread_type_lock) lock;
@@ -208,16 +209,17 @@ PyThread_acquire_lock_timed(PyThread_type_lock aLock,
     DPRINT("PyThread_acquire_lock_timed(%p, %lld, %d) called\n", aLock, microseconds, intr_flag);
 
     if (AttemptSemaphore(&_lock->Sem)) {
-        struct Task *me = FindTask(NULL);
-        if (_lock->Owner == me) {
+        if (_lock->Owned) {
             success = PY_LOCK_FAILURE;
         } else {
-            _lock->Owner = me;
+            _lock->Owned = TRUE;
             success = PY_LOCK_ACQUIRED;
         }
-    } else if (microseconds == 0)
+        DPRINT("PyThread_acquire_lock_timed(%p): Attempt ok, r=%u\n", aLock, success);
+    } else if (microseconds == 0) {
+        DPRINT("PyThread_acquire_lock_timed(%p): Attempt failed\n", aLock);
         success = PY_LOCK_FAILURE;
-    else {
+    } else {
         Waiter_t me;
         pPyMorphOS_ThreadData_t td = GET_THREAD_DATA_PTR();
         struct timerequest * tr = GET_THREAD_DATA(td, TimeRequest);
@@ -259,7 +261,7 @@ PyThread_acquire_lock_timed(PyThread_type_lock aLock,
         if (sigs & sigmask_timer)
             success = PY_LOCK_FAILURE;
         else if (AttemptSemaphore(&_lock->Sem)) {
-            _lock->Owner = me.Task;
+            _lock->Owned = TRUE;
             success = PY_LOCK_ACQUIRED;
         } else if (intr_flag)
             success = PY_LOCK_INTR;
@@ -286,9 +288,10 @@ PyThread_release_lock(PyThread_type_lock lock)
     DPRINT("PyThread_release_lock(%p) called\n", lock);
 
     ObtainSemaphore(&_lock->WaitListLock);
+    ReleaseSemaphore(&_lock->Sem);
+    _lock->Owned = FALSE;
     waiter = REMHEAD(&_lock->WaitList);
     if (waiter)
         Signal(waiter->Task, waiter->SigMask);
-    ReleaseSemaphore(&_lock->Sem);
     ReleaseSemaphore(&_lock->WaitListLock);
 }
