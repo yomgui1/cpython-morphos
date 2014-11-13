@@ -1201,6 +1201,13 @@ morphos_rename(PyObject *self, PyObject *args)
 {
     return morphos_2str(args, "O&O&:rename", rename);
 }
+
+static PyObject *
+morphos_replace(PyObject *self, PyObject *args)
+{
+    return morphos_2str(args, "O&O&:replace", rename);
+}
+
 PyDoc_STRVAR(morphos_rmdir__doc__,
 "rmdir(path)\n\n\
 Remove a directory.");
@@ -2647,6 +2654,7 @@ static PyMethodDef morphos_methods[] = {
 	{"readlink",	morphos_readlink, METH_VARARGS, morphos_readlink__doc__},
 #endif /* HAVE_READLINK */
 	{"rename",	morphos_rename, METH_VARARGS, morphos_rename__doc__},
+	{"replace",	morphos_replace, METH_VARARGS, morphos_rename__doc__},
 	{"rmdir",	morphos_rmdir, METH_VARARGS, morphos_rmdir__doc__},
 	{"stat",	morphos_stat, METH_VARARGS, morphos_stat__doc__},
 	{"stat_float_times", stat_float_times, METH_VARARGS, stat_float_times__doc__},
