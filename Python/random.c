@@ -8,6 +8,12 @@
 #endif
 #endif
 
+#ifdef __MORPHOS__
+#define RANDOM_DEVICE "RANDOM:"
+#else
+#define RANDOM_DEVICE "/dev/urandom"
+#endif
+
 #ifdef Py_DEBUG
 int _Py_HashSecret_Initialized = 0;
 #else
@@ -88,9 +94,9 @@ dev_urandom_noraise(unsigned char *buffer, Py_ssize_t size)
 
     assert (0 < size);
 
-    fd = _Py_open("/dev/urandom", O_RDONLY);
+    fd = _Py_open(RANDOM_DEVICE, O_RDONLY);
     if (fd < 0)
-        Py_FatalError("Failed to open /dev/urandom");
+        Py_FatalError("Failed to open "RANDOM_DEVICE);
 
     while (0 < size)
     {
@@ -100,7 +106,7 @@ dev_urandom_noraise(unsigned char *buffer, Py_ssize_t size)
         if (n <= 0)
         {
             /* stop on error or if read(size) returned 0 */
-            Py_FatalError("Failed to read bytes from /dev/urandom");
+            Py_FatalError("Failed to read bytes from "RANDOM_DEVICE);
             break;
         }
         buffer += n;
@@ -136,14 +142,14 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
         fd = urandom_cache.fd;
     else {
         Py_BEGIN_ALLOW_THREADS
-        fd = _Py_open("/dev/urandom", O_RDONLY);
+        fd = _Py_open(RANDOM_DEVICE, O_RDONLY);
         Py_END_ALLOW_THREADS
         if (fd < 0)
         {
             if (errno == ENOENT || errno == ENXIO ||
                 errno == ENODEV || errno == EACCES)
                 PyErr_SetString(PyExc_NotImplementedError,
-                                "/dev/urandom (or equivalent) not found");
+                                RANDOM_DEVICE" (or equivalent) not found");
             else
                 PyErr_SetFromErrno(PyExc_OSError);
             return -1;
@@ -187,7 +193,7 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
             PyErr_SetFromErrno(PyExc_OSError);
         else
             PyErr_Format(PyExc_RuntimeError,
-                         "Failed to read %zi bytes from /dev/urandom",
+                         "Failed to read %zi bytes from "RANDOM_DEVICE,
                          size);
         return -1;
     }
