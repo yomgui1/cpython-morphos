@@ -108,6 +108,7 @@ if 'morphos' in _names:
     from morphos import *
     try:
         from morphos import _exit
+        __all__.append('_exit')
     except ImportError:
         pass
     import morphospath as path
@@ -115,6 +116,11 @@ if 'morphos' in _names:
     import morphos
     __all__.extend(_get_exports_list(morphos))
     del morphos
+
+    try:
+        from morphos import _have_functions
+    except ImportError:
+        _have_functions = ()
 
 else:
     raise ImportError('no os specific module found')
