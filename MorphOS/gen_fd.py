@@ -9,23 +9,47 @@ else:
 
 apifunc_match = re.compile('\w+ .{7} .text.pyapi\W+\w+ \w+').match
 
-# Removing varargs functions
-apifunc_removed = "PyArg_ParseTuple PyArg_ParseTupleAndKeywords Py_BuildValue _Py_BuildValue_SizeT" \
-                  " _PyArg_ParseTuple_SizeT _PyArg_ParseTupleAndKeywords_SizeT PyArg_UnpackTuple" \
-                  " PyEval_CallFunction PyEval_CallMethod PySys_WriteStdout PySys_WriteStderr" \
-                  " PyTuple_Pack PyErr_Format PyOS_snprintf " \
-                  " PyObject_CallFunction _PyObject_CallFunction_SizeT" \
-                  " PyObject_CallMethod _PyObject_CallMethod_SizeT" \
-                  " PyObject_CallMethodObjArgs PyObject_CallFunctionObjArgs" \
-                  " PyBytes_FromFormat PyUnicode_FromFormat"
-apifunc_removed = set(apifunc_removed.split())
+# varargs functions to remove (moved into the public archives libpython and libpym)
+api_to_remove = set([
+    'PyArg_Parse',
+    'PyArg_ParseTuple',
+    'PyArg_ParseTupleAndKeywords',
+    'PyArg_UnpackTuple',
+    'PyBytes_FromFormat',
+    'PyErr_Format',
+    'PyErr_WarnExplicitFormat',
+    'PyErr_WarnFormat',
+    'PyEval_CallFunction',
+    'PyEval_CallMethod',
+    'PyOS_snprintf',
+    'PyObject_CallFunction',
+    'PyObject_CallFunctionObjArgs',
+    'PyObject_CallMethod',
+    'PyObject_CallMethodObjArgs',
+    'PySys_FormatStderr',
+    'PySys_FormatStdout',
+    'PySys_WriteStderr',
+    'PySys_WriteStdout',
+    'PyTuple_Pack',
+    'PyUnicode_FromFormat',
+    'Py_BuildValue',
+    '_PyArg_ParseTupleAndKeywords_SizeT',
+    '_PyArg_ParseTuple_SizeT',
+    '_PyArg_Parse_SizeT',
+    '_PyErr_TrySetFromCause',
+    '_PyObject_CallFunction_SizeT',
+    '_PyObject_CallMethodId',
+    '_PyObject_CallMethodIdObjArgs',
+    '_PyObject_CallMethodId_SizeT',
+    '_PyObject_CallMethod_SizeT',
+    '_Py_BuildValue_SizeT'])
 
 print "** Parsing binary '%s' ..." % bin_filename
 with os.popen('objdump -t %s' % bin_filename) as f:
     apifunc = set(x.split()[-1] for x in f.xreadlines() if apifunc_match(x))
 print "** %lu Py functions found in the binary" % len(apifunc)
 
-newfunc = sorted(apifunc - apifunc_removed)
+newfunc = sorted(apifunc - api_to_remove)
 print "** %lu API functions found after cleanup" % len(newfunc)
 
 if oldfd_filename:
