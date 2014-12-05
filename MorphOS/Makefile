@@ -127,6 +127,7 @@ LDFLAGS_SHARED_BASEREL = -noixemul -pipe -g -mbaserel32 -mresident32 -nostartfil
 	-Wl,--warn-common -Wl,--warn-once
 
 LIBS_EXTRA += m debug
+LIBS_EXTRA_DYNMOD = m,debug
 LIBS = -L/usr/local/lib $(LIBS_EXTRA:%=-l%)
 
 ARFLAGS = rcs
@@ -666,7 +667,7 @@ sdk: $(SDK_DEPS)
 
 mkdyn: $(SRCDIR)/$(BINARY_NAME)
 	cp $(LIBSDIR)/$(LIBRARY_SHORTNAME) $(SRCDIR)
-	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS -l$(LIBS_EXTRA:%=%,) build_scripts)
+	(cd $(SRCDIR); $(BINARY_NAME) -E setup.py build_ext -DNDEBUG,__MORPHOS_SHAREDLIBS -l$(LIBS_EXTRA_DYNMOD) build_scripts)
 .PHONY: mkdyn
 
 install-bin: library binary
