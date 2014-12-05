@@ -225,14 +225,18 @@ class PyBuildExt(build_ext):
         # Parse Modules/Setup and Modules/Setup.local to figure out which
         # modules are turned on in the file.
         remove_modules = []
-        for filename in ('Modules/Setup', 'Modules/Setup.local'):
-            input = text_file.TextFile(filename, join_lines=1)
-            while 1:
-                line = input.readline()
-                if not line: break
-                line = line.split()
-                remove_modules.append(line[0])
-            input.close()
+        if os.name != 'morphos':
+            for filename in ('Modules/Setup', 'Modules/Setup.local'):
+                input = text_file.TextFile(filename, join_lines=1)
+                while 1:
+                    line = input.readline()
+                    if not line: break
+                    line = line.split()
+                    remove_modules.append(line[0])
+                input.close()
+        else:
+            remove_modules += ['_struct', '_posixsubprocess', 'fcntl',
+                               'grp', 'pwd', 'syslog', 'mmap']
 
         for ext in self.extensions[:]:
             if ext.name in remove_modules:
@@ -456,7 +460,7 @@ class PyBuildExt(build_ext):
         # only change this for cross builds for 3.3, issues on Mageia
         if cross_compiling:
             self.add_gcc_paths()
-        if platform != 'morphos-ppc':
+        if host_platform != 'morphos-ppc':
             self.add_multiarch_paths()
 
         # Add paths specified in the environment variables LDFLAGS and
@@ -581,10 +585,10 @@ class PyBuildExt(build_ext):
             time_libs.append(lib)
 
         # time operations and variables
-		if platform != 'morphos-ppc':
-	        exts.append( Extension('time', ['timemodule.c'],
-    	                           libraries=time_libs) )
-    	    exts.append( Extension('_datetime', ['_datetimemodule.c']) )
+        if host_platform != 'morphos-ppc':
+            exts.append( Extension('time', ['timemodule.c'],
+                                   libraries=time_libs) )
+            exts.append( Extension('_datetime', ['_datetimemodule.c']) )
         # random number generator implemented in C
         exts.append( Extension("_random", ["_randommodule.c"]) )
         # bisect
@@ -2076,13 +2080,16 @@ class PyBuildExt(build_ext):
             define_macros.append(('WITHOUT_THREADS', 1))
 
         # Increase warning level for gcc:
-        if 'gcc' in cc:
+        if 'gcc' in cc and os.name != 'morphos':
             cmd = ("echo '' | %s -Wextra -Wno-missing-field-initializers -E - "
                    "> /dev/null 2>&1" % cc)
             ret = os.system(cmd)
             if ret >> 8 == 0:
                 extra_compile_args.extend(['-Wextra',
                                            '-Wno-missing-field-initializers'])
+        if os.name == 'morphos':
+            extra_compile_args.extend(['-Wextra',
+                                       '-Wno-missing-field-initializers'])
 
         # Uncomment for extra functionality:
         #define_macros.append(('EXTRA_FUNCTIONALITY', 1))
