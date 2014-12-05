@@ -452,6 +452,14 @@ def _init_morphos(vars):
     vars['VERSION'] = _PY_VERSION_SHORT_NO_DOT
     vars['BINDIR'] = os.path.dirname(_safe_realpath(sys.executable))
     vars['CONFIG_ARGS'] = ''
+    defines = """AROS_ALMOST_COMPATIBLE USE_INLINE_STDARG"""
+    vars['CFLAGS'] = '-O2 -mmultiple -fstrict-aliasing' + \
+                     '-pipe -fomit-frame-pointer ' + \
+                     ' '.join(' -D'+x for x in defines.split())
+    vars['PY_CFLAGS_NODIST'] = vars['CFLAGS']
+    vars['SIZEOF_SIZE_T'] = 4
+    vars['CC'] = 'ppc-morphos-gcc'
+
 
 #
 # public APIs

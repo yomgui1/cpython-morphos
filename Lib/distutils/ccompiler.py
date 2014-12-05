@@ -930,6 +930,7 @@ _default_compilers = (
     # OS name mappings
     ('posix', 'unix'),
     ('nt', 'msvc'),
+    ('morphos', 'morphos'),
 
     )
 
