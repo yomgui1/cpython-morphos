@@ -139,12 +139,12 @@ extern "C" {
 #ifndef Py_BUILD_CORE
 #include <frameobject.h>
 #include <libraries/python34_gvars.h>
-
 extern struct Library *PythonBase;
+#endif
 
 /* From python_gvars.c */
+struct PyMorphOS_GVar_STRUCT;
 PyAPI_FUNC(void) PyMorphOS_InitGVars( struct PyMorphOS_GVar_STRUCT * );
-#endif
 
 /* From morphos.c */
 PyAPI_FUNC(int) PyMorphOS_SetConfigA(int, struct TagItem *);

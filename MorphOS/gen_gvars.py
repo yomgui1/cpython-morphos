@@ -128,7 +128,7 @@ gvars_c_template = """/* GENERATED FILE. DO NOT EDIT IT MANUALLY */
 
 %s
 
-void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
+__attribute__((section (".text.pyapi"))) void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
 {
     PythonBase->PythonGVars = storage;
 

@@ -1,17 +1,13 @@
 #!/usr/bin/env python
-
-from __future__ import with_statement
 import os, sys, re
 
-newincludedir = sys.argv[1]
-bin_filename = sys.argv[2]
-if len(sys.argv) == 4:
-    oldfd_filename = sys.argv[3]
+bin_filename = sys.argv[1]
+if len(sys.argv) == 3:
+    oldfd_filename = sys.argv[2]
 else:
     oldfd_filename = None
 
-if not os.path.isdir(newincludedir):
-    raise ValueError("'%s' is not a directory" % newincludedir)
+apifunc_match = re.compile('\w+ .{7} .text.pyapi\W+\w+ \w+').match
 
 # Removing varargs functions
 apifunc_removed = "PyArg_ParseTuple PyArg_ParseTupleAndKeywords Py_BuildValue _Py_BuildValue_SizeT" \
@@ -22,51 +18,14 @@ apifunc_removed = "PyArg_ParseTuple PyArg_ParseTupleAndKeywords Py_BuildValue _P
                   " PyObject_CallMethod _PyObject_CallMethod_SizeT" \
                   " PyObject_CallMethodObjArgs PyObject_CallFunctionObjArgs" \
                   " PyBytes_FromFormat PyUnicode_FromFormat"
-apifunc_removed = apifunc_removed.split()
-
-apifunc_match = re.compile('.*PyAPI_FUNC\(.*\)[ \t]+(\w+)\(.*').match
-
-print "** Parsing include directory '%s' ..." % newincludedir
-apifunc = set()
-for item in os.listdir(newincludedir):
-    if not item.lower().endswith('.h'): continue
-    with open(os.path.join(newincludedir, item), 'Ur') as f:
-        for line in f.xreadlines():
-            m = apifunc_match(line)
-            if m:
-                n = m.groups()[0]
-                apifunc.add(n)
-
-topdir = os.path.dirname(newincludedir)
-srcdir = [ os.path.join(topdir, 'Objects'),
-           os.path.join(topdir, 'Python') ]
-
-for dirname in srcdir:
-    print "** Parsing source directory '%s' ..." % dirname
-    for item in os.listdir(dirname):
-        if not item.lower().endswith('.c'): continue
-        with open(os.path.join(dirname, item), 'Ur') as f:
-            for line in f.xreadlines():
-                m = apifunc_match(line)
-                if m:
-                    n = m.groups()[0]
-                    apifunc.add(n)
-
-# Cleaning some names
-apifunc = set(('_Py_'+n if n.startswith('c_') else n) for n in apifunc if n not in apifunc_removed)
-print "** %lu defined API functions found" % len(apifunc)
-
-def goodname(n):
-    n = n.replace('UCS4', '')
-    return n in apifunc and n not in apifunc_removed
+apifunc_removed = set(apifunc_removed.split())
 
 print "** Parsing binary '%s' ..." % bin_filename
-with os.popen('ppc-morphos-nm -fposix -Ag --defined-only %s' % bin_filename) as f:
-    newfunc = set(n for _,n,t,_ in (x.split() for x in f.xreadlines()) if goodname(n))
-print "** %lu Py functions found in the binary" % len(newfunc)
+with os.popen('objdump -t %s' % bin_filename) as f:
+    apifunc = set(x.split()[-1] for x in f.xreadlines() if apifunc_match(x)) - apifunc_removed
+print "** %lu Py functions found in the binary" % len(apifunc)
 
-newfunc.update(n for n in apifunc if n.startswith('PyMorphOS'))
-newfunc = sorted(newfunc)
+newfunc = sorted(apifunc)
 print "** %lu API functions found after cleanup" % len(newfunc)
 
 if oldfd_filename:
