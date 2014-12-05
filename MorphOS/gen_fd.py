@@ -22,10 +22,10 @@ apifunc_removed = set(apifunc_removed.split())
 
 print "** Parsing binary '%s' ..." % bin_filename
 with os.popen('objdump -t %s' % bin_filename) as f:
-    apifunc = set(x.split()[-1] for x in f.xreadlines() if apifunc_match(x)) - apifunc_removed
+    apifunc = set(x.split()[-1] for x in f.xreadlines() if apifunc_match(x))
 print "** %lu Py functions found in the binary" % len(apifunc)
 
-newfunc = sorted(apifunc)
+newfunc = sorted(apifunc - apifunc_removed)
 print "** %lu API functions found after cleanup" % len(newfunc)
 
 if oldfd_filename:
