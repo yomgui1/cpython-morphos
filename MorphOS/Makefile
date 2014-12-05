@@ -97,7 +97,8 @@ DEFINES  += \
 	Py_DEFAULT_RECURSION_LIMIT=200 \
 	HGVERSION=\"$(HGVERSION)\" \
 	HGTAG=\"$(HGTAG)\" \
-	HGBRANCH=\"$(HGBRANCH)\"
+	HGBRANCH=\"$(HGBRANCH)\" \
+	ABIFLAGS=\"m\"
 
 OPT = -O2 -mmultiple -mstring -mregnames -fstrict-aliasing -fno-unit-at-a-time
 CC_WARNS = \
