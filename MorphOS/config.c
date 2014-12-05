@@ -47,6 +47,7 @@ extern PyObject* PyInit_parser(void);
 extern PyObject* PyInit_atexit(void);
 extern PyObject* PyInit__stat(void);
 extern PyObject* PyInit__tracemalloc(void);
+extern PyObject* PyInit__struct(void);
 
 /* -- ADDMODULE MARKER 1 -- */
 
@@ -79,9 +80,10 @@ struct _inittab _PyImport_Inittab[] = {
     {"zipimport",    PyInit_zipimport},
     {"_symtable",    PyInit__symtable},
     {"parser",       PyInit_parser},
-	{"atexit",		 PyInit_atexit},
-	{"_stat",		 PyInit__stat},
-	{"_tracemalloc", PyInit__tracemalloc},
+    {"atexit",       PyInit_atexit},
+    {"_stat",        PyInit__stat},
+    {"_tracemalloc", PyInit__tracemalloc},
+    {"_struct",      PyInit__struct},
 
 /* -- ADDMODULE MARKER 2 -- */
 
