@@ -506,16 +506,8 @@ set_error(void)
 #endif
 
 #ifdef __MORPHOS__
-    if (Errno() != 0) {
-        PyObject *v;
+    if (Errno() != 0)
         errno = Errno();
-        v = Py_BuildValue("(is)", errno, strerror(errno));
-        if (v != NULL) {
-            PyErr_SetObject(socket_error, v);
-            Py_DECREF(v);
-        }
-        return NULL;
-    }
 #endif
 
     return PyErr_SetFromErrno(PyExc_OSError);
@@ -5743,6 +5735,8 @@ os_init(void)
 #define OS_INIT_DEFINED
 
 /* Additional initialization for MorphOS */
+
+#include <net/socketbasetags.h>
 
 static int
 os_init(void)
