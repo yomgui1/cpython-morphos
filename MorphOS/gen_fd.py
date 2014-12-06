@@ -81,7 +81,7 @@ fd_filename = 'include/fd/python34_lib.fd'
 print "** Creating '%s'" % fd_filename
 with open(fd_filename, 'w') as f:
     f.write("##base _PythonBase\n##bias 30\n##public\n")
-    f.writelines((x+'()(sysv, r12base)\n' if x != 'private' else "##private\nprivate()()\n##public\n") for x in oldfds)
+    f.writelines((x+'()(sysv,r12base)\n' if x != 'private' else "##private\nprivate()()\n##public\n") for x in oldfds)
 
 
 clib_template = """#ifndef PYTHON_PROTOS_H
