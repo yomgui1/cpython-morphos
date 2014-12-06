@@ -190,7 +190,7 @@ extern int _Py_ctype_table;
 extern int _Py_ctype_tolower;
 extern int _Py_ctype_toupper;
 
-void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
+__attribute__((section (".text.pyapi"))) void PyMorphOS_InitGVars(struct PyMorphOS_GVar_STRUCT *storage)
 {
     PythonBase->PythonGVars = storage;
 
