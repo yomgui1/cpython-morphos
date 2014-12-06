@@ -3,6 +3,10 @@
 
 #define MODULE_NAME "_warnings"
 
+#ifdef HAVE_DECLSPEC_DLL
+PyAPI_FUNC(int) PyErr_VaWarnFormat(PyObject *, Py_ssize_t, const char *, va_list);
+#endif
+
 PyDoc_STRVAR(warnings__doc__,
 MODULE_NAME " provides basic warning filtering support.\n"
 "It is a helper module to speed up interpreter start-up.");
@@ -821,7 +825,7 @@ PyErr_WarnFormat(PyObject *category, Py_ssize_t stack_level,
 
 int
 PyErr_VaWarnFormat(PyObject *category, Py_ssize_t stack_level,
-				   const char *format, va_list va)
+                   const char *format, va_list va)
 {
 	int ret;
 	PyObject *message;

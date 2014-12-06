@@ -3,6 +3,8 @@
 #include <Python.h>
 #include <stdarg.h>
 
+extern PyObject *_PyErr_VaTrySetFromCause(const char *, va_list);
+
 int
 PyArg_Parse(PyObject *args, const char *format, ...)
 {
@@ -224,7 +226,7 @@ _PyErr_TrySetFromCause(const char *format, ...)
 
     va_start(va, format);
     retval = _PyErr_VaTrySetFromCause(format, va);
-    va_end(vargs);
+    va_end(va);
 	return retval;
 }
 
