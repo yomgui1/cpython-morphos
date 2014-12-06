@@ -17,6 +17,10 @@ PyObject *PyExc_IOError = NULL;
 PyObject *PyExc_WindowsError = NULL;
 #endif
 
+#ifdef HAVE_DECLSPEC_DLL
+PyAPI_FUNC(PyObject *) _PyErr_VaTrySetFromCause(const char *, va_list);
+#endif
+
 /* The dict map from errno codes to OSError subclasses */
 static PyObject *errnomap = NULL;
 
@@ -2692,7 +2696,7 @@ _PyExc_Fini(void)
  * existing exception was left in place.
  */
 PyObject *
-_PyErr_TrySetFromCause(const char *format, ...)
+_PyErr_VaTrySetFromCause(const char *format, va_list va)
 {
     PyObject* msg_prefix;
     PyObject *exc, *val, *tb;
@@ -2770,13 +2774,7 @@ _PyErr_TrySetFromCause(const char *format, ...)
         Py_DECREF(tb);
     }
 
-#ifdef HAVE_STDARG_PROTOTYPES
-    va_start(vargs, format);
-#else
-    va_start(vargs);
-#endif
     msg_prefix = PyUnicode_FromFormatV(format, vargs);
-    va_end(vargs);
     if (msg_prefix == NULL) {
         Py_DECREF(exc);
         Py_DECREF(val);
@@ -2792,6 +2790,22 @@ _PyErr_TrySetFromCause(const char *format, ...)
     PyException_SetCause(new_val, val);
     PyErr_Restore(new_exc, new_val, new_tb);
     return new_val;
+}
+
+PyObject *
+_PyErr_TrySetFromCause(const char *format, ...)
+{
+	va_list va;
+	PyObject *retval;
+
+#ifdef HAVE_STDARG_PROTOTYPES
+    va_start(va, format);
+#else
+    va_start(va);
+#endif
+    retval = _PyErr_VaTrySetFromCause(format, va);
+    va_end(va);
+	return retval;
 }
 
 

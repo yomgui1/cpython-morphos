@@ -820,6 +820,26 @@ PyErr_WarnFormat(PyObject *category, Py_ssize_t stack_level,
 }
 
 int
+PyErr_VaWarnFormat(PyObject *category, Py_ssize_t stack_level,
+				   const char *format, va_list va)
+{
+	int ret;
+	PyObject *message;
+	va_list lva;
+
+	Py_VA_COPY(lva, va);
+
+	message = PyUnicode_FromFormatV(format, lva);
+	if (message != NULL) {
+        ret = warn_unicode(category, message, stack_level);
+        Py_DECREF(message);
+    }
+    else
+        ret = -1;
+	return ret;
+}
+
+int
 PyErr_WarnEx(PyObject *category, const char *text, Py_ssize_t stack_level)
 {
     int ret;

@@ -20,6 +20,9 @@ int PyArg_VaParseTupleAndKeywords(PyObject *, PyObject *,
 
 #ifdef HAVE_DECLSPEC_DLL
 /* Export functions */
+PyAPI_FUNC(int) _PyArg_VaParseOld(PyObject *, const char *, va_list);
+PyAPI_FUNC(int) _PyArg_VaParseOld_SizeT(PyObject *, char *, va_list);
+
 PyAPI_FUNC(int) _PyArg_Parse_SizeT(PyObject *, char *, ...);
 PyAPI_FUNC(int) _PyArg_ParseTuple_SizeT(PyObject *, char *, ...);
 PyAPI_FUNC(int) _PyArg_ParseTupleAndKeywords_SizeT(PyObject *, PyObject *,
@@ -28,6 +31,7 @@ PyAPI_FUNC(PyObject *) _Py_BuildValue_SizeT(const char *, ...);
 PyAPI_FUNC(int) _PyArg_VaParse_SizeT(PyObject *, char *, va_list);
 PyAPI_FUNC(int) _PyArg_VaParseTupleAndKeywords_SizeT(PyObject *, PyObject *,
                                               const char *, char **, va_list);
+
 #endif
 
 #define FLAG_COMPAT 1
@@ -130,6 +134,16 @@ PyArg_VaParse(PyObject *args, const char *format, va_list va)
 }
 
 int
+_PyArg_VaParseOld(PyObject *args, const char *format, va_list va)
+{
+    va_list lva;
+
+        Py_VA_COPY(lva, va);
+
+    return vgetargs1(args, format, &lva, FLAG_COMPAT);
+}
+
+int
 _PyArg_VaParse_SizeT(PyObject *args, char *format, va_list va)
 {
     va_list lva;
@@ -139,7 +153,15 @@ _PyArg_VaParse_SizeT(PyObject *args, char *format, va_list va)
     return vgetargs1(args, format, &lva, FLAG_SIZE_T);
 }
 
+int
+_PyArg_VaParseOld_SizeT(PyObject *args, char *format, va_list va)
+{
+    va_list lva;
 
+        Py_VA_COPY(lva, va);
+
+    return vgetargs1(args, format, &lva, FLAG_COMPAT|FLAG_SIZE_T);
+}
 /* Handle cleanup of allocated memory in case of exception */
 
 static int
