@@ -13,6 +13,10 @@
 # undef HAVE_FTIME
 #endif
 
+#ifdef __MORPHOS__
+#include <proto/timer.h>
+#endif
+
 #if defined(HAVE_FTIME) && !defined(MS_WINDOWS)
 #include <sys/timeb.h>
 extern int ftime(struct timeb *);
@@ -46,6 +50,17 @@ pygettimeofday(_PyTime_timeval *tp, _Py_clock_info_t *info)
         info->resolution = timeIncrement * 1e-7;
         info->adjustable = 1;
     }
+#elif defined(__MORPHOS__)
+    struct timeval tv;
+    GetSysTime(&tv);
+    if (info) {
+        info->implementation = "GetSysTime()";
+        info->monotonic = 0;
+        info->adjustable = 1;
+        info->resolution = 1e-6;
+    }
+    tp->tv_sec = tv.tv_sec;
+    tp->tv_usec = tv.tv_micro;
 #else
     /* There are three ways to get the time:
       (1) gettimeofday() -- resolution in microseconds
