@@ -48,6 +48,7 @@ extern PyObject* PyInit_atexit(void);
 extern PyObject* PyInit__stat(void);
 extern PyObject* PyInit__tracemalloc(void);
 extern PyObject* PyInit__struct(void);
+extern PyObject* PyInit_faulthandler(void);
 
 /* -- ADDMODULE MARKER 1 -- */
 
@@ -84,6 +85,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"_stat",        PyInit__stat},
     {"_tracemalloc", PyInit__tracemalloc},
     {"_struct",      PyInit__struct},
+    {"faulthandler", PyInit_faulthandler},
 
 /* -- ADDMODULE MARKER 2 -- */
 
