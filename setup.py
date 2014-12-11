@@ -585,10 +585,9 @@ class PyBuildExt(build_ext):
             time_libs.append(lib)
 
         # time operations and variables
-        if host_platform != 'morphos-ppc':
-            exts.append( Extension('time', ['timemodule.c'],
-                                   libraries=time_libs) )
-            exts.append( Extension('_datetime', ['_datetimemodule.c']) )
+        exts.append( Extension('time', ['timemodule.c'],
+                               libraries=time_libs) )
+        exts.append( Extension('_datetime', ['_datetimemodule.c']) )
         # random number generator implemented in C
         exts.append( Extension("_random", ["_randommodule.c"]) )
         # bisect

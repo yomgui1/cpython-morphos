@@ -26,7 +26,6 @@
 
 /* Host modules */
 extern PyObject* PyInit_morphos(void);
-extern PyObject* PyInit_time(void);
 
 /* No shared modules */
 extern PyObject* PyInit__io(void);
@@ -63,7 +62,6 @@ struct _inittab _PyImport_Inittab[] = {
 
     /* Host modules */
     {"morphos",      PyInit_morphos},
-    {"time",         PyInit_time},
     {"_thread",      PyInit__thread},
     {"signal",       PyInit_signal},
 

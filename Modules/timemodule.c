@@ -41,6 +41,13 @@
 #include <mach/mach_time.h>
 #endif
 
+#if defined(__MORPHOS__)
+#include <proto/exec.h>
+#include <proto/timer.h>
+#include <exec/system.h>
+#endif
+
+
 /* Forward declarations */
 static int floatsleep(double);
 static PyObject* floattime(_Py_clock_info_t *info);
@@ -903,7 +910,7 @@ the local timezone used by methods such as localtime, but this behaviour\n\
 should not be relied on.");
 #endif /* HAVE_WORKING_TZSET */
 
-#if defined(MS_WINDOWS) || defined(__APPLE__) \
+#if defined(MS_WINDOWS) || defined(__APPLE__) || defined(__MORPHOS__) \
     || (defined(HAVE_CLOCK_GETTIME) \
         && (defined(CLOCK_HIGHRES) || defined(CLOCK_MONOTONIC)))
 #define PYMONOTONIC
@@ -992,6 +999,16 @@ pymonotonic(_Py_clock_info_t *info)
     }
     return PyFloat_FromDouble(secs);
 
+#elif defined(__MORPHOS__)
+    QUAD ec_val;
+    ULONG freq = ReadEClock((struct EClockVal *)&ec_val);
+    if (info) {
+        info->implementation = "ReadEClock()";
+        info->resolution = (double)1 / freq;
+        info->monotonic = 1;
+        info->adjustable = 0;
+    }
+    return PyFloat_FromDouble(((double)ec_val) / freq );
 #elif defined(HAVE_CLOCK_GETTIME) && (defined(CLOCK_HIGHRES) || defined(CLOCK_MONOTONIC))
     struct timespec tp;
 #ifdef CLOCK_HIGHRES
@@ -1038,6 +1055,17 @@ perf_counter(_Py_clock_info_t *info)
 {
 #if defined(WIN32_PERF_COUNTER) || defined(PYMONOTONIC)
     PyObject *res;
+#endif
+#if defined(__MORPHOS__)
+    UQUAD value;
+    ULONG freq = ReadCPUClock(&value);
+    if (info) {
+        info->monotonic = 1;
+        info->implementation = "ReadCPUClock()";
+        info->adjustable = 0;
+        info->resolution = (double)1 / freq;
+    }
+    return PyFloat_FromDouble((double)value / freq);
 #endif
 #if defined(WIN32_PERF_COUNTER)
     static int use_perf_counter = 1;
@@ -1106,6 +1134,24 @@ py_process_time(_Py_clock_info_t *info)
         info->adjustable = 0;
     }
     return PyFloat_FromDouble(total * 1e-7);
+#elif defined(__MORPHOS__)
+    UQUAD data=0;
+    ULONG freq=1;
+    if (!NewGetTaskAttrsA(NULL, &data, sizeof(data), TASKINFOTYPE_CPUTIME, NULL)) {
+        PyErr_SetString(PyExc_OSError, "NewGetTaskAttrsA() failed");
+        return NULL;
+    }
+    if (!NewGetSystemAttrsA(&freq, sizeof(freq), SYSTEMINFOTYPE_TBCLOCKFREQUENCY, NULL)) {
+        PyErr_SetString(PyExc_OSError, "NewGetSystemAttrsA() failed");
+        return NULL;
+    }
+    if (info) {
+        info->implementation = "TASKINFOTYPE_CPUTIME";
+        info->resolution = 1e-6;
+        info->monotonic = 1;
+        info->adjustable = 0;
+    }
+    return PyFloat_FromDouble((double)data / freq);
 #else
 
 #if defined(HAVE_SYS_RESOURCE_H)

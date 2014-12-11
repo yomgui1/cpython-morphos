@@ -234,7 +234,6 @@ MACHDEP_MODULES_SRCS = \
 	Modules/atexitmodule.c \
 	Modules/_stat.c \
 	$(MACHDEP_DIR)/morphosmodule.c \
-	$(MACHDEP_DIR)/timemodule.c \
 	$(IO_SRCS)
 
 OPTIONAL_MODS = \
