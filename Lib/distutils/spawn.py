@@ -173,6 +173,7 @@ def _spawn_posix(cmd, search_path=1, verbose=0, dry_run=0):
 
 def _spawn_morphos(cmd, search_path=1, verbose=0, dry_run=0):
     executable = cmd[0]
+    cmd = _nt_quote_args(cmd)
     if search_path:
         # either we find one or it stays the same
         executable = find_executable(executable) or executable

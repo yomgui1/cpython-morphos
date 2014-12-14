@@ -51,15 +51,15 @@ class MorphOSCCompiler(CCompiler):
     # are pretty generic; they will probably have to be set by an outsider
     # (eg. using information discovered by the sysconfig about building
     # Python extensions).
-    executables = {'preprocessor' : [compiler_prefix+"gcc", "-E"],
-                   'compiler'     : [compiler_prefix+"gcc"],
-                   'compiler_so'  : [compiler_prefix+"gcc"],
-                   'compiler_cxx' : [compiler_prefix+"g++"],
-                   'linker_so'    : [compiler_prefix+"gcc"],
-                   'linker_exe'   : [compiler_prefix+"gcc"],
-                   'archiver'     : [compiler_prefix+"ar", "-cr"],
-                   'ranlib'       : [compiler_prefix+"ranlib"],
-                   'stripper'     : [compiler_prefix+"strip"],
+    executables = {'preprocessor' : compiler_prefix+"gcc -E -noixemul",
+                   'compiler'     : compiler_prefix+"gcc -noixemul",
+                   'compiler_so'  : compiler_prefix+"gcc -noixemul",
+                   'compiler_cxx' : compiler_prefix+"g++ -noixemul",
+                   'linker_so'    : compiler_prefix+"gcc -noixemul",
+                   'linker_exe'   : compiler_prefix+"gcc -noixemul",
+                   'archiver'     : compiler_prefix+"ar -cr",
+                   'ranlib'       : compiler_prefix+"ranlib",
+                   'stripper'     : compiler_prefix+"strip",
                   }
 
     # Needed for the filename generation methods provided by the base
@@ -78,17 +78,13 @@ class MorphOSCCompiler(CCompiler):
 
         cflags, ldflags, ldflags_shared = sysconfig.get_config_vars('CFLAGS', 'LDFLAGS', 'LDFLAGS_SHARED')
 
-        cflags += ' -I'+os.path.dirname(sysconfig.get_config_h_filename())
+        cflags = ' ' + cflags + ' -I'+os.path.dirname(sysconfig.get_config_h_filename())
 
-        cflags = '-noixemul ' + cflags
-        ldflags = '-noixemul ' + ldflags
-        ldflags_shared = '-noixemul ' + ldflags_shared
-
-        cpp = self.executables['preprocessor'] + [cflags]
-        cc_cmd = self.executables['compiler'] + [cflags]
-        cxx_cmd = self.executables['compiler_cxx'] + [cflags]
-        ld_cmd = self.executables['compiler'] + [ldflags]
-        ldshared_cmd = self.executables['compiler'] + [ldflags_shared]
+        cpp = self.executables['preprocessor'] + cflags
+        cc_cmd = self.executables['compiler'] + cflags
+        cxx_cmd = self.executables['compiler_cxx'] + cflags
+        ld_cmd = self.executables['compiler'] + ' ' + ldflags
+        ldshared_cmd = self.executables['compiler'] + ' ' + ldflags_shared
 
         self.set_executables(preprocessor=cpp,
                              compiler=cc_cmd,
@@ -103,7 +99,7 @@ class MorphOSCCompiler(CCompiler):
         ignore, macros, include_dirs = \
             self._fix_compile_args(None, macros, include_dirs)
         pp_opts = gen_preprocess_options(macros, include_dirs)
-        pp_args = self.preprocessor + pp_opts
+        pp_args = [self.preprocessor] + pp_opts
         if output_file:
             pp_args.extend(['-o', output_file])
         if extra_preargs:
@@ -146,7 +142,7 @@ class MorphOSCCompiler(CCompiler):
 
             if not debug:
                 try:
-                    self.spawn([self.stripper, '-R.comment', '--strip-debug', output_filename])
+                    self.spawn(self.stripper + ['-R.comment', '--strip-debug', output_filename])
                 except DistutilsExecError as msg:
                     raise LibError(msg)
         else:
@@ -188,11 +184,11 @@ class MorphOSCCompiler(CCompiler):
             self.mkpath(os.path.dirname(output_filename))
             try:
                 if target_desc == CCompiler.EXECUTABLE:
-                    linker = self.linker_exe[:]
+                    linker = self.linker_exe
                 else:
-                    linker = self.linker_so[:]
+                    linker = self.linker_so
                 if target_lang == "c++" and self.compiler_cxx:
-                    linker[0] = self.compiler_cxx[0]
+                    linker = self.compiler_cxx
                 self.spawn(linker + ld_args)
             except DistutilsExecError as msg:
                 raise LinkError(msg)
